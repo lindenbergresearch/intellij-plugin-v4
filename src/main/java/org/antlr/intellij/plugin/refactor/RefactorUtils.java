@@ -5,11 +5,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
@@ -18,11 +14,7 @@ import org.antlr.v4.runtime.tree.xpath.XPath;
 import org.antlr.v4.tool.Grammar;
 import org.stringtemplate.v4.misc.Misc;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RefactorUtils {
 	public static final Map<String,String> literalToRuleNameMap = new HashMap<String, String>() {{

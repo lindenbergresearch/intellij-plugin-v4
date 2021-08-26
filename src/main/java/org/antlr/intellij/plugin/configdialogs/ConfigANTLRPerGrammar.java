@@ -10,7 +10,6 @@ import org.antlr.intellij.plugin.parsing.CaseChangingStrategy;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import java.util.Objects;
 
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getGrammarProperties;

@@ -3,8 +3,8 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
-import org.antlr.intellij.plugin.validation.CreateRuleFix;
 import org.antlr.intellij.plugin.validation.AddTokenDefinitionFix;
+import org.antlr.intellij.plugin.validation.CreateRuleFix;
 import org.antlr.v4.tool.ErrorType;
 import org.jetbrains.annotations.NotNull;
 
