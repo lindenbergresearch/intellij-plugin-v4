@@ -10,11 +10,13 @@ public class ANTLRv4FileRoot extends PsiFileBase {
         super(viewProvider, ANTLRv4Language.INSTANCE);
     }
 
+
     @NotNull
     @Override
     public FileType getFileType() {
         return ANTLRv4FileType.INSTANCE;
     }
+
 
     @Override
     public String toString() {

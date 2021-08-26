@@ -11,20 +11,24 @@ public class AddTokenDefinitionFixTest {
     private static final int TOKEN_EXPR_START_OFFSET = 10;
     private static final int ELEMENT_LENGTH = 20;
 
+
     @Test
     public void shouldCreateTokenDefinitionText() {
         Assert.assertEquals("M Y T O K E N", AddTokenDefinitionFix.buildTokenDefinitionExpressionText("MYTOKEN"));
     }
+
 
     @Test
     public void shouldCreateTokenDefinitionTextWhenHavingLowercase() {
         Assert.assertEquals("M Y T O K E N", AddTokenDefinitionFix.buildTokenDefinitionExpressionText("MYToken"));
     }
 
+
     @Test
     public void shouldCreateTokenDefinitionTextWhenHavingNonLetterLiterals() {
         Assert.assertEquals("M Y '_' T O K E N", AddTokenDefinitionFix.buildTokenDefinitionExpressionText("MY_TOKEN"));
     }
+
 
     @Test
     public void shouldGetRangeForReplacement() {

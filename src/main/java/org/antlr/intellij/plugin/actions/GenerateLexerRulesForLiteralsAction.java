@@ -30,102 +30,105 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class GenerateLexerRulesForLiteralsAction extends AnAction {
-	public static final Logger LOG = Logger.getInstance("GenerateLexerRulesForLiterals");
+    public static final Logger LOG = Logger.getInstance("GenerateLexerRulesForLiterals");
 
-	/** Only show if selection is a literal */
-	@Override
-	public void update(AnActionEvent e) {
-		Presentation presentation = e.getPresentation();
-		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
-		if ( grammarFile==null ) {
-			presentation.setEnabled(false);
-			return;
-		}
-		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
-		Editor editor = e.getData(PlatformDataKeys.EDITOR);
-		PsiElement selectedElement = BaseRefactoringAction.getElementAtCaret(editor, file);
-		if ( selectedElement==null ) { // we clicked somewhere outside text
-			presentation.setEnabled(false);
-			return;
-		}
-	}
 
-	@Override
-	public void actionPerformed(AnActionEvent e) {
-		LOG.info("actionPerformed GenerateLexerRulesForLiteralsAction");
-		final Project project = e.getProject();
+    /**
+     * Only show if selection is a literal
+     */
+    @Override
+    public void update(AnActionEvent e) {
+        Presentation presentation = e.getPresentation();
+        VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
+        if (grammarFile == null) {
+            presentation.setEnabled(false);
+            return;
+        }
+        PsiFile file = e.getData(LangDataKeys.PSI_FILE);
+        Editor editor = e.getData(PlatformDataKeys.EDITOR);
+        PsiElement selectedElement = BaseRefactoringAction.getElementAtCaret(editor, file);
+        if (selectedElement == null) { // we clicked somewhere outside text
+            presentation.setEnabled(false);
+            return;
+        }
+    }
 
-		final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
-		if (psiFile == null) {
-			return;
-		}
-		String inputText = psiFile.getText();
-		ParsingResult results = ParsingUtils.parseANTLRGrammar(inputText);
 
-		final Parser parser = results.parser;
-		final ParseTree tree = results.tree;
-		Collection<ParseTree> literalNodes = XPath.findAll(tree, "//ruleBlock//STRING_LITERAL", parser);
-		LinkedHashMap<String, String> lexerRules = new LinkedHashMap<>();
-		for (ParseTree node : literalNodes) {
-			String literal = node.getText();
-			String ruleText = String.format("%s : %s ;",
-											RefactorUtils.getLexerRuleNameFromLiteral(literal), literal);
-			lexerRules.put(literal, ruleText);
-		}
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+        LOG.info("actionPerformed GenerateLexerRulesForLiteralsAction");
+        final Project project = e.getProject();
 
-		// remove those already defined
-		String lexerRulesXPath = "//lexerRule";
-		String treePattern = "<TOKEN_REF> : <STRING_LITERAL>;";
-		ParseTreePattern p = parser.compileParseTreePattern(treePattern, ANTLRv4Parser.RULE_lexerRule);
-		List<ParseTreeMatch> matches = p.findAll(tree, lexerRulesXPath);
+        final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
+        if (psiFile == null) {
+            return;
+        }
+        String inputText = psiFile.getText();
+        ParsingResult results = ParsingUtils.parseANTLRGrammar(inputText);
 
-		for (ParseTreeMatch match : matches) {
-			ParseTree lit = match.get("STRING_LITERAL");
-			if (lexerRules.containsKey(lit.getText())) { // we have rule for this literal already
-				lexerRules.remove(lit.getText());
-			}
-		}
+        final Parser parser = results.parser;
+        final ParseTree tree = results.tree;
+        Collection<ParseTree> literalNodes = XPath.findAll(tree, "//ruleBlock//STRING_LITERAL", parser);
+        LinkedHashMap<String, String> lexerRules = new LinkedHashMap<>();
+        for (ParseTree node : literalNodes) {
+            String literal = node.getText();
+            String ruleText = String.format("%s : %s ;",
+                    RefactorUtils.getLexerRuleNameFromLiteral(literal), literal);
+            lexerRules.put(literal, ruleText);
+        }
 
-		final LiteralChooser chooser =
-			new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
-		chooser.show();
-		List<String> selectedElements = chooser.getSelectedElements();
-		// chooser disposed automatically.
+        // remove those already defined
+        String lexerRulesXPath = "//lexerRule";
+        String treePattern = "<TOKEN_REF> : <STRING_LITERAL>;";
+        ParseTreePattern p = parser.compileParseTreePattern(treePattern, ANTLRv4Parser.RULE_lexerRule);
+        List<ParseTreeMatch> matches = p.findAll(tree, lexerRulesXPath);
 
-		final Editor editor = e.getData(PlatformDataKeys.EDITOR);
-		final Document doc = editor.getDocument();
-		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
-		if (selectedElements != null) {
-			String text = doc.getText();
-			int cursorOffset = editor.getCaretModel().getOffset();
-			// make sure it's not in middle of rule; put between.
-			Collection<ParseTree> allRuleNodes = XPath.findAll(tree, "//ruleSpec", parser);
-			for (ParseTree r : allRuleNodes) {
-				Interval extent = r.getSourceInterval(); // token indexes
-				int start = tokens.get(extent.a).getStartIndex();
-				int stop = tokens.get(extent.b).getStopIndex();
-				if (cursorOffset < start) {
-					// before this rule, so must be between previous and this one
-					cursorOffset = start; // put right before this rule
-					break;
-				}
-				else if (cursorOffset >= start && cursorOffset <= stop) {
-					// cursor in this rule
-					cursorOffset = stop + 2; // put right before this rule (after newline)
-					if (cursorOffset >= text.length()) {
-						cursorOffset = text.length();
-					}
-					break;
-				}
-			}
+        for (ParseTreeMatch match : matches) {
+            ParseTree lit = match.get("STRING_LITERAL");
+            if (lexerRules.containsKey(lit.getText())) { // we have rule for this literal already
+                lexerRules.remove(lit.getText());
+            }
+        }
 
-			String allRules = Utils.join(selectedElements.iterator(), "\n");
-			text =
-				text.substring(0, cursorOffset) +
-					"\n" + allRules + "\n" +
-					text.substring(cursorOffset, text.length());
-			MyPsiUtils.replacePsiFileFromText(project, psiFile, text);
-		}
-	}
+        final LiteralChooser chooser =
+                new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
+        chooser.show();
+        List<String> selectedElements = chooser.getSelectedElements();
+        // chooser disposed automatically.
+
+        final Editor editor = e.getData(PlatformDataKeys.EDITOR);
+        final Document doc = editor.getDocument();
+        final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
+        if (selectedElements != null) {
+            String text = doc.getText();
+            int cursorOffset = editor.getCaretModel().getOffset();
+            // make sure it's not in middle of rule; put between.
+            Collection<ParseTree> allRuleNodes = XPath.findAll(tree, "//ruleSpec", parser);
+            for (ParseTree r : allRuleNodes) {
+                Interval extent = r.getSourceInterval(); // token indexes
+                int start = tokens.get(extent.a).getStartIndex();
+                int stop = tokens.get(extent.b).getStopIndex();
+                if (cursorOffset < start) {
+                    // before this rule, so must be between previous and this one
+                    cursorOffset = start; // put right before this rule
+                    break;
+                } else if (cursorOffset >= start && cursorOffset <= stop) {
+                    // cursor in this rule
+                    cursorOffset = stop + 2; // put right before this rule (after newline)
+                    if (cursorOffset >= text.length()) {
+                        cursorOffset = text.length();
+                    }
+                    break;
+                }
+            }
+
+            String allRules = Utils.join(selectedElements.iterator(), "\n");
+            text =
+                    text.substring(0, cursorOffset) +
+                            "\n" + allRules + "\n" +
+                            text.substring(cursorOffset, text.length());
+            MyPsiUtils.replacePsiFileFromText(project, psiFile, text);
+        }
+    }
 
 }

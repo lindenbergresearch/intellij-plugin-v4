@@ -24,112 +24,114 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.List;
 
-/** Make every ref to a rule unique by dup'ing the rule and making them
- *  rule1, rule2, etc...
+/**
+ * Make every ref to a rule unique by dup'ing the rule and making them
+ * rule1, rule2, etc...
  */
 public class UniquifyRuleRefs extends AnAction {
-	@Override
-	public void update(AnActionEvent e) {
-		MyActionUtils.showOnlyIfSelectionIsRule(e, "Dup to Make %s Refs Unique");
-	}
+    @Override
+    public void update(AnActionEvent e) {
+        MyActionUtils.showOnlyIfSelectionIsRule(e, "Dup to Make %s Refs Unique");
+    }
 
-	@Override
-	public void actionPerformed(AnActionEvent e) {
-		PsiElement el = MyActionUtils.getSelectedPsiElement(e);
-		if ( el==null ) return;
 
-		final String ruleName = el.getText();
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+        PsiElement el = MyActionUtils.getSelectedPsiElement(e);
+        if (el == null) return;
 
-		final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
-		if ( psiFile==null ) return;
+        final String ruleName = el.getText();
 
-		final Project project = e.getProject();
+        final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
+        if (psiFile == null) return;
 
-		Editor editor = e.getData(PlatformDataKeys.EDITOR);
-		if ( editor==null ) return;
-		final Document doc = editor.getDocument();
+        final Project project = e.getProject();
 
-		String grammarText = psiFile.getText();
-		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-		Parser parser = results.parser;
-		ParseTree tree = results.tree;
+        Editor editor = e.getData(PlatformDataKeys.EDITOR);
+        if (editor == null) return;
+        final Document doc = editor.getDocument();
 
-		// find all parser and lexer rule refs
-		final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
-		if ( rrefNodes==null ) return;
+        String grammarText = psiFile.getText();
+        ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
+        Parser parser = results.parser;
+        ParseTree tree = results.tree;
 
-		// find rule def
-		final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
-		if ( ruleDefNameNode==null ) return;
+        // find all parser and lexer rule refs
+        final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
+        if (rrefNodes == null) return;
 
-		// alter rule refs and dup rules
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) {
-				// do in a single action so undo works in one go
-				dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
-			}
-		};
-		setTextAction.execute();
-	}
+        // find rule def
+        final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
+        if (ruleDefNameNode == null) return;
 
-	public void dupRuleAndMakeRefsUnique(Document doc,
-	                                     String ruleName,
-	                                     List<TerminalNode> rrefNodes)
-	{
-		int base = 0;
-		int i = 1;
-		int nrefs = rrefNodes.size();
+        // alter rule refs and dup rules
+        WriteCommandAction setTextAction = new WriteCommandAction(project) {
+            @Override
+            protected void run(final Result result) {
+                // do in a single action so undo works in one go
+                dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
+            }
+        };
+        setTextAction.execute();
+    }
 
-		if ( nrefs==1 ) return; // no need to make unique if already unique
 
-		for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
-			Token rrefToken = t.getSymbol();
-			String uniqueRuleName = ruleName+i;
-			doc.replaceString(base+rrefToken.getStartIndex(), base+rrefToken.getStopIndex()+1, uniqueRuleName);
-			// text shifts underneath us so we adjust token start/stop indexes into doc
-			base += uniqueRuleName.length() - rrefToken.getText().length();
-			i++;
-		}
+    public void dupRuleAndMakeRefsUnique(Document doc,
+                                         String ruleName,
+                                         List<TerminalNode> rrefNodes) {
+        int base = 0;
+        int i = 1;
+        int nrefs = rrefNodes.size();
 
-		// reparse to find new rule location
-		String grammarText = doc.getText();
-		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-		Parser parser = results.parser;
-		ParseTree tree = results.tree;
-		CommonTokenStream tokens = (CommonTokenStream)parser.getTokenStream();
+        if (nrefs == 1) return; // no need to make unique if already unique
 
-		// find rule def
-		final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
-		if ( ruleDefNameNode==null ) return;
+        for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
+            Token rrefToken = t.getSymbol();
+            String uniqueRuleName = ruleName + i;
+            doc.replaceString(base + rrefToken.getStartIndex(), base + rrefToken.getStopIndex() + 1, uniqueRuleName);
+            // text shifts underneath us so we adjust token start/stop indexes into doc
+            base += uniqueRuleName.length() - rrefToken.getText().length();
+            i++;
+        }
 
-		final ParserRuleContext ruleDefNode = (ParserRuleContext)ruleDefNameNode.getParent();
-		Token start = ruleDefNode.getStart();
-		Token stop = ruleDefNode.getStop();
-		int insertionPoint = start.getStartIndex();
-		String javadoc = "";
-		if ( start.getType()==ANTLRv4Lexer.DOC_COMMENT ) {
-			javadoc = start.getText() + "\n";
-		}
+        // reparse to find new rule location
+        String grammarText = doc.getText();
+        ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
+        Parser parser = results.parser;
+        ParseTree tree = results.tree;
+        CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
 
-		// delete original rule
-		List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
-		if ( hiddenTokensToRight!=null && hiddenTokensToRight.size()>0 ) {
-			// remove extra whitespace but not trailing comments (if any)
-			// javadoc is included in start (if any) as it's not hidden
-			Token afterSemi = hiddenTokensToRight.get(0);
-			if ( afterSemi.getType()==ANTLRv4Lexer.WS ) {
-				stop = afterSemi;
-			}
-		}
-		doc.deleteString(start.getStartIndex(), stop.getStopIndex()+1);
+        // find rule def
+        final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
+        if (ruleDefNameNode == null) return;
 
-		// now insert nrefs copies of ruleText at insertionPoint
-		final String ruleText = RefactorUtils.getRuleText(tokens, ruleDefNode);
-		for (i=nrefs; i>=1; i--) {
-			String uniqueRuleName = ruleName+i;
-			final String newRule = javadoc + uniqueRuleName + " : " + ruleText + " ;" + "\n\n";
-			doc.insertString(insertionPoint, newRule);
-		}
-	}
+        final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
+        Token start = ruleDefNode.getStart();
+        Token stop = ruleDefNode.getStop();
+        int insertionPoint = start.getStartIndex();
+        String javadoc = "";
+        if (start.getType() == ANTLRv4Lexer.DOC_COMMENT) {
+            javadoc = start.getText() + "\n";
+        }
+
+        // delete original rule
+        List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
+        if (hiddenTokensToRight != null && hiddenTokensToRight.size() > 0) {
+            // remove extra whitespace but not trailing comments (if any)
+            // javadoc is included in start (if any) as it's not hidden
+            Token afterSemi = hiddenTokensToRight.get(0);
+            if (afterSemi.getType() == ANTLRv4Lexer.WS) {
+                stop = afterSemi;
+            }
+        }
+        doc.deleteString(start.getStartIndex(), stop.getStopIndex() + 1);
+
+        // now insert nrefs copies of ruleText at insertionPoint
+        final String ruleText = RefactorUtils.getRuleText(tokens, ruleDefNode);
+        for (i = nrefs; i >= 1; i--) {
+            String uniqueRuleName = ruleName + i;
+            final String newRule = javadoc + uniqueRuleName + " : " + ruleText + " ;" + "\n\n";
+            doc.insertString(insertionPoint, newRule);
+        }
+    }
 }

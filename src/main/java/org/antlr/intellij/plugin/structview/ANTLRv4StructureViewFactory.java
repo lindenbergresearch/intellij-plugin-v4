@@ -15,38 +15,43 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class ANTLRv4StructureViewFactory implements PsiStructureViewFactory {
-	/** fake a blank Treeview with a warning */
-	public static class DummyViewTreeElement extends PsiTreeElementBase<PsiElement> {
-		public DummyViewTreeElement(PsiElement psiElement) {
-			super(psiElement);
-		}
-
-		@NotNull
-		@Override
-		public Collection<StructureViewTreeElement> getChildrenBase() {
-			return Collections.emptyList();
-		}
-
-		@Nullable
-		@Override
-		public String getPresentableText() {
-			return "Sorry .g not supported (use .g4)";
-		}
-	}
-
-	@Nullable
+    @Nullable
     @Override
     public StructureViewBuilder getStructureViewBuilder(final PsiFile psiFile) {
         return new TreeBasedStructureViewBuilder() {
-			@NotNull
-			@Override
-			public StructureViewModel createStructureViewModel(@Nullable Editor editor) {
-				VirtualFile grammarFile = psiFile.getVirtualFile();
-				if ( grammarFile==null || !grammarFile.getName().endsWith(".g4") ) {
-					return new StructureViewModelBase(psiFile, new DummyViewTreeElement(psiFile));
-				}
-                return new ANTLRv4StructureViewModel((ANTLRv4FileRoot)psiFile);
-			}
+            @NotNull
+            @Override
+            public StructureViewModel createStructureViewModel(@Nullable Editor editor) {
+                VirtualFile grammarFile = psiFile.getVirtualFile();
+                if (grammarFile == null || !grammarFile.getName().endsWith(".g4")) {
+                    return new StructureViewModelBase(psiFile, new DummyViewTreeElement(psiFile));
+                }
+                return new ANTLRv4StructureViewModel((ANTLRv4FileRoot) psiFile);
+            }
         };
+    }
+
+
+    /**
+     * fake a blank Treeview with a warning
+     */
+    public static class DummyViewTreeElement extends PsiTreeElementBase<PsiElement> {
+        public DummyViewTreeElement(PsiElement psiElement) {
+            super(psiElement);
+        }
+
+
+        @NotNull
+        @Override
+        public Collection<StructureViewTreeElement> getChildrenBase() {
+            return Collections.emptyList();
+        }
+
+
+        @Nullable
+        @Override
+        public String getPresentableText() {
+            return "Sorry .g not supported (use .g4)";
+        }
     }
 }

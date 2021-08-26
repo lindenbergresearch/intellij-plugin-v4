@@ -7,32 +7,34 @@ import org.antlr.intellij.plugin.TestUtils;
 
 public class ANTLRv4FoldingBuilderTest extends LightPlatformCodeInsightFixtureTestCase {
 
-	public void test_folding_should_not_throw_on_incomplete_prequel() {
-		// Given
-		myFixture.configureByText("foo.g4", "grammar foo;\n @\n");
+    public void test_folding_should_not_throw_on_incomplete_prequel() {
+        // Given
+        myFixture.configureByText("foo.g4", "grammar foo;\n @\n");
 
-		// When
-		CodeFoldingManager.getInstance(getProject()).buildInitialFoldings(myFixture.getEditor());
+        // When
+        CodeFoldingManager.getInstance(getProject()).buildInitialFoldings(myFixture.getEditor());
 
-		// Then
-		FoldRegion[] allFoldRegions = myFixture.getEditor().getFoldingModel().getAllFoldRegions();
-		assertEquals(0, allFoldRegions.length);
-	}
+        // Then
+        FoldRegion[] allFoldRegions = myFixture.getEditor().getFoldingModel().getAllFoldRegions();
+        assertEquals(0, allFoldRegions.length);
+    }
 
-	public void test_should_not_fold_single_line() {
-		// Given
-		myFixture.configureByText("foo.g4", "grammar foo;\n @members { int i; }\n");
 
-		// When
-		CodeFoldingManager.getInstance(getProject()).buildInitialFoldings(myFixture.getEditor());
+    public void test_should_not_fold_single_line() {
+        // Given
+        myFixture.configureByText("foo.g4", "grammar foo;\n @members { int i; }\n");
 
-		// Then
-		FoldRegion[] allFoldRegions = myFixture.getEditor().getFoldingModel().getAllFoldRegions();
-		assertEquals(0, allFoldRegions.length);
-	}
+        // When
+        CodeFoldingManager.getInstance(getProject()).buildInitialFoldings(myFixture.getEditor());
 
-	@Override
-	protected void tearDown() throws Exception {
-		TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
-	}
+        // Then
+        FoldRegion[] allFoldRegions = myFixture.getEditor().getFoldingModel().getAllFoldRegions();
+        assertEquals(0, allFoldRegions.length);
+    }
+
+
+    @Override
+    protected void tearDown() throws Exception {
+        TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
+    }
 }

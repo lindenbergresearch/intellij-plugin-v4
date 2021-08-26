@@ -19,13 +19,14 @@ import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesSt
  */
 public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposable {
 
+    private final Project project;
     private ConfigANTLRPerGrammar configurationForm;
 
-    private final Project project;
 
     public ANTLRv4ProjectSettings(@NotNull Project project) {
         this.project = project;
     }
+
 
     @NotNull
     @Override
@@ -33,11 +34,13 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
         return "ANTLR4ProjectSettings";
     }
 
+
     @Nullable
     @Override
     public Runnable enableSearch(String option) {
         return null;
     }
+
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -45,10 +48,12 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
         return "ANTLR4 Project Settings";
     }
 
+
     @Nullable
     public String getHelpTopic() {
         return "ANTLR4 Project Settings";
     }
+
 
     @Nullable
     @Override
@@ -57,25 +62,30 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
         return configurationForm.createCenterPanel();
     }
 
+
     @Override
     public boolean isModified() {
         ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
         return configurationForm.isModified(grammarProperties);
     }
 
+
     @Override
     public void apply() {
         configurationForm.saveValues(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
     }
 
+
     public void reset() {
         configurationForm.loadValues(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
     }
+
 
     @Override
     public void disposeUIResources() {
         Disposer.dispose(configurationForm.getDisposable());
     }
+
 
     @Override
     public void dispose() {

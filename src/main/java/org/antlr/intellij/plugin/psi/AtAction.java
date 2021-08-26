@@ -9,37 +9,41 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.jetbrains.annotations.NotNull;
 
 public class AtAction extends ASTWrapperPsiElement {
-	public AtAction(@NotNull ASTNode node) {
-		super(node);
-	}
+    public AtAction(@NotNull ASTNode node) {
+        super(node);
+    }
 
-	@NotNull
-	public String getIdText() {
-		PsiElement id = findChildByType(ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_identifier));
 
-		return id==null ? "<n/a>" : id.getText();
-	}
+    @NotNull
+    public String getIdText() {
+        PsiElement id = findChildByType(ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_identifier));
 
-	@NotNull
-	public String getActionBlockText() {
-		PsiElement actionBlock = findChildByType(ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_actionBlock));
+        return id == null ? "<n/a>" : id.getText();
+    }
 
-		if (actionBlock != null) {
-			PsiElement openingBrace = actionBlock.getFirstChild();
-			PsiElement closingBrace = actionBlock.getLastChild();
 
-			return actionBlock.getText().substring(openingBrace.getStartOffsetInParent() + 1, closingBrace.getStartOffsetInParent());
-		}
+    @NotNull
+    public String getActionBlockText() {
+        PsiElement actionBlock = findChildByType(ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_actionBlock));
 
-		return "";
-	}
+        if (actionBlock != null) {
+            PsiElement openingBrace = actionBlock.getFirstChild();
+            PsiElement closingBrace = actionBlock.getLastChild();
 
-	public static class Factory implements PsiElementFactory {
-		public static Factory INSTANCE = new Factory();
+            return actionBlock.getText().substring(openingBrace.getStartOffsetInParent() + 1, closingBrace.getStartOffsetInParent());
+        }
 
-		@Override
-		public PsiElement createElement(ASTNode node) {
-			return new AtAction(node);
-		}
-	}
+        return "";
+    }
+
+
+    public static class Factory implements PsiElementFactory {
+        public static Factory INSTANCE = new Factory();
+
+
+        @Override
+        public PsiElement createElement(ASTNode node) {
+            return new AtAction(node);
+        }
+    }
 }

@@ -15,32 +15,35 @@ import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.getTokenElementType;
 
 public class ANTLRv4IndexPatternBuilder implements IndexPatternBuilder {
 
-	@Nullable
-	@Override
-	public Lexer getIndexingLexer(@NotNull PsiFile file) {
-		if ( file instanceof ANTLRv4FileRoot ) {
-			ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
-			return new ANTLRv4LexerAdaptor(lexer);
-		}
-		return null;
-	}
+    @Nullable
+    @Override
+    public Lexer getIndexingLexer(@NotNull PsiFile file) {
+        if (file instanceof ANTLRv4FileRoot) {
+            ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
+            return new ANTLRv4LexerAdaptor(lexer);
+        }
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public TokenSet getCommentTokenSet(@NotNull PsiFile file) {
-		if ( file instanceof ANTLRv4FileRoot ) {
-			return TokenSet.create(getTokenElementType(ANTLRv4Lexer.LINE_COMMENT));
-		}
-		return null;
-	}
 
-	@Override
-	public int getCommentStartDelta(IElementType tokenType) {
-		return tokenType==getTokenElementType(ANTLRv4Lexer.LINE_COMMENT) ? 2 : 0;
-	}
+    @Nullable
+    @Override
+    public TokenSet getCommentTokenSet(@NotNull PsiFile file) {
+        if (file instanceof ANTLRv4FileRoot) {
+            return TokenSet.create(getTokenElementType(ANTLRv4Lexer.LINE_COMMENT));
+        }
+        return null;
+    }
 
-	@Override
-	public int getCommentEndDelta(IElementType tokenType) {
-		return 0;
-	}
+
+    @Override
+    public int getCommentStartDelta(IElementType tokenType) {
+        return tokenType == getTokenElementType(ANTLRv4Lexer.LINE_COMMENT) ? 2 : 0;
+    }
+
+
+    @Override
+    public int getCommentEndDelta(IElementType tokenType) {
+        return 0;
+    }
 }

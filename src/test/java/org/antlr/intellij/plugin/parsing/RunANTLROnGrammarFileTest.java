@@ -9,26 +9,28 @@ import java.util.List;
 
 public class RunANTLROnGrammarFileTest extends LightPlatformCodeInsightTestCase {
 
-	public void testPackageOptionShouldNotBeAddedIfDeclaredInHeader() {
-		VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithHeader.g4",
-				"grammar myGrammarWithHeader;\n@header { package com.foo.bar; }\nFOO: 'foo';");
-		List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
+    public void testPackageOptionShouldNotBeAddedIfDeclaredInHeader() {
+        VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithHeader.g4",
+                "grammar myGrammarWithHeader;\n@header { package com.foo.bar; }\nFOO: 'foo';");
+        List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
 
-		assertFalse(options.contains("-package"));
-	}
+        assertFalse(options.contains("-package"));
+    }
 
-	public void testPackageOptionShouldBeAddedIfNotDeclaredInHeader() {
-		VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithoutHeader.g4",
-				"grammar myGrammarWithoutHeader; FOO: 'foo';");
-		List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
 
-		assertTrue(options.contains("-package"));
-		assertTrue(options.contains("mypkg"));
-	}
+    public void testPackageOptionShouldBeAddedIfNotDeclaredInHeader() {
+        VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithoutHeader.g4",
+                "grammar myGrammarWithoutHeader; FOO: 'foo';");
+        List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
 
-	@Override
-	protected void tearDown() throws Exception {
-		TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
-	}
+        assertTrue(options.contains("-package"));
+        assertTrue(options.contains("mypkg"));
+    }
+
+
+    @Override
+    protected void tearDown() throws Exception {
+        TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
+    }
 
 }

@@ -16,41 +16,45 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class ANTLRv4ItemPresentation implements ItemPresentation {
-	protected final PsiElement element;
+    protected final PsiElement element;
 
-	protected ANTLRv4ItemPresentation(PsiElement element) {
-		this.element = element;
-	}
 
-	@Nullable
-	public String getLocationString() {
-		return null;
-	}
+    protected ANTLRv4ItemPresentation(PsiElement element) {
+        this.element = element;
+    }
 
-	@Override
-	public String getPresentableText() {
-		if (element instanceof ANTLRv4FileRoot) {
-			GrammarSpecNode gnode = PsiTreeUtil.findChildOfType(element, GrammarSpecNode.class);
-			PsiElement id = MyPsiUtils.findChildOfType(gnode, ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_identifier));
-			if ( id!=null ) {
-				return id.getText();
-			}
-			return "<n/a>";
-		}
-		if ( element instanceof ModeSpecNode ) {
-			ModeSpecNode mode = (ModeSpecNode) element;
-			GrammarElementRefNode modeId = mode.getNameIdentifier();
-			if ( modeId!=null ) {
-				return modeId.getName();
-			}
-			return "<n/a>";
-		}
-		ASTNode node = element.getNode();
-		return node.getText();
-	}
 
-	@Nullable
-	public Icon getIcon(boolean open) {
-		return element.getIcon(0);
-	}
+    @Nullable
+    public String getLocationString() {
+        return null;
+    }
+
+
+    @Override
+    public String getPresentableText() {
+        if (element instanceof ANTLRv4FileRoot) {
+            GrammarSpecNode gnode = PsiTreeUtil.findChildOfType(element, GrammarSpecNode.class);
+            PsiElement id = MyPsiUtils.findChildOfType(gnode, ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_identifier));
+            if (id != null) {
+                return id.getText();
+            }
+            return "<n/a>";
+        }
+        if (element instanceof ModeSpecNode) {
+            ModeSpecNode mode = (ModeSpecNode) element;
+            GrammarElementRefNode modeId = mode.getNameIdentifier();
+            if (modeId != null) {
+                return modeId.getName();
+            }
+            return "<n/a>";
+        }
+        ASTNode node = element.getNode();
+        return node.getText();
+    }
+
+
+    @Nullable
+    public Icon getIcon(boolean open) {
+        return element.getIcon(0);
+    }
 }

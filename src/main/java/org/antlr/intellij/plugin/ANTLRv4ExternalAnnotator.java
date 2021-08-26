@@ -23,117 +23,131 @@ import java.util.Optional;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<GrammarIssue>> {
 
-    /** Called first; return file */
-	@Override
-	@Nullable
-	public PsiFile collectInformation(@NotNull PsiFile file) {
-		return file;
-	}
+    static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue, PsiFile file) {
+        TextRange textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
+        Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType(), file);
+        intentionAction.ifPresent(annotation::registerFix);
+    }
 
-	/** Called 2nd; run antlr on file */
-	@Nullable
-	@Override
-	public List<GrammarIssue> doAnnotate(final PsiFile file) {
-		return GrammarIssuesCollector.collectGrammarIssues(file);
-	}
 
-    /** Called 3rd */
-	@Override
-	public void apply(@NotNull PsiFile file,
-					  List<GrammarIssue> issues,
-					  @NotNull AnnotationHolder holder)
-	{
-		for ( GrammarIssue issue : issues ) {
-			if ( issue.getOffendingTokens().isEmpty() ) {
-				annotateFileIssue(file, holder, issue);
-			} else {
-				annotateIssue(file, holder, issue);
-			}
-		}
+    /**
+     * Called first; return file
+     */
+    @Override
+    @Nullable
+    public PsiFile collectInformation(@NotNull PsiFile file) {
+        return file;
+    }
 
-		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(file.getProject());
-		if ( controller!=null && !ApplicationManager.getApplication().isUnitTestMode() ) {
-			controller.getPreviewPanel().autoRefreshPreview(file.getVirtualFile());
-		}
-	}
 
-	private void annotateFileIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
-		Annotation annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
-		annotation.setFileLevelAnnotation(true);
-	}
+    /**
+     * Called 2nd; run antlr on file
+     */
+    @Nullable
+    @Override
+    public List<GrammarIssue> doAnnotate(final PsiFile file) {
+        return GrammarIssuesCollector.collectGrammarIssues(file);
+    }
 
-	private void annotateIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
-		for ( Token t : issue.getOffendingTokens() ) {
-			if ( t instanceof CommonToken && tokenBelongsToFile(t, file) ) {
-				TextRange range = getTokenRange((CommonToken) t, file);
-				ErrorSeverity severity = getIssueSeverity(issue);
 
-				Optional<Annotation> annotation = annotate(holder, issue, range, severity);
-				annotation.ifPresent(a -> registerFixForAnnotation(a, issue, file));
-			}
-		}
-	}
+    /**
+     * Called 3rd
+     */
+    @Override
+    public void apply(@NotNull PsiFile file,
+                      List<GrammarIssue> issues,
+                      @NotNull AnnotationHolder holder) {
+        for (GrammarIssue issue : issues) {
+            if (issue.getOffendingTokens().isEmpty()) {
+                annotateFileIssue(file, holder, issue);
+            } else {
+                annotateIssue(file, holder, issue);
+            }
+        }
 
-	private ErrorSeverity getIssueSeverity(GrammarIssue issue) {
-		if ( issue.getMsg().getErrorType()!=null ) {
-			return issue.getMsg().getErrorType().severity;
-		}
+        final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(file.getProject());
+        if (controller != null && !ApplicationManager.getApplication().isUnitTestMode()) {
+            controller.getPreviewPanel().autoRefreshPreview(file.getVirtualFile());
+        }
+    }
 
-		return ErrorSeverity.INFO;
-	}
 
-	@NotNull
-	private TextRange getTokenRange(CommonToken ct, @NotNull PsiFile file) {
-		int startIndex = ct.getStartIndex();
-		int stopIndex = ct.getStopIndex();
+    private void annotateFileIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
+        Annotation annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
+        annotation.setFileLevelAnnotation(true);
+    }
 
-		if ( startIndex >= file.getTextLength() ) {
-			// can happen in case of a 'mismatched input EOF' error
-			startIndex = stopIndex = file.getTextLength() - 1;
-		}
 
-		if ( startIndex<0 ) {
-			// can happen on empty files, in that case we won't be able to show any error :/
-			startIndex = 0;
-		}
+    private void annotateIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
+        for (Token t : issue.getOffendingTokens()) {
+            if (t instanceof CommonToken && tokenBelongsToFile(t, file)) {
+                TextRange range = getTokenRange((CommonToken) t, file);
+                ErrorSeverity severity = getIssueSeverity(issue);
 
-		return new TextRange(startIndex, stopIndex + 1);
-	}
+                Optional<Annotation> annotation = annotate(holder, issue, range, severity);
+                annotation.ifPresent(a -> registerFixForAnnotation(a, issue, file));
+            }
+        }
+    }
 
-	private boolean tokenBelongsToFile(Token t, @NotNull PsiFile file) {
-		CharStream inputStream = t.getInputStream();
-		if ( inputStream instanceof ANTLRFileStream ) {
-			// Not equal if the token belongs to an imported grammar
-			return inputStream.getSourceName().equals(file.getVirtualFile().getCanonicalPath());
-		}
 
-		return true;
-	}
+    private ErrorSeverity getIssueSeverity(GrammarIssue issue) {
+        if (issue.getMsg().getErrorType() != null) {
+            return issue.getMsg().getErrorType().severity;
+        }
 
-	private Optional<Annotation> annotate(@NotNull AnnotationHolder holder, GrammarIssue issue, TextRange range, ErrorSeverity severity) {
-		switch ( severity ) {
-		case ERROR:
-		case ERROR_ONE_OFF:
-		case FATAL:
-			return Optional.of(holder.createErrorAnnotation(range, issue.getAnnotation()));
+        return ErrorSeverity.INFO;
+    }
 
-		case WARNING:
-			return Optional.of(holder.createWarningAnnotation(range, issue.getAnnotation()));
 
-		case WARNING_ONE_OFF:
-		case INFO:
-			return Optional.of(holder.createWeakWarningAnnotation(range, issue.getAnnotation()));
+    @NotNull
+    private TextRange getTokenRange(CommonToken ct, @NotNull PsiFile file) {
+        int startIndex = ct.getStartIndex();
+        int stopIndex = ct.getStopIndex();
 
-		default:
-			break;
-		}
-		return Optional.empty();
-	}
+        if (startIndex >= file.getTextLength()) {
+            // can happen in case of a 'mismatched input EOF' error
+            startIndex = stopIndex = file.getTextLength() - 1;
+        }
 
-	static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue, PsiFile file) {
-		TextRange textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
-		Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType(), file);
-		intentionAction.ifPresent(annotation::registerFix);
-	}
+        if (startIndex < 0) {
+            // can happen on empty files, in that case we won't be able to show any error :/
+            startIndex = 0;
+        }
+
+        return new TextRange(startIndex, stopIndex + 1);
+    }
+
+
+    private boolean tokenBelongsToFile(Token t, @NotNull PsiFile file) {
+        CharStream inputStream = t.getInputStream();
+        if (inputStream instanceof ANTLRFileStream) {
+            // Not equal if the token belongs to an imported grammar
+            return inputStream.getSourceName().equals(file.getVirtualFile().getCanonicalPath());
+        }
+
+        return true;
+    }
+
+
+    private Optional<Annotation> annotate(@NotNull AnnotationHolder holder, GrammarIssue issue, TextRange range, ErrorSeverity severity) {
+        switch (severity) {
+            case ERROR:
+            case ERROR_ONE_OFF:
+            case FATAL:
+                return Optional.of(holder.createErrorAnnotation(range, issue.getAnnotation()));
+
+            case WARNING:
+                return Optional.of(holder.createWarningAnnotation(range, issue.getAnnotation()));
+
+            case WARNING_ONE_OFF:
+            case INFO:
+                return Optional.of(holder.createWeakWarningAnnotation(range, issue.getAnnotation()));
+
+            default:
+                break;
+        }
+        return Optional.empty();
+    }
 
 }

@@ -26,124 +26,124 @@ import org.antlr.v4.runtime.tree.Trees;
 import java.util.List;
 
 public class InlineRuleAction extends AnAction {
-	@Override
-	public void update(AnActionEvent e) {
-		MyActionUtils.showOnlyIfSelectionIsRule(e, "Inline and Remove Rule %s");
-	}
+    @Override
+    public void update(AnActionEvent e) {
+        MyActionUtils.showOnlyIfSelectionIsRule(e, "Inline and Remove Rule %s");
+    }
 
-	@Override
-	public void actionPerformed(AnActionEvent e) {
-		PsiElement el = MyActionUtils.getSelectedPsiElement(e);
-		if ( el==null ) return;
 
-		final String ruleName = el.getText();
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+        PsiElement el = MyActionUtils.getSelectedPsiElement(e);
+        if (el == null) return;
 
-		final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
-		if ( psiFile==null ) return;
+        final String ruleName = el.getText();
 
-		final Project project = e.getProject();
+        final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
+        if (psiFile == null) return;
 
-		Editor editor = e.getData(PlatformDataKeys.EDITOR);
-		if ( editor==null ) return;
-		final Document doc = editor.getDocument();
+        final Project project = e.getProject();
 
-		String grammarText = psiFile.getText();
-		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-		Parser parser = results.parser;
-		ParseTree tree = results.tree;
+        Editor editor = e.getData(PlatformDataKeys.EDITOR);
+        if (editor == null) return;
+        final Document doc = editor.getDocument();
 
-		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
+        String grammarText = psiFile.getText();
+        ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
+        Parser parser = results.parser;
+        ParseTree tree = results.tree;
 
-		// find all parser and lexer rule refs
-		final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
-		if ( rrefNodes==null ) return;
+        final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
 
-		// find rule def
-		ParseTree ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
-		if ( ruleDefNameNode==null ) return;
+        // find all parser and lexer rule refs
+        final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
+        if (rrefNodes == null) return;
 
-		// identify rhs of rule
-		final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
-		String ruleText_ = RefactorUtils.getRuleText(tokens, ruleDefNode);
+        // find rule def
+        ParseTree ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
+        if (ruleDefNameNode == null) return;
 
-		// if rule has outermost alt, must add (...) around insertion
-		// Look for ruleBlock, lexerRuleBlock
-		if ( RefactorUtils.ruleHasMultipleOutermostAlts(parser, ruleDefNode) ) {
-			ruleText_ = "("+ruleText_+")";
-		}
-		final String ruleText = ruleText_; // we ref from inner class; requires final
+        // identify rhs of rule
+        final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
+        String ruleText_ = RefactorUtils.getRuleText(tokens, ruleDefNode);
 
-		// replace rule refs with rule text
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) {
-				// do in a single action so undo works in one go
-				replaceRuleRefs(doc,tokens,ruleName,rrefNodes,ruleText);
-			}
-		};
-		setTextAction.execute();
-	}
+        // if rule has outermost alt, must add (...) around insertion
+        // Look for ruleBlock, lexerRuleBlock
+        if (RefactorUtils.ruleHasMultipleOutermostAlts(parser, ruleDefNode)) {
+            ruleText_ = "(" + ruleText_ + ")";
+        }
+        final String ruleText = ruleText_; // we ref from inner class; requires final
 
-	public void replaceRuleRefs(Document doc, CommonTokenStream tokens,
-	                            String ruleName,
-	                            List<TerminalNode> rrefNodes,
-	                            String ruleText)
-	{
-		int base = 0;
-		for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
-			Token rrefToken = t.getSymbol();
-			Token nextToken = tokens.get(rrefToken.getTokenIndex()+1);
-			String thisReplacementRuleText = ruleText;
-			if ( (nextToken.getType()==ANTLRv4Lexer.STAR ||
-				nextToken.getType()==ANTLRv4Lexer.PLUS ||
-				nextToken.getType()==ANTLRv4Lexer.QUESTION) &&
-				!ruleText.startsWith("(") )
-			{
-				// need (...) if we replace foo* or foo+ and ruleText doesn't have parens yet
-				thisReplacementRuleText = "(" + ruleText + ")";
-			}
-			doc.replaceString(base+rrefToken.getStartIndex(), base+rrefToken.getStopIndex()+1, thisReplacementRuleText);
-			// text shifts underneath us so we adjust token start/stop indexes into doc
-			base += thisReplacementRuleText.length() - ruleName.length();
-		}
+        // replace rule refs with rule text
+        WriteCommandAction setTextAction = new WriteCommandAction(project) {
+            @Override
+            protected void run(final Result result) {
+                // do in a single action so undo works in one go
+                replaceRuleRefs(doc, tokens, ruleName, rrefNodes, ruleText);
+            }
+        };
+        setTextAction.execute();
+    }
 
-		// reparse to find new rule location
-		String grammarText = doc.getText();
-		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-		Parser parser = results.parser;
-		ParseTree tree = results.tree;
-		tokens = (CommonTokenStream) parser.getTokenStream();
 
-		// find rule def
-		TerminalNode ruleDefNameNode = (TerminalNode)RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
-		if ( ruleDefNameNode==null ) return;
+    public void replaceRuleRefs(Document doc, CommonTokenStream tokens,
+                                String ruleName,
+                                List<TerminalNode> rrefNodes,
+                                String ruleText) {
+        int base = 0;
+        for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
+            Token rrefToken = t.getSymbol();
+            Token nextToken = tokens.get(rrefToken.getTokenIndex() + 1);
+            String thisReplacementRuleText = ruleText;
+            if ((nextToken.getType() == ANTLRv4Lexer.STAR ||
+                    nextToken.getType() == ANTLRv4Lexer.PLUS ||
+                    nextToken.getType() == ANTLRv4Lexer.QUESTION) &&
+                    !ruleText.startsWith("(")) {
+                // need (...) if we replace foo* or foo+ and ruleText doesn't have parens yet
+                thisReplacementRuleText = "(" + ruleText + ")";
+            }
+            doc.replaceString(base + rrefToken.getStartIndex(), base + rrefToken.getStopIndex() + 1, thisReplacementRuleText);
+            // text shifts underneath us so we adjust token start/stop indexes into doc
+            base += thisReplacementRuleText.length() - ruleName.length();
+        }
 
-		final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
-		Token start = ruleDefNode.getStart();
-		Token stop = ruleDefNode.getStop();
+        // reparse to find new rule location
+        String grammarText = doc.getText();
+        ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
+        Parser parser = results.parser;
+        ParseTree tree = results.tree;
+        tokens = (CommonTokenStream) parser.getTokenStream();
 
-		// check for direct recursive, in which case we don't delete it
-		boolean ruleIsDirectlyRecursive = false;
-		for (TerminalNode t : rrefNodes) {
-			if ( Trees.isAncestorOf(ruleDefNode, t) ) {
-				ruleIsDirectlyRecursive = true;
-			}
-		}
+        // find rule def
+        TerminalNode ruleDefNameNode = (TerminalNode) RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
+        if (ruleDefNameNode == null) return;
 
-		// don't delete if we made replacements in the rule itself
-		if ( ruleIsDirectlyRecursive ) return;
+        final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
+        Token start = ruleDefNode.getStart();
+        Token stop = ruleDefNode.getStop();
 
-		// remove the inlined rule (lexer or parser)
-		List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
-		if ( hiddenTokensToRight!=null && hiddenTokensToRight.size()>0 ) {
-			// remove extra whitespace but not trailing comments (if any)
-			// javadoc is included in start (if any) as it's not hidden
-			Token afterSemi = hiddenTokensToRight.get(0);
-			if ( afterSemi.getType()==ANTLRv4Lexer.WS ) {
-				stop = afterSemi;
-			}
-		}
+        // check for direct recursive, in which case we don't delete it
+        boolean ruleIsDirectlyRecursive = false;
+        for (TerminalNode t : rrefNodes) {
+            if (Trees.isAncestorOf(ruleDefNode, t)) {
+                ruleIsDirectlyRecursive = true;
+            }
+        }
 
-		doc.deleteString(start.getStartIndex(), stop.getStopIndex()+1);
-	}
+        // don't delete if we made replacements in the rule itself
+        if (ruleIsDirectlyRecursive) return;
+
+        // remove the inlined rule (lexer or parser)
+        List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
+        if (hiddenTokensToRight != null && hiddenTokensToRight.size() > 0) {
+            // remove extra whitespace but not trailing comments (if any)
+            // javadoc is included in start (if any) as it's not hidden
+            Token afterSemi = hiddenTokensToRight.get(0);
+            if (afterSemi.getType() == ANTLRv4Lexer.WS) {
+                stop = afterSemi;
+            }
+        }
+
+        doc.deleteString(start.getStartIndex(), stop.getStopIndex() + 1);
+    }
 }

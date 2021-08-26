@@ -9,18 +9,19 @@ import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.RULE_ELEMENT_TYPES;
 import static org.antlr.intellij.plugin.parser.ANTLRv4Parser.RULE_optionValue;
 
 public class StringLiteralElement extends LeafPsiElement {
-	public StringLiteralElement(IElementType type, CharSequence text) {
-		super(type, text);
-	}
+    public StringLiteralElement(IElementType type, CharSequence text) {
+        super(type, text);
+    }
 
-	@Override
-	public PsiReference getReference() {
-		PsiElement parent = getParent();
 
-		if ( parent!=null && parent.getNode().getElementType()==RULE_ELEMENT_TYPES.get(RULE_optionValue) ) {
-			return new StringLiteralRef(this);
-		}
+    @Override
+    public PsiReference getReference() {
+        PsiElement parent = getParent();
 
-		return super.getReference();
-	}
+        if (parent != null && parent.getNode().getElementType() == RULE_ELEMENT_TYPES.get(RULE_optionValue)) {
+            return new StringLiteralRef(this);
+        }
+
+        return super.getReference();
+    }
 }

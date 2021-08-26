@@ -7,6 +7,7 @@ public class ANTLRv4GrammarPropertiesStoreTest {
 
     private static final String MY_GRAMMAR_PATH = "/home/grammars/test/MyGrammar.java";
 
+
     @Test
     public void shouldReturnPropertiesForExactFile() {
         // given:
@@ -22,6 +23,7 @@ public class ANTLRv4GrammarPropertiesStoreTest {
         Assert.assertSame(grammarProperties, myGrammarProperties);
     }
 
+
     @Test
     public void shouldReturnDefaultPropertiesIfNoneDefined() {
         // given:
@@ -33,6 +35,7 @@ public class ANTLRv4GrammarPropertiesStoreTest {
         // then:
         Assert.assertSame(grammarProperties, ANTLRv4GrammarPropertiesStore.DEFAULT_GRAMMAR_PROPERTIES);
     }
+
 
     @Test
     public void shouldMatchPropertiesByWildcard() {
@@ -49,6 +52,7 @@ public class ANTLRv4GrammarPropertiesStoreTest {
         Assert.assertSame(grammarProperties, testGrammarProperties);
     }
 
+
     @Test
     public void shouldPreferExactMatchOverWildcard() {
         // given:
@@ -64,6 +68,7 @@ public class ANTLRv4GrammarPropertiesStoreTest {
         // then:
         Assert.assertSame(grammarProperties, myGrammarProperties);
     }
+
 
     private ANTLRv4GrammarProperties createGrammarProperties(String fileName) {
         ANTLRv4GrammarProperties antlRv4GrammarProperties = new ANTLRv4GrammarProperties();

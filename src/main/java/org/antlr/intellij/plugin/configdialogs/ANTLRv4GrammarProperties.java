@@ -57,8 +57,10 @@ public class ANTLRv4GrammarProperties implements Cloneable {
     @OptionTag(converter = CaseChangingStrategyConverter.class)
     CaseChangingStrategy caseChangingStrategy = CaseChangingStrategy.LEAVE_AS_IS;
 
+
     public ANTLRv4GrammarProperties() {
     }
+
 
     public ANTLRv4GrammarProperties(ANTLRv4GrammarProperties source) {
         this.fileName = source.fileName;
@@ -73,41 +75,51 @@ public class ANTLRv4GrammarProperties implements Cloneable {
         this.caseChangingStrategy = source.caseChangingStrategy;
     }
 
+
     public boolean shouldAutoGenerateParser() {
         return autoGen;
     }
+
 
     public String getOutputDir() {
         return outputDir;
     }
 
+
     public String getLibDir() {
         return libDir;
     }
+
 
     public String getEncoding() {
         return encoding;
     }
 
+
     public String getPackage() {
         return pkg;
     }
+
 
     public String getLanguage() {
         return language;
     }
 
+
     public boolean shouldGenerateParseTreeListener() {
         return generateListener;
     }
+
 
     public boolean shouldGenerateParseTreeVisitor() {
         return generateVisitor;
     }
 
+
     public CaseChangingStrategy getCaseChangingStrategy() {
         return caseChangingStrategy;
     }
+
 
     public String resolveOutputDirName(Project project, VirtualFile contentRoot, String package_) {
         String outputDirName = outputDir.isEmpty() ? RunANTLROnGrammarFile.OUTPUT_DIR_NAME : outputDir;
@@ -119,21 +131,23 @@ public class ANTLRv4GrammarProperties implements Cloneable {
             outputDirName = contentRoot.getPath() + File.separator + outputDirName;
         }
         // add package if any
-        if ( isNotBlank(package_) ) {
+        if (isNotBlank(package_)) {
             outputDirName += File.separator + package_.replace('.', File.separatorChar);
         }
         return outputDirName;
     }
 
+
     public String resolveLibDir(Project project, String defaultValue) {
         String libDir = getLibDir();
 
-        if ( libDir==null || libDir.equals("") ) {
+        if (libDir == null || libDir.equals("")) {
             libDir = defaultValue;
         }
 
         return PathMacroManager.getInstance(project).expandPath(libDir);
     }
+
 
     @Override
     public ANTLRv4GrammarProperties clone() throws CloneNotSupportedException {

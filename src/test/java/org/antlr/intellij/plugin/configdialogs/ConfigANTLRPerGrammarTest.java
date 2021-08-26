@@ -19,11 +19,13 @@ public class ConfigANTLRPerGrammarTest {
     private ANTLRv4GrammarProperties originalProperties;
     private ConfigANTLRPerGrammar form;
 
+
     @Before
     public void setUp() {
         originalProperties = buildOriginalProperties();
         this.form = mockForm();
     }
+
 
     private ConfigANTLRPerGrammar mockForm() {
         ConfigANTLRPerGrammar form = Mockito.mock(ConfigANTLRPerGrammar.class, Mockito.CALLS_REAL_METHODS);
@@ -34,6 +36,7 @@ public class ConfigANTLRPerGrammarTest {
         doReturn(DEFAULT_LANGUAGE).when(form).getLanguageText();
         return form;
     }
+
 
     private ANTLRv4GrammarProperties buildOriginalProperties() {
         ANTLRv4GrammarProperties properties = new ANTLRv4GrammarProperties();
@@ -47,6 +50,7 @@ public class ConfigANTLRPerGrammarTest {
         return properties;
     }
 
+
     @Test
     public void shouldDetectModifiedOutputDirectory() {
         // given:
@@ -55,6 +59,7 @@ public class ConfigANTLRPerGrammarTest {
         // then:
         Assert.assertTrue(form.isModified(originalProperties));
     }
+
 
     @Test
     public void shouldDetectModifiedLibDirectory() {
@@ -65,6 +70,7 @@ public class ConfigANTLRPerGrammarTest {
         Assert.assertTrue(form.isModified(originalProperties));
     }
 
+
     @Test
     public void shouldDetectModifiedEncoding() {
         // given:
@@ -74,6 +80,7 @@ public class ConfigANTLRPerGrammarTest {
         Assert.assertTrue(form.isModified(originalProperties));
     }
 
+
     @Test
     public void shouldDetectModifiedPackage() {
         // given:
@@ -82,6 +89,7 @@ public class ConfigANTLRPerGrammarTest {
         // then:
         Assert.assertTrue(form.isModified(originalProperties));
     }
+
 
     @Test
     public void shouldDetectModifiedLanguage() {

@@ -23,10 +23,12 @@ public class ModeSpecNode extends RuleSpecNode {
         super(node);
     }
 
+
     @Override
     public IElementType getRuleRefType() {
         return ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF);
     }
+
 
     @Override
     public GrammarElementRefNode getNameIdentifier() {
@@ -43,8 +45,10 @@ public class ModeSpecNode extends RuleSpecNode {
         return null;
     }
 
+
     public static class Factory implements PsiElementFactory {
         public static Factory INSTANCE = new Factory();
+
 
         @Override
         public PsiElement createElement(ASTNode node) {

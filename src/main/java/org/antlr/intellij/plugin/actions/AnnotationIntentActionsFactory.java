@@ -13,9 +13,9 @@ import java.util.Optional;
 public class AnnotationIntentActionsFactory {
     @NotNull
     public static Optional<IntentionAction> getFix(TextRange textRange, ErrorType errorType, PsiFile file) {
-        if (errorType == ErrorType.IMPLICIT_TOKEN_DEFINITION){
+        if (errorType == ErrorType.IMPLICIT_TOKEN_DEFINITION) {
             return Optional.of(new AddTokenDefinitionFix(textRange));
-        } else if ( errorType==ErrorType.UNDEFINED_RULE_REF ) {
+        } else if (errorType == ErrorType.UNDEFINED_RULE_REF) {
             return Optional.of(new CreateRuleFix(textRange, file));
         }
         return Optional.empty();

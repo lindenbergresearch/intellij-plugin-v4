@@ -17,66 +17,79 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.jetbrains.annotations.NotNull;
 
-/** The general interface between IDEA and ANTLR. */
+/**
+ * The general interface between IDEA and ANTLR.
+ */
 public class ANTLRv4ParserDefinition implements ParserDefinition {
-	public static final IFileElementType FILE =
-		new IFileElementType(ANTLRv4Language.INSTANCE);
+    public static final IFileElementType FILE =
+            new IFileElementType(ANTLRv4Language.INSTANCE);
 
-	public ANTLRv4ParserDefinition() {
-		PSIElementTypeFactory.defineLanguageIElementTypes(
-				ANTLRv4Language.INSTANCE,
-				ANTLRv4Lexer.tokenNames,
-				ANTLRv4Parser.ruleNames
-		);
-	}
 
-	@NotNull
-	@Override
-	public Lexer createLexer(Project project) {
-		ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
-		return new ANTLRv4LexerAdaptor(lexer);
-	}
+    public ANTLRv4ParserDefinition() {
+        PSIElementTypeFactory.defineLanguageIElementTypes(
+                ANTLRv4Language.INSTANCE,
+                ANTLRv4Lexer.tokenNames,
+                ANTLRv4Parser.ruleNames
+        );
+    }
 
-	@NotNull
-	public PsiParser createParser(final Project project) {
-		return new ANTLRv4GrammarParser();
-	}
 
-	@NotNull
-	public TokenSet getWhitespaceTokens() {
-		return ANTLRv4TokenTypes.WHITESPACES;
-	}
+    @NotNull
+    @Override
+    public Lexer createLexer(Project project) {
+        ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
+        return new ANTLRv4LexerAdaptor(lexer);
+    }
 
-	@NotNull
-	public TokenSet getCommentTokens() {
-		return ANTLRv4TokenTypes.COMMENTS;
-	}
 
-	@NotNull
-	public TokenSet getStringLiteralElements() {
-		return TokenSet.EMPTY;
-	}
+    @NotNull
+    public PsiParser createParser(final Project project) {
+        return new ANTLRv4GrammarParser();
+    }
 
-	@Override
-	public IFileElementType getFileNodeType() {
-		return FILE;
-	}
 
-	@Override
-	public PsiFile createFile(FileViewProvider viewProvider) {
-		return new ANTLRv4FileRoot(viewProvider);
-	}
+    @NotNull
+    public TokenSet getWhitespaceTokens() {
+        return ANTLRv4TokenTypes.WHITESPACES;
+    }
 
-	public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
-		return SpaceRequirements.MAY;
-	}
 
-	/** Convert from internal parse node (AST they call it) to final PSI node. This
-	 *  converts only internal rule nodes apparently, not leaf nodes. Leaves
-	 *  are just tokens I guess.
-	 */
-	@NotNull
-	public PsiElement createElement(ASTNode node) {
-		return ANTLRv4ASTFactory.createInternalParseTreeNode(node);
-	}
+    @NotNull
+    public TokenSet getCommentTokens() {
+        return ANTLRv4TokenTypes.COMMENTS;
+    }
+
+
+    @NotNull
+    public TokenSet getStringLiteralElements() {
+        return TokenSet.EMPTY;
+    }
+
+
+    @Override
+    public IFileElementType getFileNodeType() {
+        return FILE;
+    }
+
+
+    @Override
+    public PsiFile createFile(FileViewProvider viewProvider) {
+        return new ANTLRv4FileRoot(viewProvider);
+    }
+
+
+    public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
+        return SpaceRequirements.MAY;
+    }
+
+
+    /**
+     * Convert from internal parse node (AST they call it) to final PSI node. This
+     * converts only internal rule nodes apparently, not leaf nodes. Leaves
+     * are just tokens I guess.
+     */
+    @NotNull
+    public PsiElement createElement(ASTNode node) {
+        return ANTLRv4ASTFactory.createInternalParseTreeNode(node);
+    }
 }

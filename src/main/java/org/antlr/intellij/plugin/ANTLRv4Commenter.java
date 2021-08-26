@@ -28,11 +28,13 @@ public class ANTLRv4Commenter implements CodeDocumentationAwareCommenter {
         return "//";
     }
 
+
     @Nullable
     @Override
     public String getBlockCommentPrefix() {
         return "/*";
     }
+
 
     @Nullable
     @Override
@@ -40,11 +42,13 @@ public class ANTLRv4Commenter implements CodeDocumentationAwareCommenter {
         return "*/";
     }
 
+
     @Nullable
     @Override
     public String getCommentedBlockCommentPrefix() {
         return null;
     }
+
 
     @Nullable
     @Override
@@ -52,11 +56,13 @@ public class ANTLRv4Commenter implements CodeDocumentationAwareCommenter {
         return null;
     }
 
+
     @Nullable
     @Override
     public IElementType getLineCommentTokenType() {
         return ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.LINE_COMMENT);
     }
+
 
     @Nullable
     @Override
@@ -65,17 +71,20 @@ public class ANTLRv4Commenter implements CodeDocumentationAwareCommenter {
 
     }
 
+
     @Nullable
     @Override
     public IElementType getDocumentationCommentTokenType() {
         return ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.DOC_COMMENT);
     }
 
+
     @Nullable
     @Override
     public String getDocumentationCommentPrefix() {
         return "/**";
     }
+
 
     @Nullable
     @Override
@@ -84,11 +93,13 @@ public class ANTLRv4Commenter implements CodeDocumentationAwareCommenter {
         return "*";
     }
 
+
     @Nullable
     @Override
     public String getDocumentationCommentSuffix() {
         return "*/";
     }
+
 
     @Override
     public boolean isDocumentationComment(PsiComment element) {

@@ -45,6 +45,7 @@ class ParseTreeContextualMenu {
         menu.show(parseTreeViewer, event.getX(), event.getY());
     }
 
+
     private static JMenuItem createExportMenuItem(UberTreeViewer parseTreeViewer, String label, boolean useTransparentBackground) {
         JMenuItem item = new JMenuItem(label);
         boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
@@ -77,6 +78,7 @@ class ParseTreeContextualMenu {
         return item;
     }
 
+
     private static void exportToImage(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground, String imageFormat) {
         int imageType = useTransparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
         BufferedImage bi = UIUtil.createImage(parseTreeViewer.getWidth(), parseTreeViewer.getHeight(), imageType);
@@ -104,6 +106,7 @@ class ParseTreeContextualMenu {
                     .error("Error while exporting parse tree to file " + file.getAbsolutePath(), e);
         }
     }
+
 
     private static void exportToSvg(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground) {
         DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();

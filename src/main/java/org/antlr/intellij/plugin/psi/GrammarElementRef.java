@@ -21,74 +21,78 @@ import java.util.Collection;
  */
 public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 
-	private final String ruleName;
+    private final String ruleName;
 
-	public GrammarElementRef(GrammarElementRefNode idNode, String ruleName) {
-		super(idNode, new TextRange(0, ruleName.length()));
-		this.ruleName = ruleName;
-	}
 
-	/**
-	 * Using for completion. Returns list of rules and tokens; the prefix
-	 * of current element is used as filter by IDEA later.
-	 */
-	@NotNull
-	@Override
-	public Object[] getVariants() {
-		RulesNode rules = PsiTreeUtil.getContextOfType(myElement, RulesNode.class);
-		// find all rule defs (token, parser)
-		Collection<? extends RuleSpecNode> ruleSpecNodes =
-				PsiTreeUtil.findChildrenOfAnyType(rules, ParserRuleSpecNode.class, LexerRuleSpecNode.class);
+    public GrammarElementRef(GrammarElementRefNode idNode, String ruleName) {
+        super(idNode, new TextRange(0, ruleName.length()));
+        this.ruleName = ruleName;
+    }
 
-		return ruleSpecNodes.toArray();
-	}
 
-	/**
-	 * Called upon jump to def for this rule ref
-	 */
-	@Nullable
-	@Override
-	public PsiElement resolve() {
-		PsiFile tokenVocabFile = TokenVocabResolver.resolveTokenVocabFile(getElement());
+    /**
+     * Using for completion. Returns list of rules and tokens; the prefix
+     * of current element is used as filter by IDEA later.
+     */
+    @NotNull
+    @Override
+    public Object[] getVariants() {
+        RulesNode rules = PsiTreeUtil.getContextOfType(myElement, RulesNode.class);
+        // find all rule defs (token, parser)
+        Collection<? extends RuleSpecNode> ruleSpecNodes =
+                PsiTreeUtil.findChildrenOfAnyType(rules, ParserRuleSpecNode.class, LexerRuleSpecNode.class);
 
-		if ( tokenVocabFile!=null ) {
-			return tokenVocabFile;
-		}
+        return ruleSpecNodes.toArray();
+    }
 
-		PsiFile importedFile = ImportResolver.resolveImportedFile(getElement());
-		if ( importedFile!=null ) {
-			return importedFile;
-		}
 
-		GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
-		PsiElement specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
+    /**
+     * Called upon jump to def for this rule ref
+     */
+    @Nullable
+    @Override
+    public PsiElement resolve() {
+        PsiFile tokenVocabFile = TokenVocabResolver.resolveTokenVocabFile(getElement());
 
-		if ( specNode!=null ) {
-			return specNode;
-		}
+        if (tokenVocabFile != null) {
+            return tokenVocabFile;
+        }
 
-		// Look for a rule defined in an imported grammar
-		specNode = ImportResolver.resolveInImportedFiles(getElement().getContainingFile(), ruleName);
+        PsiFile importedFile = ImportResolver.resolveImportedFile(getElement());
+        if (importedFile != null) {
+            return importedFile;
+        }
 
-		if ( specNode!=null ) {
-			return specNode;
-		}
+        GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
+        PsiElement specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
 
-		// Look for a lexer rule in the tokenVocab file if it exists
-		if ( getElement() instanceof LexerRuleRefNode ) {
-			return TokenVocabResolver.resolveInTokenVocab(getElement(), ruleName);
-		}
+        if (specNode != null) {
+            return specNode;
+        }
 
-		return null;
-	}
+        // Look for a rule defined in an imported grammar
+        specNode = ImportResolver.resolveInImportedFiles(getElement().getContainingFile(), ruleName);
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-		Project project = getElement().getProject();
-		myElement.replace(MyPsiUtils.createLeafFromText(project,
-				myElement.getContext(),
-				newElementName,
-				ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)));
-		return myElement;
-	}
+        if (specNode != null) {
+            return specNode;
+        }
+
+        // Look for a lexer rule in the tokenVocab file if it exists
+        if (getElement() instanceof LexerRuleRefNode) {
+            return TokenVocabResolver.resolveInTokenVocab(getElement(), ruleName);
+        }
+
+        return null;
+    }
+
+
+    @Override
+    public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+        Project project = getElement().getProject();
+        myElement.replace(MyPsiUtils.createLeafFromText(project,
+                myElement.getContext(),
+                newElementName,
+                ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)));
+        return myElement;
+    }
 }

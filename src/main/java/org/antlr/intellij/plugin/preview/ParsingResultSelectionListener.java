@@ -10,7 +10,8 @@ import org.antlr.v4.runtime.tree.Tree;
  */
 public interface ParsingResultSelectionListener {
 
-	void onLexerTokenSelected(Token token);
+    void onLexerTokenSelected(Token token);
 
-	void onParserRuleSelected(Tree rule);
+
+    void onParserRuleSelected(Tree rule);
 }

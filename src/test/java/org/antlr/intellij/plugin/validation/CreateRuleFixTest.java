@@ -7,43 +7,46 @@ import org.antlr.intellij.plugin.TestUtils;
 
 public class CreateRuleFixTest extends LightPlatformCodeInsightTestCase {
 
-	public CreateRuleFixTest() {
-		myTestDataPath = "src/test/resources/quickfixes/CreateRuleFix/";
-	}
+    public CreateRuleFixTest() {
+        myTestDataPath = "src/test/resources/quickfixes/CreateRuleFix/";
+    }
 
-	public void testQuickFixDescriptionShouldShowRuleName() {
-		// Given
-		configureByFile("missingRule.g4");
-		CreateRuleFix createRuleFix = new CreateRuleFix(TextRange.create(30, 37), getFile());
 
-		// When
-		String description = createRuleFix.getText();
+    public void testQuickFixDescriptionShouldShowRuleName() {
+        // Given
+        configureByFile("missingRule.g4");
+        CreateRuleFix createRuleFix = new CreateRuleFix(TextRange.create(30, 37), getFile());
 
-		// Then
-		assertEquals("Create rule 'newRule'", description);
-	}
+        // When
+        String description = createRuleFix.getText();
 
-	public void testQuickFixShouldCreateRuleAfterCurrentRule() {
-		// Given
-		configureByFile("missingRule.g4");
-		CreateRuleFix createRuleFix = new CreateRuleFix(TextRange.create(30, 37), getFile());
+        // Then
+        assertEquals("Create rule 'newRule'", description);
+    }
 
-		// When
-		ApplicationManager.getApplication().runWriteAction(
-				() -> createRuleFix.invoke(getProject(), getEditor(), getFile())
-		);
 
-		// Then
-		assertEquals(
-				"grammar missingRule;\n\n" +
-				"myRule: newRule;\n\n" +
-				"newRule: ' ';",
-				getFile().getText()
-		);
-	}
+    public void testQuickFixShouldCreateRuleAfterCurrentRule() {
+        // Given
+        configureByFile("missingRule.g4");
+        CreateRuleFix createRuleFix = new CreateRuleFix(TextRange.create(30, 37), getFile());
 
-	@Override
-	protected void tearDown() throws Exception {
-		TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
-	}
+        // When
+        ApplicationManager.getApplication().runWriteAction(
+                () -> createRuleFix.invoke(getProject(), getEditor(), getFile())
+        );
+
+        // Then
+        assertEquals(
+                "grammar missingRule;\n\n" +
+                        "myRule: newRule;\n\n" +
+                        "newRule: ' ';",
+                getFile().getText()
+        );
+    }
+
+
+    @Override
+    protected void tearDown() throws Exception {
+        TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
+    }
 }

@@ -54,55 +54,35 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
     );
 
 
-    @Override
-    protected void buildLanguageFoldRegions(@NotNull List<FoldingDescriptor> descriptors,
-                                            @NotNull PsiElement root,
-                                            @NotNull Document document,
-                                            boolean quick) {
-        if (!(root instanceof ANTLRv4FileRoot)) return;
-
-        addRuleRefFoldingDescriptors(descriptors, root);
-
-        addActionFoldingDescriptors(descriptors, root);
-
-        addHeaderFoldingDescriptor(descriptors, root, document);
-
-        addCommentDescriptors(descriptors, root);
-
-        addOptionsFoldingDescriptor(descriptors, root);
-
-        addTokensFoldingDescriptor(descriptors, root);
-
-        addModeFoldingDescriptors(descriptors, root);
-    }
-
     private static void addTokensFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root) {
         PsiElement tokensSpec = MyPsiUtils.findFirstChildOfType(root, TOKENSSPEC);
         if (tokensSpec != null) {
             PsiElement tokens = tokensSpec.getFirstChild();
-            if ( tokens.getNode().getElementType() == TOKENS ) {
+            if (tokens.getNode().getElementType() == TOKENS) {
                 PsiElement rbrace = tokensSpec.getLastChild();
-                if ( rbrace.getNode().getElementType()==RBRACE ) {
+                if (rbrace.getNode().getElementType() == RBRACE) {
                     descriptors.add(new FoldingDescriptor(tokensSpec,
-                                                          new TextRange(tokens.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+                            new TextRange(tokens.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
                 }
             }
         }
     }
+
 
     private static void addOptionsFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root) {
         PsiElement optionsSpec = MyPsiUtils.findFirstChildOfType(root, OPTIONSSPEC);
         if (optionsSpec != null) {
             PsiElement options = optionsSpec.getFirstChild();
-            if ( options.getNode().getElementType() == OPTIONS ) {
+            if (options.getNode().getElementType() == OPTIONS) {
                 PsiElement rbrace = optionsSpec.getLastChild();
-                if ( rbrace.getNode().getElementType()==RBRACE ) {
+                if (rbrace.getNode().getElementType() == RBRACE) {
                     descriptors.add(new FoldingDescriptor(optionsSpec,
-                                                          new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+                            new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
                 }
             }
         }
     }
+
 
     private static void addHeaderFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root, Document document) {
         TextRange range = getFileHeader(root);
@@ -110,6 +90,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             descriptors.add(new FoldingDescriptor(root, range));
         }
     }
+
 
     private static void addCommentDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
         Set<PsiElement> processedComments = new HashSet<>();
@@ -124,15 +105,17 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
     }
 
+
     private static void addActionFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
         for (AtAction atAction : PsiTreeUtil.findChildrenOfType(root, AtAction.class)) {
             PsiElement action = atAction.getLastChild();
             String actionText = action.getText();
-            if ( actionText != null && actionText.contains("\n")) {
+            if (actionText != null && actionText.contains("\n")) {
                 descriptors.add(new FoldingDescriptor(atAction, action.getTextRange()));
             }
         }
     }
+
 
     private static void addRuleRefFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
         for (RuleSpecNode specNode : PsiTreeUtil.findChildrenOfType(root, RuleSpecNode.class)) {
@@ -152,21 +135,24 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         }
     }
 
+
     private static void addModeFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
         for (ModeSpecNode specNode : PsiTreeUtil.findChildrenOfType(root, ModeSpecNode.class)) {
             PsiElement semi = MyPsiUtils.findFirstChildOfType(specNode, ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.SEMI));
 
-            if ( semi != null ) {
+            if (semi != null) {
                 TextRange foldingRange = TextRange.create(semi.getTextOffset(), specNode.getNode().getStartOffset() + specNode.getTextLength());
                 descriptors.add(new FoldingDescriptor(specNode, foldingRange));
             }
         }
     }
 
+
     private static boolean isComment(PsiElement element) {
         IElementType type = element.getNode().getElementType();
         return ANTLRv4TokenTypes.COMMENTS.contains(type);
     }
+
 
     @SuppressWarnings("ConstantConditions")
     @Nullable
@@ -188,48 +174,6 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         return new UnfairTextRange(first.getTextOffset(), element.getTextOffset());
     }
 
-    @Override
-    protected String getLanguagePlaceholderText(@NotNull ASTNode node, @NotNull TextRange range) {
-        return getPlaceholderText(SourceTreeToPsiMap.treeElementToPsi(node));
-    }
-
-    @SuppressWarnings("SimplifiableIfStatement")
-    @Override
-    protected boolean isRegionCollapsedByDefault(@NotNull ASTNode node) {
-        final PsiElement element = SourceTreeToPsiMap.treeElementToPsi(node);
-        if (element == null) return false;
-
-        ANTLRv4FoldingSettings settings = ANTLRv4FoldingSettings.getInstance();
-
-        if (RULE_BLOCKS.contains(node.getElementType())) return settings.isCollapseRuleBlocks();
-        if (node.getElementType() == TOKENSSPEC) return settings.isCollapseTokens();
-
-        if (element instanceof AtAction) return settings.isCollapseActions();
-
-        if (element instanceof ANTLRv4FileRoot) {
-            return settings.isCollapseFileHeader();
-        }
-        if (node.getElementType() == DOC_COMMENT_TOKEN) {
-
-            PsiElement parent = element.getParent();
-
-            if (parent instanceof ANTLRv4FileRoot) {
-                PsiElement firstChild = parent.getFirstChild();
-                if (firstChild instanceof PsiWhiteSpace) {
-                    firstChild = firstChild.getNextSibling();
-                }
-                if (element.equals(firstChild)) {
-                    return settings.isCollapseFileHeader();
-                }
-            }
-            return settings.isCollapseDocComments();
-        }
-        if (isComment(element)) {
-            return settings.isCollapseComments();
-        }
-        return false;
-
-    }
 
     /**
      * We want to allow to fold subsequent single line comments like
@@ -282,12 +226,11 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         }
     }
     */
-
     private static String getPlaceholderText(PsiElement element) {
 
         if (element.getNode().getElementType() == LINE_COMMENT_TOKEN) {
             return "//...";
-        } else if ( element instanceof ModeSpecNode ) {
+        } else if (element instanceof ModeSpecNode) {
             return ";...";
         } else if (element instanceof RuleSpecNode) {
             return ":...;";
@@ -295,5 +238,73 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             return "{...}";
         }
         return "...";
+    }
+
+
+    @Override
+    protected void buildLanguageFoldRegions(@NotNull List<FoldingDescriptor> descriptors,
+                                            @NotNull PsiElement root,
+                                            @NotNull Document document,
+                                            boolean quick) {
+        if (!(root instanceof ANTLRv4FileRoot)) return;
+
+        addRuleRefFoldingDescriptors(descriptors, root);
+
+        addActionFoldingDescriptors(descriptors, root);
+
+        addHeaderFoldingDescriptor(descriptors, root, document);
+
+        addCommentDescriptors(descriptors, root);
+
+        addOptionsFoldingDescriptor(descriptors, root);
+
+        addTokensFoldingDescriptor(descriptors, root);
+
+        addModeFoldingDescriptors(descriptors, root);
+    }
+
+
+    @Override
+    protected String getLanguagePlaceholderText(@NotNull ASTNode node, @NotNull TextRange range) {
+        return getPlaceholderText(SourceTreeToPsiMap.treeElementToPsi(node));
+    }
+
+
+    @SuppressWarnings("SimplifiableIfStatement")
+    @Override
+    protected boolean isRegionCollapsedByDefault(@NotNull ASTNode node) {
+        final PsiElement element = SourceTreeToPsiMap.treeElementToPsi(node);
+        if (element == null) return false;
+
+        ANTLRv4FoldingSettings settings = ANTLRv4FoldingSettings.getInstance();
+
+        if (RULE_BLOCKS.contains(node.getElementType())) return settings.isCollapseRuleBlocks();
+        if (node.getElementType() == TOKENSSPEC) return settings.isCollapseTokens();
+
+        if (element instanceof AtAction) return settings.isCollapseActions();
+
+        if (element instanceof ANTLRv4FileRoot) {
+            return settings.isCollapseFileHeader();
+        }
+        if (node.getElementType() == DOC_COMMENT_TOKEN) {
+
+            PsiElement parent = element.getParent();
+
+            if (parent instanceof ANTLRv4FileRoot) {
+                PsiElement firstChild = parent.getFirstChild();
+                if (firstChild instanceof PsiWhiteSpace) {
+                    firstChild = firstChild.getNextSibling();
+                }
+                if (element.equals(firstChild)) {
+                    return settings.isCollapseFileHeader();
+                }
+            }
+            return settings.isCollapseDocComments();
+        }
+        if (isComment(element)) {
+            return settings.isCollapseComments();
+        }
+        return false;
+
     }
 }

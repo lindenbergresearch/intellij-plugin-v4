@@ -13,10 +13,12 @@ public class ANTLRv4GrammarPropertiesTest {
 
     private ANTLRv4GrammarPropertiesStore propertiesStore;
 
+
     @Before
     public void setUp() {
         propertiesStore = new ANTLRv4GrammarPropertiesStore();
     }
+
 
     @Test
     public void shouldGetPropertyFromFileSettingsWhenDefined() {
@@ -38,6 +40,7 @@ public class ANTLRv4GrammarPropertiesTest {
         Assert.assertEquals(FILE_VALUE, propertyValueForFile);
     }
 
+
     @Test
     public void shouldGetPropertyProjectSettingsValueWhenNotSetForFile() {
         // given:
@@ -52,6 +55,7 @@ public class ANTLRv4GrammarPropertiesTest {
         // then:
         Assert.assertEquals(PROJECT_VALUE, propertyValueForFile);
     }
+
 
     @Test
     public void shouldGetPropertyDefaultValueWhenNotSetForFileNorProject() {

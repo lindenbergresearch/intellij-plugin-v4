@@ -2,12 +2,14 @@
 <list>
 	<option name="ANTLRv4_RULENAME">
 		<value>
-			<option name="FOREGROUND" value="FFC66D"/>
+			<option name="FOREGROUND"
+                    value="FFC66D"/>
 		</value>
 	</option>
 	<option name="ANTLRv4_TOKENNAME">
 		<value>
-			<option name="FOREGROUND" value="9876AA"/>
+			<option name="FOREGROUND"
+                    value="9876AA"/>
 		</value>
 	</option>
 </list>
