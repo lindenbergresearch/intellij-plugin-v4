@@ -18,14 +18,14 @@ public class ANTLRv4FileType extends LanguageFileType {
     @NotNull
     @Override
     public String getName() {
-        return "ANTLR v4 grammar file";
+        return "ANTLR 4 Grammar";
     }
 
 
     @NotNull
     @Override
     public String getDescription() {
-        return "ANTLR v4 grammar file";
+        return "ANTLR 4 Grammar";
     }
 
 
