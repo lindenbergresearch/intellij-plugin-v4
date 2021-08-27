@@ -10,8 +10,10 @@ import org.abego.treelayout.util.DefaultConfiguration;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 
 import java.awt.*;
@@ -33,9 +35,12 @@ public class UberTreeViewer extends TreeViewer {
 
     protected JBColor unreachableColor;
     protected JBColor edgesColor;
-    protected Color errorColor;
+    protected JBColor errorColor;
+    protected JBColor endOfFileColor;
+    protected JBColor terminalNodeColor;
 
-    protected int minCellWidth = 100;
+    protected int minCellWidth;
+    private float edgesStrokeWidth;
 
 
     /**
@@ -84,24 +89,30 @@ public class UberTreeViewer extends TreeViewer {
         useCurvedEdges = true;
         setUseCurvedEdges(useCurvedEdges);
         edgesColor = JBColor.BLACK;
+        edgesStrokeWidth = 1.4f;
 
         boxColor = JBColor.BLUE;
+        terminalNodeColor = JBColor.ORANGE;
+        endOfFileColor = JBColor.DARK_GRAY;
         borderColor = null;
-        arcSize = 7;
-        gapBetweenLevels = 25;
-        nodeHeightPadding = 7;
+        arcSize = 9;
+        minCellWidth = 100;
+        gapBetweenLevels = 30;
+        nodeHeightPadding = 12;
         nodeWidthPadding = 7;
 
         unreachableColor = JBColor.orange;
-        errorColor = DarculaColors.BLUE;
-        textColor = JBColor.BLACK;
+        errorColor = JBColor.RED;
+        textColor = JBColor.WHITE;
+
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
 
 
     @Override
     protected void paintEdges(Graphics g, Tree parent) {
         if (!getTree().isLeaf(parent)) {
-            BasicStroke stroke = new BasicStroke(1.4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+            BasicStroke stroke = new BasicStroke(edgesStrokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
             ((Graphics2D) g).setStroke(stroke);
 
             Rectangle2D.Double parentBounds = getBoundsOfNode(parent);
@@ -110,18 +121,17 @@ public class UberTreeViewer extends TreeViewer {
 
             g.setColor(edgesColor);
 
-
             for (Tree child : getTree().getChildren(parent)) {
                 Rectangle2D.Double childBounds = getBoundsOfNode(child);
                 double x2 = childBounds.getCenterX();
                 double y2 = childBounds.getMinY();
 
-                if (getUseCurvedEdges()) {
+                if (getUseCurvedEdges() && x1 != x2) {
                     CubicCurve2D c = new CubicCurve2D.Double();
                     double ctrlx1 = x1;
-                    double ctrly1 = (y1 + y2) / 2;
+                    double ctrly1 = y1 + 15;
                     double ctrlx2 = x2;
-                    double ctrly2 = y1;
+                    double ctrly2 = y2 - 15;
                     c.setCurve(x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2, x2, y2);
                     ((Graphics2D) g).draw(c);
                 } else {
@@ -138,9 +148,7 @@ public class UberTreeViewer extends TreeViewer {
     public void paint(Graphics g) {
         super.paint(g);
 
-        if (treeLayout == null) {
-            return;
-        }
+        if (treeLayout == null) return;
 
         Graphics2D g2 = (Graphics2D) g;
 
@@ -188,7 +196,6 @@ public class UberTreeViewer extends TreeViewer {
     }
 
 
-    // Customized version of super.paintBox() that supports Darcula colors
     private void customPaintBox(Graphics g, Tree tree) {
         Rectangle2D.Double box = getBoundsOfNode(tree);
 
@@ -200,26 +207,38 @@ public class UberTreeViewer extends TreeViewer {
             ruleFailedAndMatchedNothing = ctx.exception != null && ctx.stop != null && ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
         }
 
-        if (isHighlighted(tree) || boxColor != null || tree instanceof ErrorNode || ruleFailedAndMatchedNothing) {
-            Color color;
+        Color color;
+        int boxRoundness = 1;
 
-            if (isHighlighted(tree)) color = highlightedBoxColor;
-            else if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing) color = errorColor;
-            else color = boxColor;
-
-            if (color != null) {
-                g.setColor(color);
-                g.fillRoundRect(
-                        (int) Math.round(box.x),
-                        (int) Math.round(box.y),
-                        (int) Math.round(box.width),
-                        (int) Math.round(box.height),
-                        arcSize,
-                        arcSize
-                );
+        if (isHighlighted(tree)) color = highlightedBoxColor;
+        else if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing) color = errorColor;
+        else if (tree instanceof TerminalNode) {
+            Token token = ((TerminalNode) tree).getSymbol();
+            if (token.getText().equals("<EOF>")) {
+                color = endOfFileColor;
+                boxRoundness = 3;
+            } else {
+                color = terminalNodeColor;
+                boxRoundness = 6;
             }
+
+        } else if (boxColor != null) color = boxColor;
+        else color = null;
+
+        /* fill box */
+        if (color != null) {
+            g.setColor(color);
+            g.fillRoundRect(
+                    (int) Math.round(box.x),
+                    (int) Math.round(box.y),
+                    (int) Math.round(box.width),
+                    (int) Math.round(box.height),
+                    arcSize * boxRoundness,
+                    arcSize * boxRoundness
+            );
         }
 
+        /* box border */
         if (borderColor != null) {
             g.setColor(borderColor);
             g.drawRoundRect(
@@ -227,12 +246,13 @@ public class UberTreeViewer extends TreeViewer {
                     (int) Math.round(box.y),
                     (int) Math.round(box.width),
                     (int) Math.round(box.height),
-                    arcSize,
-                    arcSize
+                    arcSize * boxRoundness,
+                    arcSize * boxRoundness
             );
         }
 
-        // draw the text on top of the box (possibly multiple lines)
+        // ---------------- PAINT LABELS AND TEXT -------------------------------
+
         if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing) {
             g.setColor(errorColor);
         } else {
@@ -241,15 +261,12 @@ public class UberTreeViewer extends TreeViewer {
 
         String s = getText(tree);
         String[] lines = s.split("\n");
-
         FontMetrics m = getFontMetrics(font);
-
-
         int y = (int) Math.round(box.y + m.getAscent() + m.getLeading() + nodeHeightPadding);
 
         for (String line : lines) {
             int strWidth = m.stringWidth(line);
-            int x = (int)box.x + (int) Math.round(box.width / 2. - strWidth / 2.);
+            int x = (int) box.x + (int) Math.round(box.width / 2. - strWidth / 2.);
 
             text(g, line, x, y);
             y += m.getHeight();
@@ -287,8 +304,6 @@ public class UberTreeViewer extends TreeViewer {
 
     @Override
     public void setTree(Tree root) {
-        setTextColor(JBColor.WHITE);
-
         if (root != null) {
             treeLayout = new TreeLayout<>(
                     getTreeLayoutAdaptor(root),
