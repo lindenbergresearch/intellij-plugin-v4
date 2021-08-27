@@ -50,90 +50,36 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
  * each grammar file it gets notified about.
  */
 public class PreviewPanel extends JPanel implements ParsingResultSelectionListener {
-    public static final Logger LOG = Logger.getInstance("ANTLR PreviewPanel");
     //com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
     //perhaps in a few more years they will get around to backporting whatever it was they fixed.
     // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
     private static final boolean isTrackpadZoomSupported =
-            SystemInfo.isMac &&
-                    (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
-    private final CancelParserAction cancelParserAction = new CancelParserAction();
+            SystemInfo.isMac && (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
+
+    public static final Logger LOG = Logger.getInstance("ANTLR PreviewPanel");
+
     public Project project;
     public InputPanel inputPanel;
-    public HierarchyViewer hierarchyViewer;
-
-    public ProfilerPanel profilerPanel;
     private UberTreeViewer treeViewer;
+    public HierarchyViewer hierarchyViewer;
+    public ProfilerPanel profilerPanel;
     private TokenStreamViewer tokenStreamViewer;
+
     /**
      * Indicates if the preview should be automatically refreshed after grammar changes.
      */
     private boolean autoRefresh = true;
+
     private boolean scrollFromSource = false;
     private boolean highlightSource = false;
-    private ActionToolbar buttonBar;
 
+    private ActionToolbar buttonBar;
+    private final CancelParserAction cancelParserAction = new CancelParserAction();
 
     public PreviewPanel(Project project) {
         this.project = project;
         createGUI();
     }
-
-
-    private static void setupContextMenu(final UberTreeViewer treeViewer) {
-        treeViewer.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON3) {
-                    ParseTreeContextualMenu.showPopupMenu(treeViewer, e);
-                }
-            }
-        });
-    }
-
-
-    private static Pair<UberTreeViewer, JPanel> createParseTreePanel() {
-        // wrap tree and slider in panel
-        JPanel treePanel = new JPanel(new BorderLayout(0, 0));
-        treePanel.setBackground(JBColor.white);
-
-        final UberTreeViewer viewer =
-                isTrackpadZoomSupported ?
-                        new TrackpadZoomingTreeView(null, null, false) :
-                        new UberTreeViewer(null, null, false);
-
-        JSlider scaleSlider = createTreeViewSlider(viewer);
-
-        // Wrap tree viewer component in scroll pane
-        JScrollPane scrollPane = new JBScrollPane(viewer); // use Intellij's scroller
-
-        treePanel.add(scrollPane, BorderLayout.CENTER);
-
-        treePanel.add(scaleSlider, BorderLayout.SOUTH);
-
-        return new Pair<>(viewer, treePanel);
-    }
-
-
-    @NotNull
-    private static JSlider createTreeViewSlider(final UberTreeViewer viewer) {
-        JSlider scaleSlider;
-        if (isTrackpadZoomSupported) {
-            scaleSlider = new JSlider();
-            scaleSlider.setModel(((TrackpadZoomingTreeView) viewer).scaleModel);
-        } else {
-            int sliderValue = (int) ((viewer.getScale() - 1.0) * 1000);
-            scaleSlider = new JSlider(JSlider.HORIZONTAL, -999, 1000, sliderValue);
-            scaleSlider.addChangeListener(e -> {
-                int v = ((JSlider) e.getSource()).getValue();
-                if (viewer.hasTree()) {
-                    viewer.setScale(v / 1000.0 + 1.0);
-                }
-            });
-        }
-        return scaleSlider;
-    }
-
 
     private void createGUI() {
         this.setLayout(new BorderLayout());
@@ -160,7 +106,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         this.add(buttonBar.getComponent(), BorderLayout.WEST);
     }
 
-
     private ActionToolbar createButtonBar() {
         final AnAction refreshAction = new ToggleAction("Refresh Preview Automatically",
                 "Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh) {
@@ -169,7 +114,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return autoRefresh;
             }
-
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
@@ -182,7 +126,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 return scrollFromSource;
             }
 
-
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 scrollFromSource = state;
@@ -193,7 +136,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return highlightSource;
             }
-
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
@@ -211,17 +153,14 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         return ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
     }
 
-
     private InputPanel getEditorPanel() {
         LOG.info("createEditorPanel" + " " + project.getName());
         return new InputPanel(this);
     }
 
-
     public ProfilerPanel getProfilerPanel() {
         return profilerPanel;
     }
-
 
     private JTabbedPane createParseTreeAndProfileTabbedPanel() {
         JBTabbedPane tabbedPane = new JBTabbedPane();
@@ -246,6 +185,62 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         return tabbedPane;
     }
 
+    private static void setupContextMenu(final UberTreeViewer treeViewer) {
+        treeViewer.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    ParseTreeContextualMenu.showPopupMenu(treeViewer, e);
+
+                    System.out.println("dim: " + treeViewer.getWidth() + " - " + treeViewer.getHeight());
+                    System.out.println("pos: " + treeViewer.getX() + " - " + treeViewer.getY());
+                    System.out.println("dimp: " + treeViewer.getParent().getWidth() + " - " + treeViewer.getParent().getHeight() + "\n-----------\n");
+                }
+            }
+        });
+    }
+
+    private static Pair<UberTreeViewer, JPanel> createParseTreePanel() {
+        // wrap tree and slider in panel
+        JPanel treePanel = new JPanel(new BorderLayout(0, 0));
+
+        final UberTreeViewer viewer =
+                isTrackpadZoomSupported ?
+                        new TrackpadZoomingTreeView(null, null, false) :
+                        new UberTreeViewer(null, null, false);
+
+        // viewer.setBackground(JBColor.BLACK);
+
+        JSlider scaleSlider = createTreeViewSlider(viewer);
+
+        // Wrap tree viewer component in scroll pane
+        JScrollPane scrollPane = new JBScrollPane(viewer);
+        scrollPane.setWheelScrollingEnabled(true);
+
+        treePanel.add(scrollPane, BorderLayout.CENTER);
+        treePanel.add(scaleSlider, BorderLayout.SOUTH);
+
+        return new Pair<>(viewer, treePanel);
+    }
+
+    @NotNull
+    private static JSlider createTreeViewSlider(final UberTreeViewer viewer) {
+        JSlider scaleSlider;
+        if (isTrackpadZoomSupported) {
+            scaleSlider = new JSlider();
+            scaleSlider.setModel(((TrackpadZoomingTreeView) viewer).scaleModel);
+        } else {
+            int sliderValue = (int) ((viewer.getScale() - 1.0) * 1000);
+            scaleSlider = new JSlider(JSlider.HORIZONTAL, -999, 1000, sliderValue);
+            scaleSlider.addChangeListener(e -> {
+                int v = ((JSlider) e.getSource()).getValue();
+                if (viewer.hasTree()) {
+                    viewer.setScale(v / 1000.0 + 1.0);
+                }
+            });
+        }
+        return scaleSlider;
+    }
 
     /**
      * Notify the preview tool window contents that the grammar file has changed
@@ -270,7 +265,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         profilerPanel.grammarFileSaved(previewState, grammarFile);
     }
 
-
     private void ensureStartRuleExists(VirtualFile grammarFile) {
         PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
         // if start rule no longer exists, reset display/state.
@@ -285,14 +279,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         }
     }
 
-
     /**
      * Notify the preview tool window contents that the grammar file has changed
      */
     public void grammarFileChanged(VirtualFile newFile) {
         switchToGrammar(newFile);
     }
-
 
     /**
      * Load grammars and set editor component.
@@ -315,13 +307,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         setEnabled(previewState.g != null || previewState.lg == null);
     }
 
-
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         this.setEnabledRecursive(this, enabled);
     }
-
 
     private void setEnabledRecursive(Component component, boolean enabled) {
         if (component instanceof Container) {
@@ -331,7 +321,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         }
     }
-
 
     public void closeGrammar(VirtualFile grammarFile) {
         String grammarFileName = grammarFile.getPath();
@@ -346,7 +335,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         inputPanel.releaseEditor(previewState);
     }
 
-
     private void clearTabs(@Nullable ParseTree tree) {
         ApplicationManager.getApplication().invokeLater(() -> {
             treeViewer.setRuleNames(Collections.emptyList());
@@ -356,7 +344,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             tokenStreamViewer.clear();
         });
     }
-
 
     private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -381,21 +368,17 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         clearTabs(null);
     }
 
-
     private void indicateInvalidGrammarInParseTreePane() {
         showError("Issues with parser and/or lexer grammar(s) prevent preview; see ANTLR 'Tool Output' pane");
     }
-
 
     private void showError(String message) {
         clearTabs(new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE, message)));
     }
 
-
     private void indicateNoStartRuleInParseTreePane() {
         showError("No start rule is selected");
     }
-
 
     public void updateParseTreeFromDoc(VirtualFile grammarFile) {
         ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
@@ -416,11 +399,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         controller.parseText(grammarFile, inputText);
     }
 
-
     public InputPanel getInputPanel() {
         return inputPanel;
     }
-
 
     public void autoRefreshPreview(VirtualFile virtualFile) {
         final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
@@ -432,7 +413,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             ApplicationManager.getApplication().invokeLater(() -> controller.grammarFileSavedEvent(virtualFile));
         }
     }
-
 
     public void onParsingCompleted(PreviewState previewState, long duration) {
         cancelParserAction.setEnabled(false);
@@ -449,19 +429,16 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         }
     }
 
-
     public void notifySlowParsing() {
         cancelParserAction.setEnabled(true);
         buttonBar.updateActionsImmediately();
     }
-
 
     public void onParsingCancelled() {
         cancelParserAction.setEnabled(false);
         buttonBar.updateActionsImmediately();
         showError("Parsing was aborted");
     }
-
 
     /**
      * Fired when a token is selected in the {@link TokenStreamViewer} to let us know that we should highlight
@@ -478,7 +455,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
     }
-
 
     @Override
     public void onParserRuleSelected(Tree tree) {
