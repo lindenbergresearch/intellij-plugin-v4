@@ -132,14 +132,14 @@ For really big files and slow grammars, there is an appreciable delay when displ
         </action>
         <action id="antlr.DefineLexerRulesForLiterals"
                 class="org.antlr.intellij.plugin.actions.GenerateLexerRulesForLiteralsAction"
-                text="Generate lexer rules for literals"
+                text="Generate Lexer Rules for Literals"
                 description="Inject lexer rules for undefined literals but leave literal in place">
             <add-to-group group-id="GenerateGroup"
                           anchor="first"/>
         </action>
         <action id="antlr.InlineRule"
                 class="org.antlr.intellij.plugin.actions.InlineRuleAction"
-                text="Inline and remove rule">
+                text="Inline and Remove Rule">
 			<keyboard-shortcut keymap="$default"
                                first-keystroke="control alt N"/>
             <add-to-group group-id="RefactoringMenu"
@@ -148,7 +148,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
         </action>
 		<action id="antlr.ExtractRule"
                 class="org.antlr.intellij.plugin.actions.ExtractRuleAction"
-                text="Extract rule...">
+                text="Extract Rule...">
 			<keyboard-shortcut keymap="$default"
                                first-keystroke="control alt M"/>
 		    <add-to-group group-id="RefactoringMenu"
@@ -157,7 +157,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 		</action>
 		<action id="antlr.UniquifyRuleRefs"
                 class="org.antlr.intellij.plugin.actions.UniquifyRuleRefs"
-                text="Make refs to rule unique...">
+                text="Make Refs to Rule Unique...">
 			<add-to-group group-id="RefactoringMenu"
                           anchor="after"
                           relative-to-action="antlr.ExtractRule"/>
@@ -198,7 +198,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
       <projectConfigurable groupId="language"
                            id="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"
-                           displayName="ANTLR v4 default project settings"
+                           displayName="ANTLR V4 Default Project Settings"
                            instance="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"/>
       <projectService serviceImplementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesComponent"/>
   </extensions>
