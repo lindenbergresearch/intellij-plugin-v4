@@ -51,20 +51,22 @@ public class AltLabelTextProvider implements TreeTextProvider {
             String[] altLabels = getAltLabels(r);
             String name = r.name;
             int outerAltNum = inode.getOuterAltNum();
+
             if (altLabels != null) {
                 if (outerAltNum >= 0 && outerAltNum < altLabels.length) {
-                    return name + ":" + altLabels[outerAltNum];
+                    return name + "[" + altLabels[outerAltNum] + "]";
                 } else {
                     return name;
                 }
             } else if (r.getOriginalNumberOfAlts() > 1) {
-                return name + ":" + outerAltNum;
+                return name + " " + outerAltNum;
             } else {
                 return name; // don't display an alternative number if there's only one
             }
         } else if (node instanceof TerminalNode) {
             return getLabelForToken(((TerminalNode) node).getSymbol());
         }
+
         return Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
     }
 
@@ -72,9 +74,14 @@ public class AltLabelTextProvider implements TreeTextProvider {
     private String getLabelForToken(Token token) {
         String text = token.getText();
         if (text.equals("<EOF>")) {
-            return text;
+            return "EOF";
         }
 
-        return parser.getVocabulary().getSymbolicName(token.getType()) + ": \"" + text + "\"";
+        String symName = parser.getVocabulary().getSymbolicName(token.getType());
+
+        if (symName == null) symName = "";
+        else symName += "=";
+
+        return symName + "'" + text + "'";
     }
 }
