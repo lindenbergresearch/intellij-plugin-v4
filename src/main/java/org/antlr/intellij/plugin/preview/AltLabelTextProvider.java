@@ -59,7 +59,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
                     return name;
                 }
             } else if (r.getOriginalNumberOfAlts() > 1) {
-                return name + " " + outerAltNum;
+                return name + " *" + outerAltNum;
             } else {
                 return name; // don't display an alternative number if there's only one
             }
@@ -74,14 +74,13 @@ public class AltLabelTextProvider implements TreeTextProvider {
     private String getLabelForToken(Token token) {
         String text = token.getText();
         if (text.equals("<EOF>")) {
-            return "EOF";
+            return " [EOF] ";
         }
 
         String symName = parser.getVocabulary().getSymbolicName(token.getType());
 
-        if (symName == null) symName = "";
-        else symName += "=";
+        if (symName == null) return "'" + text + "'";
 
-        return symName + "'" + text + "'";
+        return symName + ": »" + text + "«";
     }
 }
