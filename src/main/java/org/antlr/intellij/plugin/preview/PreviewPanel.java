@@ -13,6 +13,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -39,8 +40,8 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.intellij.icons.AllIcons.Actions.Find;
-import static com.intellij.icons.AllIcons.General.AutoscrollFromSource;
+import static com.intellij.icons.AllIcons.Actions.*;
+import static com.intellij.icons.AllIcons.General.*;
 import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
 
 /**
@@ -74,6 +75,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     private boolean highlightSource = false;
 
     private ActionToolbar buttonBar;
+    private ActionToolbar buttonBarGraph;
     private final CancelParserAction cancelParserAction = new CancelParserAction();
 
 
@@ -101,12 +103,40 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         });
 
+
         splitPane.setFirstComponent(inputPanel.getComponent());
         splitPane.setSecondComponent(createParseTreeAndProfileTabbedPanel());
 
-        this.add(splitPane, BorderLayout.CENTER);
         this.buttonBar = createButtonBar();
         this.add(buttonBar.getComponent(), BorderLayout.WEST);
+        this.add(splitPane, BorderLayout.CENTER);
+
+
+    }
+
+
+    private ActionToolbar createButtonBarGraph() {
+        ToggleAction autoscaleDiagram = new ToggleAction("Enable Autoscaling", null, FitContent) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.autoscale;
+            }
+
+
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.autoscale = state;
+            }
+        };
+
+        DefaultActionGroup actionGroup = new DefaultActionGroup(
+                autoscaleDiagram
+        );
+
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true); ;
+        toolbar.setTargetComponent(this);
+
+        return toolbar;
     }
 
 
@@ -125,6 +155,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 autoRefresh = state;
             }
         };
+
         ToggleAction scrollFromSourceBtn = new ToggleAction("Scroll from Source", null, AutoscrollFromSource) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -137,6 +168,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 scrollFromSource = state;
             }
         };
+
         ToggleAction scrollToSourceBtn = new ToggleAction("Highlight Source", null, Find) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -149,6 +181,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 highlightSource = state;
             }
         };
+
 
         DefaultActionGroup actionGroup = new DefaultActionGroup(
                 refreshAction,
@@ -182,18 +215,18 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
         treeViewer = pair.a;
         setupContextMenu(treeViewer);
-        tabbedPane.addTab("Parse tree", pair.b);
+        tabbedPane.addTab("Parse tree", AllIcons.Hierarchy.Subtypes, pair.b);
 
         hierarchyViewer = new HierarchyViewer(null);
         hierarchyViewer.addParsingResultSelectionListener(this);
-        tabbedPane.addTab("Hierarchy", hierarchyViewer);
+        tabbedPane.addTab("Hierarchy", ShowAsTree, hierarchyViewer);
 
         profilerPanel = new ProfilerPanel(project, this);
-        tabbedPane.addTab("Profiler", profilerPanel.getComponent());
+        tabbedPane.addTab("Profiler", AllIcons.Toolwindows.ToolWindowProfiler, profilerPanel.getComponent());
 
         tokenStreamViewer = new TokenStreamViewer();
         tokenStreamViewer.addParsingResultSelectionListener(this);
-        tabbedPane.addTab("Tokens", tokenStreamViewer);
+        tabbedPane.addTab("Tokens", ShowHiddens, tokenStreamViewer);
 
         return tabbedPane;
     }
@@ -203,6 +236,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         treeViewer.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    treeViewer.handleMouseEvent(e);
+                }
+
                 if (e.getButton() == MouseEvent.BUTTON3) {
                     ParseTreeContextualMenu.showPopupMenu(treeViewer, e);
                 }
@@ -211,7 +248,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
 
 
-    private static Pair<UberTreeViewer, JPanel> createParseTreePanel() {
+    private Pair<UberTreeViewer, JPanel> createParseTreePanel() {
         // wrap tree and slider in panel
         JPanel treePanel = new JPanel(new BorderLayout(0, 0));
 
@@ -220,16 +257,14 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                         new TrackpadZoomingTreeView(null, null, false) :
                         new UberTreeViewer(null, null, false);
 
-        // viewer.setBackground(JBColor.BLACK);
-
-        //   JSlider scaleSlider = createTreeViewSlider(viewer);
+        this.buttonBarGraph = createButtonBarGraph();
 
         // Wrap tree viewer component in scroll pane
         JScrollPane scrollPane = new JBScrollPane(viewer);
         scrollPane.setWheelScrollingEnabled(true);
 
+        treePanel.add(buttonBarGraph.getComponent(), BorderLayout.NORTH);
         treePanel.add(scrollPane, BorderLayout.CENTER);
-        // treePanel.add(scaleSlider, BorderLayout.SOUTH);
 
         return new Pair<>(viewer, treePanel);
     }
