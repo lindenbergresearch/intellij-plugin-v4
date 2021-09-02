@@ -12,8 +12,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -119,13 +117,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         ToggleAction autoscaleDiagram = new ToggleAction("Enable Autoscaling", null, FitContent) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
-                return treeViewer.autoscale;
+                return treeViewer.autoscaling;
             }
 
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                treeViewer.autoscale = state;
+                treeViewer.autoscaling = state;
             }
         };
 
@@ -238,6 +236,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     treeViewer.handleMouseEvent(e);
+                    treeViewer.repaint();
                 }
 
                 if (e.getButton() == MouseEvent.BUTTON3) {
@@ -257,6 +256,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                         new TrackpadZoomingTreeView(null, null, false) :
                         new UberTreeViewer(null, null, false);
 
+
+        viewer.addParsingResultSelectionListener(this);
         this.buttonBarGraph = createButtonBarGraph();
 
         // Wrap tree viewer component in scroll pane
@@ -525,6 +526,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     @Override
     public void onParserRuleSelected(Tree tree) {
+        if (!highlightSource) {
+            return;
+        }
+
         int startIndex;
         int stopIndex;
 
