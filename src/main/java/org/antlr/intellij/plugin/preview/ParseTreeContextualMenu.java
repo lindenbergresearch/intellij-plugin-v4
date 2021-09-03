@@ -14,6 +14,7 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -81,7 +82,7 @@ class ParseTreeContextualMenu {
 
     private static void exportToImage(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground, String imageFormat) {
         int imageType = useTransparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
-        BufferedImage bi = UIUtil.createImage(parseTreeViewer.getWidth(), parseTreeViewer.getHeight(), imageType);
+        BufferedImage bi = ImageUtil.createImage(parseTreeViewer.getWidth(), parseTreeViewer.getHeight(), imageType);
         Graphics graphics = bi.getGraphics();
 
         if (!useTransparentBackground) {
