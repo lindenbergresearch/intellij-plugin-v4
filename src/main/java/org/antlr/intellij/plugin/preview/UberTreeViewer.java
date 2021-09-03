@@ -30,6 +30,8 @@ import static java.awt.RenderingHints.*;
  * Enhanced version based on: {@code TreeViewer}
  */
 public class UberTreeViewer extends TreeViewer {
+    public final static double MAX_SCALE_FACTOR = 1.66;
+    public final static double MIN_SCALE_FACTOR = 0.1;
 
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
 
@@ -187,20 +189,24 @@ public class UberTreeViewer extends TreeViewer {
 
 
     /**
-     * Detects the correct scale-factor and offset to draw the diagram to fit in the window.
+     * Computes the correct scale-factor for proper zoom to fit content.
+     * Zooming are limited to: 10% - 400%.
      */
     protected void autoScaleTree() {
+        int margin = 26;
         double factor, offs;
-
-        double xRatio = (double) (getParent().getWidth() - 25) / (treeLayout.getBounds().getWidth() + offset.getX());
-        double yRatio = (double) (getParent().getHeight() - 25) / (treeLayout.getBounds().getHeight() + offset.getY());
+        double xRatio = (double) (getParent().getWidth() - margin) / (treeLayout.getBounds().getWidth() + offset.getX());
+        double yRatio = (double) (getParent().getHeight() - margin) / (treeLayout.getBounds().getHeight() + offset.getY());
 
         factor = Math.min(xRatio, yRatio);
-        scale = factor;// Math.min(factor, 1.5);
+        factor = Math.min(factor, MAX_SCALE_FACTOR);
+        factor = Math.max(factor, MIN_SCALE_FACTOR);
+
+        scale = factor;
 
         offs = (double) getParent().getWidth() / 2 - treeLayout.getBounds().getWidth() * scale / 2;
         offs = offs * (1. / scale);
-        offset.setLocation(offs, 0);
+        offset.setLocation(offs, margin / 2.);
     }
 
 
@@ -344,11 +350,10 @@ public class UberTreeViewer extends TreeViewer {
             if (token.getText().equals("<EOF>")) {
                 color = endOfFileColor;
                 boxRoundness = 2;
-            } else if (token.getType() == 0){
+            } else if (token.getType() == 0) {
                 color = errorColor;
                 boxRoundness = 3;
-            }
-            else {
+            } else {
                 color = terminalNodeColor;
                 boxRoundness = 0;
             }
