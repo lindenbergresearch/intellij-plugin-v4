@@ -189,16 +189,67 @@ public class UberTreeViewer extends TreeViewer {
 
 
     /**
-     * Computes the correct scale-factor for proper zoom to fit content.
-     * Zooming are limited to: 10% - 400%.
+     * Shortcut to scale handler.
      */
-    protected void autoScaleTree() {
+    protected void doAutoScale() {
+        autoscaling = true;
+        handleScaleLevel(0);
+    }
+
+
+    /**
+     * Increment zoom level by delta factor.
+     * Disables auto-scaling.
+     *
+     * @param delta Delta factor. (0.1 = 10% etc.)
+     */
+    protected void incrementZoom(double delta) {
+        autoscaling = false;
+        handleScaleLevel(this.scale += delta);
+    }
+
+
+    /**
+     * Set new scale level and reset auto-scaling.
+     *
+     * @param newScale New scale as factor. (0.1 = 10% etc.)
+     */
+    protected void setScaleLevel(double newScale) {
+        autoscaling = false;
+        handleScaleLevel(newScale);
+    }
+
+
+    /**
+     * Decrement zoom level by delta factor.
+     * Disable auto scaling.
+     *
+     * @param delta Delta factor. (0.1 = 10% etc.)
+     */
+    protected void decrementZoom(double delta) {
+        autoscaling = false;
+        handleScaleLevel(this.scale -= delta);
+    }
+
+
+    /**
+     * Computes the correct scale-factor for proper zoom to fit content.
+     * Zooming are limited to: 10% - 166%.
+     */
+    protected void handleScaleLevel(double newScale) {
         int margin = 26;
         double factor, offs;
-        double xRatio = (double) (getParent().getWidth() - margin) / (treeLayout.getBounds().getWidth() + offset.getX());
-        double yRatio = (double) (getParent().getHeight() - margin) / (treeLayout.getBounds().getHeight() + offset.getY());
 
-        factor = Math.min(xRatio, yRatio);
+        if (autoscaling) {
+            double xRatio = (double) (getParent().getWidth() - margin) / (treeLayout.getBounds().getWidth() + offset.getX());
+            double yRatio = (double) (getParent().getHeight() - margin) / (treeLayout.getBounds().getHeight() + offset.getY());
+
+            factor = Math.min(xRatio, yRatio);
+        } else {
+            factor = newScale;
+        }
+
+        // clamp scale factor
         factor = Math.min(factor, MAX_SCALE_FACTOR);
         factor = Math.max(factor, MIN_SCALE_FACTOR);
 
@@ -227,7 +278,7 @@ public class UberTreeViewer extends TreeViewer {
 
 
         if (treeLayout != null) {
-            if (autoscaling) autoScaleTree();
+            if (autoscaling) doAutoScale();
             super.paint(g);
         } else {
             super.paint(g);
