@@ -344,7 +344,11 @@ public class UberTreeViewer extends TreeViewer {
             if (token.getText().equals("<EOF>")) {
                 color = endOfFileColor;
                 boxRoundness = 2;
-            } else {
+            } else if (token.getType() == 0){
+                color = errorColor;
+                boxRoundness = 3;
+            }
+            else {
                 color = terminalNodeColor;
                 boxRoundness = 0;
             }
