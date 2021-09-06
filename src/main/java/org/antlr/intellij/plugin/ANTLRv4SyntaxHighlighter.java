@@ -10,6 +10,8 @@ import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
 
+import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.*;
+
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
@@ -37,41 +39,53 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey INT =
             createTextAttributesKey("ANTLRv4_INT", DefaultLanguageHighlighterColors.NUMBER);
 
+    public static final TextAttributesKey BRACE =
+            createTextAttributesKey("ANTLRv4_BRACES", DefaultLanguageHighlighterColors.BRACES);
+
 
     private static final TextAttributesKey[] BAD_CHAR_KEYS = pack(HighlighterColors.BAD_CHARACTER);
     private static final TextAttributesKey[] STRING_KEYS = pack(STRING);
     private static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{LINE_COMMENT, DOC_COMMENT, BLOCK_COMMENT};
     private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
+
     @NotNull
     @Override
     public Lexer getHighlightingLexer() {
-        ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
-        return new ANTLRv4LexerAdaptor(lexer);
+        return new ANTLRv4LexerAdaptor(new ANTLRv4Lexer(null));
     }
+
 
     @NotNull
     @Override
     public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
-        if (ANTLRv4TokenTypes.KEYWORDS.contains(tokenType)) {
+        if (KEYWORDS.contains(tokenType)) {
             return pack(KEYWORD);
         }
-        if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)) {
+
+        if (BRACES.contains(tokenType)) {
+            return pack(BRACE);
+        }
+
+        if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)) {
             return pack(TOKENNAME);
-        } else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF)) {
+        }
+        if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.POUND)) {
             return pack(RULENAME);
-        } else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.INT)) {
+        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF)) {
+            return pack(RULENAME);
+        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.INT)) {
             return pack(INT);
-        } else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL)
-                || tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.UNTERMINATED_STRING_LITERAL)) {
+        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL)
+                || tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.UNTERMINATED_STRING_LITERAL)) {
             return STRING_KEYS;
-        } else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.BLOCK_COMMENT)) {
+        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.BLOCK_COMMENT)) {
             return COMMENT_KEYS;
-        } else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.DOC_COMMENT)) {
+        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.DOC_COMMENT)) {
             return COMMENT_KEYS;
-        } else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.LINE_COMMENT)) {
+        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.LINE_COMMENT)) {
             return COMMENT_KEYS;
-        } else if (tokenType == ANTLRv4TokenTypes.BAD_TOKEN_TYPE) {
+        } else if (tokenType == BAD_TOKEN_TYPE) {
             return BAD_CHAR_KEYS;
         } else {
             return EMPTY_KEYS;
