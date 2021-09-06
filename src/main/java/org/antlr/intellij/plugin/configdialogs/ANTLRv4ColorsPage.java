@@ -20,6 +20,7 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
             new AttributesDescriptor("Keyword", ANTLRv4SyntaxHighlighter.KEYWORD),
             new AttributesDescriptor("String", ANTLRv4SyntaxHighlighter.STRING),
             new AttributesDescriptor("Number", ANTLRv4SyntaxHighlighter.INT),
+            new AttributesDescriptor("Braces", ANTLRv4SyntaxHighlighter.BRACE),
             new AttributesDescriptor("Block comment", ANTLRv4SyntaxHighlighter.BLOCK_COMMENT),
             new AttributesDescriptor("Line comment", ANTLRv4SyntaxHighlighter.LINE_COMMENT),
             new AttributesDescriptor("Doc comment", ANTLRv4SyntaxHighlighter.DOC_COMMENT),
