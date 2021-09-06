@@ -32,6 +32,7 @@ import static java.awt.RenderingHints.*;
 public class UberTreeViewer extends TreeViewer {
     public final static double MAX_SCALE_FACTOR = 1.66;
     public final static double MIN_SCALE_FACTOR = 0.1;
+    public static final int VIEWER_HORIZONTAL_MARGIN = 26;
 
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
 
@@ -110,7 +111,6 @@ public class UberTreeViewer extends TreeViewer {
 
         /* draw offset for diagram - needed to draw centered */
         offset = new Point2D.Double(0, 0);
-        autoscaling = true;
 
         /* font setup */
         fontSize = 13;
@@ -140,7 +140,8 @@ public class UberTreeViewer extends TreeViewer {
         errorColor = JBColor.RED;
         textColor = JBColor.WHITE;
 
-        // setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        autoscaling = true;
     }
 
 
@@ -192,8 +193,11 @@ public class UberTreeViewer extends TreeViewer {
      * Shortcut to scale handler.
      */
     protected void doAutoScale() {
+        // flag already set
+        if (autoscaling) return;
+
         autoscaling = true;
-        handleScaleLevel(0);
+        updateScaling(0);
     }
 
 
@@ -203,9 +207,9 @@ public class UberTreeViewer extends TreeViewer {
      *
      * @param delta Delta factor. (0.1 = 10% etc.)
      */
-    protected void incrementZoom(double delta) {
+    protected void setRelativeScaling(double delta) {
         autoscaling = false;
-        handleScaleLevel(this.scale += delta);
+        updateScaling(this.scale += delta);
     }
 
 
@@ -216,19 +220,7 @@ public class UberTreeViewer extends TreeViewer {
      */
     protected void setScaleLevel(double newScale) {
         autoscaling = false;
-        handleScaleLevel(newScale);
-    }
-
-
-    /**
-     * Decrement zoom level by delta factor.
-     * Disable auto scaling.
-     *
-     * @param delta Delta factor. (0.1 = 10% etc.)
-     */
-    protected void decrementZoom(double delta) {
-        autoscaling = false;
-        handleScaleLevel(this.scale -= delta);
+        updateScaling(newScale);
     }
 
 
@@ -236,13 +228,12 @@ public class UberTreeViewer extends TreeViewer {
      * Computes the correct scale-factor for proper zoom to fit content.
      * Zooming are limited to: 10% - 166%.
      */
-    protected void handleScaleLevel(double newScale) {
-        int margin = 26;
+    protected void updateScaling(double newScale) {
         double factor, offs;
 
         if (autoscaling) {
-            double xRatio = (double) (getParent().getWidth() - margin) / (treeLayout.getBounds().getWidth() + offset.getX());
-            double yRatio = (double) (getParent().getHeight() - margin) / (treeLayout.getBounds().getHeight() + offset.getY());
+            double xRatio = (double) (getParent().getWidth() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getWidth() + offset.getX());
+            double yRatio = (double) (getParent().getHeight() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getHeight() + offset.getY());
 
             factor = Math.min(xRatio, yRatio);
         } else {
@@ -252,12 +243,13 @@ public class UberTreeViewer extends TreeViewer {
         // clamp scale factor
         factor = Math.min(factor, MAX_SCALE_FACTOR);
         factor = Math.max(factor, MIN_SCALE_FACTOR);
-
         scale = factor;
 
         offs = (double) getParent().getWidth() / 2 - treeLayout.getBounds().getWidth() * scale / 2;
         offs = offs * (1. / scale);
-        offset.setLocation(offs, margin / 2.);
+        offset.setLocation(offs, VIEWER_HORIZONTAL_MARGIN / 2.);
+
+        updatePreferredSize();
     }
 
 
@@ -565,7 +557,7 @@ public class UberTreeViewer extends TreeViewer {
      */
     @Override
     public void text(Graphics g, String s, int x, int y) {
-        s = Utils.escapeWhitespace(s, false);
+        // s = Utils.escapeWhitespace(s, false);
         g.drawString(s, x, y);
     }
 
