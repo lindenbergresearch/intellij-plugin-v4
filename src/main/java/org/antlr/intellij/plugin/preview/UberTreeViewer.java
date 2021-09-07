@@ -193,11 +193,15 @@ public class UberTreeViewer extends TreeViewer {
      * Shortcut to scale handler.
      */
     protected void doAutoScale() {
-        // flag already set
-        if (autoscaling) return;
+        // check for tree
+        if (treeLayout == null || !autoscaling) return;
 
-        autoscaling = true;
-        updateScaling(0);
+        double factor;
+        double xRatio = (double) (getParent().getWidth() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getWidth() + offset.getX());
+        double yRatio = (double) (getParent().getHeight() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getHeight() + offset.getY());
+
+        factor = Math.min(xRatio, yRatio);
+
     }
 
 
@@ -209,7 +213,7 @@ public class UberTreeViewer extends TreeViewer {
      */
     protected void setRelativeScaling(double delta) {
         autoscaling = false;
-        updateScaling(this.scale += delta);
+        this.scale += delta;
     }
 
 
@@ -220,7 +224,7 @@ public class UberTreeViewer extends TreeViewer {
      */
     protected void setScaleLevel(double newScale) {
         autoscaling = false;
-        updateScaling(newScale);
+        scale = newScale;
     }
 
 
@@ -228,28 +232,37 @@ public class UberTreeViewer extends TreeViewer {
      * Computes the correct scale-factor for proper zoom to fit content.
      * Zooming are limited to: 10% - 166%.
      */
-    protected void updateScaling(double newScale) {
-        double factor, offs;
-
+    protected void updateScaling() {
         if (autoscaling) {
-            double xRatio = (double) (getParent().getWidth() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getWidth() + offset.getX());
-            double yRatio = (double) (getParent().getHeight() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getHeight() + offset.getY());
-
-            factor = Math.min(xRatio, yRatio);
-        } else {
-            factor = newScale;
+            doAutoScale();
         }
 
         // clamp scale factor
-        factor = Math.min(factor, MAX_SCALE_FACTOR);
-        factor = Math.max(factor, MIN_SCALE_FACTOR);
-        scale = factor;
+        scale = Math.min(scale, MAX_SCALE_FACTOR);
+        scale = Math.max(scale, MIN_SCALE_FACTOR);
 
-        offs = (double) getParent().getWidth() / 2 - treeLayout.getBounds().getWidth() * scale / 2;
-        offs = offs * (1. / scale);
-        offset.setLocation(offs, VIEWER_HORIZONTAL_MARGIN / 2.);
+
+        // update offset to center content
+        updateOffset();
 
         updatePreferredSize();
+    }
+
+
+    /**
+     * Compute the horizontal offset for centered alignment.
+     */
+    private void updateOffset() {
+        // no offset if the size of the layout tree is bigger then the actual viewport
+        if (getParent().getWidth() <= getScaledTreeSize().width) {
+            offset.setLocation(0, VIEWER_HORIZONTAL_MARGIN / 2.);
+            return;
+        }
+
+        double offs;
+        offs = (double) getParent().getWidth() / 2. - getScaledTreeSize().width / 2.;
+        offs = offs * (1. / scale);
+        offset.setLocation(offs, VIEWER_HORIZONTAL_MARGIN / 2.);
     }
 
 
@@ -270,7 +283,7 @@ public class UberTreeViewer extends TreeViewer {
 
 
         if (treeLayout != null) {
-            if (autoscaling) doAutoScale();
+            updateScaling();
             super.paint(g);
         } else {
             super.paint(g);
