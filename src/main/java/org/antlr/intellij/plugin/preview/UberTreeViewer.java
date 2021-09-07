@@ -193,15 +193,13 @@ public class UberTreeViewer extends TreeViewer {
      * Shortcut to scale handler.
      */
     protected void doAutoScale() {
-        // check for tree
-        if (treeLayout == null || !autoscaling) return;
+        if (!hasTree()) return;
 
-        double factor;
         double xRatio = (double) (getParent().getWidth() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getWidth() + offset.getX());
         double yRatio = (double) (getParent().getHeight() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getHeight() + offset.getY());
 
-        factor = Math.min(xRatio, yRatio);
-
+        // determine the smallest scale factor
+        scale = Math.min(xRatio, yRatio);
     }
 
 
@@ -233,6 +231,10 @@ public class UberTreeViewer extends TreeViewer {
      * Zooming are limited to: 10% - 166%.
      */
     protected void updateScaling() {
+        if (!hasTree()) return;
+
+        double old = scale;
+
         if (autoscaling) {
             doAutoScale();
         }
@@ -245,7 +247,9 @@ public class UberTreeViewer extends TreeViewer {
         // update offset to center content
         updateOffset();
 
-        updatePreferredSize();
+        // update just in case of changes to avoid performance issues
+        if (scale != old)
+            updatePreferredSize();
     }
 
 
@@ -253,6 +257,8 @@ public class UberTreeViewer extends TreeViewer {
      * Compute the horizontal offset for centered alignment.
      */
     private void updateOffset() {
+        if (!hasTree()) return;
+
         // no offset if the size of the layout tree is bigger then the actual viewport
         if (getParent().getWidth() <= getScaledTreeSize().width) {
             offset.setLocation(0, VIEWER_HORIZONTAL_MARGIN / 2.);
