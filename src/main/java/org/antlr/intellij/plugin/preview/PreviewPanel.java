@@ -126,8 +126,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                if (state) treeViewer.doAutoScale();
-                else treeViewer.autoscaling = false;
+                treeViewer.autoscaling = state;
+                treeViewer.repaint();
             }
         };
 
@@ -135,6 +135,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setScaleLevel(1.0);
+                treeViewer.repaint();
             }
         };
 
@@ -142,21 +143,24 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void update(@NotNull AnActionEvent e) {
                 super.update(e);
-                //   if (treeViewer.getScale() > 1)
-                //else this.setEnabled(true);
+                if (treeViewer.getScale() + UberTreeViewer.SCALING_INCREMENT > UberTreeViewer.MAX_SCALE_FACTOR) {
+
+                }
             }
 
 
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                treeViewer.setRelativeScaling(0.25);
+                treeViewer.setRelativeScaling(UberTreeViewer.SCALING_INCREMENT);
+                treeViewer.repaint();
             }
         };
 
         AnAction zoomOut = new AnAction("Zoom Out", null, ZoomOut) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                treeViewer.setRelativeScaling(-0.25);
+                treeViewer.setRelativeScaling(-UberTreeViewer.SCALING_INCREMENT);
+                treeViewer.repaint();
             }
         };
 
@@ -164,7 +168,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.doAutoScale();
-                treeViewer.updateScaling();
+                treeViewer.repaint();
             }
         };
 
@@ -182,6 +186,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         );
 
         actionGroup.addSeparator();
+
         actionGroup.addAll(
                 zoomActualSize,
                 zoomIn,
@@ -315,6 +320,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                         new UberTreeViewer(null, null, false);
 
 
+        viewer.setDoubleBuffered(true);
         viewer.addParsingResultSelectionListener(this);
 
         this.buttonBarGraph = createButtonBarGraph();
