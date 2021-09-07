@@ -342,26 +342,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
 
 
-    @NotNull
-    private static JSlider createTreeViewSlider(final UberTreeViewer viewer) {
-        JSlider scaleSlider;
-        if (isTrackpadZoomSupported) {
-            scaleSlider = new JSlider();
-            scaleSlider.setModel(((TrackpadZoomingTreeView) viewer).scaleModel);
-        } else {
-            int sliderValue = (int) ((viewer.getScale() - 1.0) * 1000);
-            scaleSlider = new JSlider(JSlider.HORIZONTAL, -999, 1000, sliderValue);
-            scaleSlider.addChangeListener(e -> {
-                int v = ((JSlider) e.getSource()).getValue();
-                if (viewer.hasTree()) {
-                    viewer.setScale(v / 1000.0 + 1.0);
-                }
-            });
-        }
-        return scaleSlider;
-    }
-
-
     /**
      * Notify the preview tool window contents that the grammar file has changed
      */
