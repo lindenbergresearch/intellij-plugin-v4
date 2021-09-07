@@ -88,6 +88,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         // Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
         Splitter splitPane = new Splitter();
+        splitPane.setShowDividerIcon(true);
+
         inputPanel = getEditorPanel();
         inputPanel.addCaretListener(new CaretAdapter() {
             @Override
@@ -101,20 +103,21 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         });
 
+        JTabbedPane tabbedPanel = createParseTreeAndProfileTabbedPanel();
 
         splitPane.setFirstComponent(inputPanel.getComponent());
-        splitPane.setSecondComponent(createParseTreeAndProfileTabbedPanel());
+        splitPane.setSecondComponent(tabbedPanel);
 
         this.buttonBar = createButtonBar();
         this.add(buttonBar.getComponent(), BorderLayout.WEST);
         this.add(splitPane, BorderLayout.CENTER);
-
-
     }
 
 
     private ActionToolbar createButtonBarGraph() {
-        ToggleAction autoscaleDiagram = new ToggleAction("Enable Autoscaling", null, FitContent) {
+        ToggleAction autoScaleDiagram = new ToggleAction("Auto-Scale",
+                "Set proper zoom-level upon live-testing grammars.", AllIcons.Actions.Refresh) {
+
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return treeViewer.autoscaling;
@@ -123,12 +126,66 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                treeViewer.autoscaling = state;
+                if (state) treeViewer.doAutoScale();
+                else treeViewer.autoscaling = false;
+            }
+        };
+
+        AnAction zoomActualSize = new AnAction("Actual Size", "Set zoom-level to 1:1.", ActualZoom) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setScaleLevel(1.0);
+            }
+        };
+
+        AnAction zoomIn = new AnAction("Zoom In", null, ZoomIn) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                //   if (treeViewer.getScale() > 1)
+                //else this.setEnabled(true);
+            }
+
+
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setRelativeScaling(0.25);
+            }
+        };
+
+        AnAction zoomOut = new AnAction("Zoom Out", null, ZoomOut) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setRelativeScaling(-0.25);
+            }
+        };
+
+        AnAction fitScreen = new AnAction("Fit Screen", "Fit content to screen.", FitContent) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.doAutoScale();
+                treeViewer.updateScaling();
+            }
+        };
+
+        AnAction fitSelected = new AnAction("Fit Selected Node", "Zoom to selected tree node.", ShortcutFilter) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+
             }
         };
 
         DefaultActionGroup actionGroup = new DefaultActionGroup(
-                autoscaleDiagram
+                autoScaleDiagram,
+                fitScreen,
+                fitSelected
+        );
+
+        actionGroup.addSeparator();
+        actionGroup.addAll(
+                zoomActualSize,
+                zoomIn,
+                zoomOut
         );
 
         ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true); ;
@@ -207,7 +264,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
     private JTabbedPane createParseTreeAndProfileTabbedPanel() {
-        JBTabbedPane tabbedPane = new JBTabbedPane();
+        JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
+        tabbedPane.setBorder(BorderFactory.createEtchedBorder());
 
         LOG.info("createParseTreePanel" + " " + project.getName());
         Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
@@ -249,7 +307,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     private Pair<UberTreeViewer, JPanel> createParseTreePanel() {
         // wrap tree and slider in panel
-        JPanel treePanel = new JPanel(new BorderLayout(0, 0));
+        JPanel treePanel = new JPanel(new BorderLayout(10, 10));
 
         final UberTreeViewer viewer =
                 isTrackpadZoomSupported ?
@@ -258,11 +316,18 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
         viewer.addParsingResultSelectionListener(this);
+
         this.buttonBarGraph = createButtonBarGraph();
 
         // Wrap tree viewer component in scroll pane
-        JScrollPane scrollPane = new JBScrollPane(viewer);
-        scrollPane.setWheelScrollingEnabled(true);
+        JScrollPane scrollPane = new JBScrollPane(
+                viewer,
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
+        );
+
+
+        //   scrollPane.setWheelScrollingEnabled(true);
 
         treePanel.add(buttonBarGraph.getComponent(), BorderLayout.NORTH);
         treePanel.add(scrollPane, BorderLayout.CENTER);
@@ -437,15 +502,18 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
     private void indicateNoStartRuleInParseTreePane() {
-        showError("No start rule is selected");
+        showError("No Start Rule!");
     }
 
 
     public void updateParseTreeFromDoc(VirtualFile grammarFile) {
         ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
         if (controller == null) return;
+
         PreviewState previewState = controller.getPreviewState(grammarFile);
+
         LOG.info("updateParseTreeFromDoc " + grammarFile + " rule " + previewState.startRuleName);
+
         if (previewState.g == null || previewState.lg == null) {
             // likely error in grammar prevents it from loading properly into previewState; bail
             indicateInvalidGrammarInParseTreePane();
@@ -481,13 +549,16 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     public void onParsingCompleted(PreviewState previewState, long duration) {
         cancelParserAction.setEnabled(false);
         buttonBar.updateActionsImmediately();
+        buttonBarGraph.updateActionsImmediately();
 
         if (previewState.parsingResult != null) {
             updateTreeViewer(previewState, previewState.parsingResult);
             profilerPanel.setProfilerData(previewState, duration);
             inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
+            buttonBarGraph.getComponent().setEnabled(true);
         } else if (previewState.startRuleName == null) {
             indicateNoStartRuleInParseTreePane();
+            buttonBarGraph.getComponent().setEnabled(false);
         } else {
             indicateInvalidGrammarInParseTreePane();
         }
