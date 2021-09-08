@@ -32,18 +32,20 @@ import static java.awt.RenderingHints.*;
  * Custom tree layout viewer component.
  * Enhanced version based on: {@code TreeViewer}
  */
-public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMotionListener {
+public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMotionListener/*, Scrollable*/ {
+    /*---- CONSTANTS ----------------------------------------------------------------------------*/
     public final static double MAX_SCALE_FACTOR = 1.66;
     public final static double MIN_SCALE_FACTOR = 0.1;
     public final static double SCALING_INCREMENT = 0.15;
     public static final int VIEWER_HORIZONTAL_MARGIN = 26;
+    public static final int SCROLL_VIEWPORT_MARGIN = 30;
 
-    private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
+    /*---- CURSOR -------------------------------------------------------------------------------*/
+    public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+    public static final Cursor SELECT_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+    public static final Cursor DRAG_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
-    protected JScrollPane scrollPane;
-
-    private final boolean highlightUnreachedNodes;
-
+    /*---- COLORS -------------------------------------------------------------------------------*/
     protected JBColor unreachableColor;
     protected JBColor edgesColor;
     protected JBColor errorColor;
@@ -51,15 +53,15 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     protected JBColor terminalNodeColor;
     protected JBColor selectedNodeColor;
 
+    private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
+    protected JScrollPane scrollPane;
+    private final boolean highlightUnreachedNodes;
+
     protected int minCellWidth;
     protected float edgesStrokeWidth;
-
     protected boolean autoscaling;
-
     protected Point2D offset;
-
     private long count;
-
     protected Tree selectedTreeNode;
 
 
@@ -146,12 +148,13 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         errorColor = JBColor.RED;
         textColor = JBColor.WHITE;
 
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         autoscaling = true;
 
         // add handler for mouse events
         addMouseListener(this);
         addMouseMotionListener(this);
+
+        setAutoscrolls(true);
     }
 
 
@@ -310,7 +313,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         buff.add("compon: " + getWidth() + "x" + getHeight());
         buff.add("tree  : " + treeLayout.getBounds().getWidth() + "x" + treeLayout.getBounds().getHeight());
         buff.add("tree N: " + String.format("%.3f", treeLayout.getBounds().getWidth() * scale) + "x" + String.format("%.3f", treeLayout.getBounds().getHeight() * scale));
-        buff.add("scrollbars: ");
+
+        if (scrollPane != null)
+            buff.add("scrollbars: " + scrollPane.getVerticalScrollBar().getValue() + " - " + scrollPane.getHorizontalScrollBar().getValue());
+
         buff.add("\n");
 
 
@@ -519,14 +525,11 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     @Override
     protected Rectangle2D.Double getBoundsOfNode(Tree node) {
         Rectangle2D.Double bounds = treeLayout.getNodeBounds().get(node);
-
-        Rectangle2D.Double newBounds = new Rectangle2D.Double(
+        return new Rectangle2D.Double(
                 bounds.x + offset.getX(),
                 bounds.y + offset.getY(),
                 bounds.width, bounds.height
         );
-
-        return newBounds;
     }
 
 
@@ -552,13 +555,21 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      */
     private Dimension getScaledTreeSize() {
         Dimension scaledTreeSize = treeLayout.getBounds().getBounds().getSize();
-        scaledTreeSize = new Dimension(
+        return new Dimension(
                 (int) Math.round(scaledTreeSize.width * scale),
                 (int) Math.round(scaledTreeSize.height * scale)
         );
+    }
 
 
-        return scaledTreeSize;
+    /**
+     * Checks if the scaled tree graphics exceeds the visible viewport.
+     *
+     * @return True if tree-view > scrollbar dimension.
+     */
+    protected boolean treeExceedsViewport() {
+        return getScaledTreeSize().width > getParent().getWidth() ||
+                getScaledTreeSize().height > getParent().getHeight();
     }
 
 
@@ -638,7 +649,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         // always clear on click
         setSelectedTreeNode(null);
 
-        Tree node = testLocationForNode(p);
+        Tree node = getNodeFromLocation(p);
 
         if (node != null) {
             // set selected node
@@ -649,18 +660,28 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
                 listener.onParserRuleSelected(node);
             }
 
-            repaint();
+            Rectangle2D nodeBounds = getBoundsOfNode(node);
+            Rectangle marginBox = new Rectangle(
+                    (int) Math.round(nodeBounds.getX() * scale - SCROLL_VIEWPORT_MARGIN),
+                    (int) Math.round(nodeBounds.getY() * scale - SCROLL_VIEWPORT_MARGIN),
+                    (int) Math.round(nodeBounds.getWidth() * scale + SCROLL_VIEWPORT_MARGIN * 2),
+                    (int) Math.round(nodeBounds.getHeight() * scale + SCROLL_VIEWPORT_MARGIN * 2)
+            );
+
+            scrollRectToVisible(marginBox);
         }
+
+        repaint();
     }
 
 
     /**
-     * Checks if a given location hits a node.
+     * Try to find a node at the given location.
      *
      * @param p XY coordinate
-     * @return
+     * @return An instance of Tree if the location matches a node, NULL otherwise.
      */
-    private Tree testLocationForNode(Point2D p) {
+    private Tree getNodeFromLocation(Point2D p) {
         // do nothing on an invalid tree
         if (treeLayout == null || treeLayout.getLevelCount() == 0) return null;
 
@@ -672,6 +693,17 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
             }
         }
         return null;
+    }
+
+
+    /**
+     * Checks if a given location hits a node.
+     *
+     * @param p
+     * @return
+     */
+    private boolean locationHitsNode(Point2D p) {
+        return getNodeFromLocation(p) != null;
     }
 
 
@@ -719,6 +751,12 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {
+
+    }
+
+
+    @Override
+    public void mousePressed(MouseEvent mouseEvent) {
         if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
             testForNodeSelection(mouseEvent.getPoint());
         }
@@ -726,14 +764,11 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
 
     @Override
-    public void mousePressed(MouseEvent mouseEvent) {
-
-    }
-
-
-    @Override
     public void mouseReleased(MouseEvent mouseEvent) {
-
+        // reset cursor
+        if (!locationHitsNode(mouseEvent.getPoint())) {
+            setCursor(DEFAULT_CURSOR);
+        }
     }
 
 
@@ -751,12 +786,28 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
+        if (treeLayout == null) {
+            return;
+        }
 
+        setCursor(DRAG_CURSOR);
+
+
+        //The user is dragging us, so scroll!
+        //   Rectangle r = new Rectangle(mouseEvent.getX(), mouseEvent.getY(), 1, 1);
+        //  scrollRectToVisible(r);
+        // repaint();
+        //  System.out.println("drag: " + mouseEvent.getX() + ":" + mouseEvent.getY());
     }
 
 
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {
-
+        // check if there is a node under the mouse cursor
+        if (locationHitsNode(mouseEvent.getPoint())) {
+            setCursor(SELECT_CURSOR);
+        } else {
+            setCursor(DEFAULT_CURSOR);
+        }
     }
 }
