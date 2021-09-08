@@ -297,11 +297,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         treeViewer.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                    treeViewer.handleMouseEvent(e);
-                    treeViewer.repaint();
-                }
-
                 if (e.getButton() == MouseEvent.BUTTON3) {
                     ParseTreeContextualMenu.showPopupMenu(treeViewer, e);
                 }
@@ -332,8 +327,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
         );
 
-
-        //   scrollPane.setWheelScrollingEnabled(true);
+        scrollPane.setWheelScrollingEnabled(true);
 
         treePanel.add(buttonBarGraph.getComponent(), BorderLayout.NORTH);
         treePanel.add(scrollPane, BorderLayout.CENTER);
