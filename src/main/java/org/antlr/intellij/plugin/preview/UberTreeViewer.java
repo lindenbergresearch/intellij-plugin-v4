@@ -14,8 +14,11 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -29,13 +32,15 @@ import static java.awt.RenderingHints.*;
  * Custom tree layout viewer component.
  * Enhanced version based on: {@code TreeViewer}
  */
-public class UberTreeViewer extends TreeViewer {
+public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMotionListener {
     public final static double MAX_SCALE_FACTOR = 1.66;
     public final static double MIN_SCALE_FACTOR = 0.1;
     public final static double SCALING_INCREMENT = 0.15;
     public static final int VIEWER_HORIZONTAL_MARGIN = 26;
 
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
+
+    protected JScrollPane scrollPane;
 
     private final boolean highlightUnreachedNodes;
 
@@ -143,6 +148,10 @@ public class UberTreeViewer extends TreeViewer {
 
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         autoscaling = true;
+
+        // add handler for mouse events
+        addMouseListener(this);
+        addMouseMotionListener(this);
     }
 
 
@@ -301,6 +310,7 @@ public class UberTreeViewer extends TreeViewer {
         buff.add("compon: " + getWidth() + "x" + getHeight());
         buff.add("tree  : " + treeLayout.getBounds().getWidth() + "x" + treeLayout.getBounds().getHeight());
         buff.add("tree N: " + String.format("%.3f", treeLayout.getBounds().getWidth() * scale) + "x" + String.format("%.3f", treeLayout.getBounds().getHeight() * scale));
+        buff.add("scrollbars: ");
         buff.add("\n");
 
 
@@ -617,32 +627,51 @@ public class UberTreeViewer extends TreeViewer {
 
 
     /**
-     * Handle mouse events and may raise an event at the {@code ParsingResultSelectionListener}
-     * to notify all subscriber.
+     * Test if the given Point2D hits any node that can be selected.
      *
-     * @param e Mouse Event
-     * @see ParsingResultSelectionListener
+     * @param p XY coordinate
      */
-    protected void handleMouseEvent(MouseEvent e) {
+    protected void testForNodeSelection(Point2D p) {
         // do nothing on an invalid tree
         if (treeLayout == null || treeLayout.getLevelCount() == 0) return;
 
         // always clear on click
         setSelectedTreeNode(null);
 
+        Tree node = testLocationForNode(p);
+
+        if (node != null) {
+            // set selected node
+            setSelectedTreeNode(node);
+
+            // raise event for all selection listeners
+            for (ParsingResultSelectionListener listener : selectionListeners) {
+                listener.onParserRuleSelected(node);
+            }
+
+            repaint();
+        }
+    }
+
+
+    /**
+     * Checks if a given location hits a node.
+     *
+     * @param p XY coordinate
+     * @return
+     */
+    private Tree testLocationForNode(Point2D p) {
+        // do nothing on an invalid tree
+        if (treeLayout == null || treeLayout.getLevelCount() == 0) return null;
+
         for (Tree tree : treeLayout.getNodeBounds().keySet()) {
             Rectangle2D.Double box = getBoundsOfNode(tree);
 
-            if (box.contains(e.getX() / scale, e.getY() / scale)) {
-                // set selected node
-                setSelectedTreeNode(tree);
-
-                // raise event for all selection listeners
-                for (ParsingResultSelectionListener listener : selectionListeners) {
-                    listener.onParserRuleSelected(tree);
-                }
+            if (box.contains(p.getX() / scale, p.getY() / scale)) {
+                return tree;
             }
         }
+        return null;
     }
 
 
@@ -687,4 +716,47 @@ public class UberTreeViewer extends TreeViewer {
         return treeLayout;
     }
 
+
+    @Override
+    public void mouseClicked(MouseEvent mouseEvent) {
+        if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
+            testForNodeSelection(mouseEvent.getPoint());
+        }
+    }
+
+
+    @Override
+    public void mousePressed(MouseEvent mouseEvent) {
+
+    }
+
+
+    @Override
+    public void mouseReleased(MouseEvent mouseEvent) {
+
+    }
+
+
+    @Override
+    public void mouseEntered(MouseEvent mouseEvent) {
+
+    }
+
+
+    @Override
+    public void mouseExited(MouseEvent mouseEvent) {
+
+    }
+
+
+    @Override
+    public void mouseDragged(MouseEvent mouseEvent) {
+
+    }
+
+
+    @Override
+    public void mouseMoved(MouseEvent mouseEvent) {
+
+    }
 }
