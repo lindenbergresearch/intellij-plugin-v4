@@ -32,6 +32,7 @@ import static java.awt.RenderingHints.*;
 public class UberTreeViewer extends TreeViewer {
     public final static double MAX_SCALE_FACTOR = 1.66;
     public final static double MIN_SCALE_FACTOR = 0.1;
+    public final static double SCALING_INCREMENT = 0.15;
     public static final int VIEWER_HORIZONTAL_MARGIN = 26;
 
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
