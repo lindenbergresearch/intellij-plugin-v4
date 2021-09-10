@@ -380,9 +380,9 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         buff.add("count: #" + count++);
         buff.add("time: " + String.format("%.3f", delta) + "ms");
 
-        int y = (int) Math.round(10 + offsetText.getY());
+        double y = 10. + offsetText.getY();
         for (String s : buff) {
-            g2.drawString(s, Math.round(10 + offsetText.getX()), y);
+            g2.drawString(s, (float) (10. + offsetText.getX()), (float) y);
             y += 18 * (1. / scale);
         }
 
