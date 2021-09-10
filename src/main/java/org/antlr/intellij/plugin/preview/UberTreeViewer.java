@@ -32,10 +32,10 @@ import static java.awt.RenderingHints.*;
  * Custom tree layout viewer component.
  * Enhanced version based on: {@code TreeViewer}
  */
-public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMotionListener/*, Scrollable*/ {
+public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMotionListener {
     /*---- CONSTANTS ----------------------------------------------------------------------------*/
-    public final static double MAX_SCALE_FACTOR = 1.66;
-    public final static double MIN_SCALE_FACTOR = 0.1;
+    public final static double MAX_SCALE_FACTOR = 1.8;
+    public final static double MIN_SCALE_FACTOR = 0.05;
     public final static double SCALING_INCREMENT = 0.15;
     public static final int VIEWER_HORIZONTAL_MARGIN = 26;
     public static final int SCROLL_VIEWPORT_MARGIN = 30;
@@ -52,6 +52,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     protected JBColor endOfFileColor;
     protected JBColor terminalNodeColor;
     protected JBColor selectedNodeColor;
+
+    /*---- MOUSE --------------------------------------------------------------------------------*/
+    private boolean mouseDown;
+    private Point2D lastMousePos, currentMousePos, deltaMousePos;
 
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
     protected JScrollPane scrollPane;
@@ -153,6 +157,11 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         // add handler for mouse events
         addMouseListener(this);
         addMouseMotionListener(this);
+
+        mouseDown = false;
+        lastMousePos = new Point(0, 0);
+        currentMousePos = new Point(0, 0);
+        deltaMousePos = new Point(0, 0);
 
         setAutoscrolls(true);
     }
@@ -314,8 +323,19 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         buff.add("tree  : " + treeLayout.getBounds().getWidth() + "x" + treeLayout.getBounds().getHeight());
         buff.add("tree N: " + String.format("%.3f", treeLayout.getBounds().getWidth() * scale) + "x" + String.format("%.3f", treeLayout.getBounds().getHeight() * scale));
 
-        if (scrollPane != null)
-            buff.add("scrollbars: " + scrollPane.getVerticalScrollBar().getValue() + " - " + scrollPane.getHorizontalScrollBar().getValue());
+
+        Point2D offsetText = new Point(0, 0);
+        if (scrollPane != null) {
+            offsetText.setLocation(scrollPane.getHorizontalScrollBar().getValue() / scale, scrollPane.getVerticalScrollBar().getValue() / scale);
+            buff.add("scrollbars: " + scrollPane.getHorizontalScrollBar().getValue() + " : " + scrollPane.getVerticalScrollBar().getValue());
+            buff.add("scrollbars: " + offsetText.getX() + " : " + offsetText.getY());
+            buff.add("scroll val: " + String.format("%.3f", scrollPane.getHorizontalScrollBar().getMaximum() / scale) + " - " + String.format("%.3f",
+                    scrollPane.getVerticalScrollBar().getMaximum() / scale));
+            buff.add("mouse     : " + (mouseDown ? "DOWN" : " UP "));
+            buff.add("mouse pos : " + currentMousePos.toString().substring(14));
+            buff.add("mouse last: " + lastMousePos.toString().substring(14));
+            buff.add("mouse delt: " + deltaMousePos.toString().substring(14));
+        }
 
         buff.add("\n");
 
@@ -324,11 +344,11 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
         // anti-alias the lines
         g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-        //    g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
+        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
 
         // this has to be turned on to proper render all text positions
         // if set to 'on' labels will not be layouted corrc
-        g2.setRenderingHint(KEY_FRACTIONALMETRICS, VALUE_FRACTIONALMETRICS_OFF);
+        g2.setRenderingHint(KEY_FRACTIONALMETRICS, VALUE_FRACTIONALMETRICS_ON);
 
         // Anti-alias the text
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_GASP);
@@ -360,9 +380,9 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         buff.add("count: #" + count++);
         buff.add("time: " + String.format("%.3f", delta) + "ms");
 
-        int y = 10;
+        int y = (int) Math.round(10 + offsetText.getY());
         for (String s : buff) {
-            g2.drawString(s, 10, y);
+            g2.drawString(s, Math.round(10 + offsetText.getX()), y);
             y += 18 * (1. / scale);
         }
 
@@ -758,6 +778,8 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
         if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
+            mouseDown = true;
+            lastMousePos = mouseEvent.getPoint();
             testForNodeSelection(mouseEvent.getPoint());
         }
     }
@@ -765,10 +787,17 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
+        if (treeLayout == null) return;
+
+        mouseDown = false;
+        deltaMousePos.setLocation(0, 0);
+
         // reset cursor
         if (!locationHitsNode(mouseEvent.getPoint())) {
             setCursor(DEFAULT_CURSOR);
         }
+
+        repaint();
     }
 
 
@@ -786,25 +815,30 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
-        if (treeLayout == null) {
-            return;
-        }
+        if (treeLayout == null) return;
 
         setCursor(DRAG_CURSOR);
+        deltaMousePos.setLocation(lastMousePos.getX() - mouseEvent.getX(), lastMousePos.getY() - mouseEvent.getY());
 
+        if (treeExceedsViewport()) {
+            int hval = scrollPane.getHorizontalScrollBar().getValue();
+            int vval = scrollPane.getVerticalScrollBar().getValue();
 
-        //The user is dragging us, so scroll!
-        //   Rectangle r = new Rectangle(mouseEvent.getX(), mouseEvent.getY(), 1, 1);
-        //  scrollRectToVisible(r);
-        // repaint();
-        //  System.out.println("drag: " + mouseEvent.getX() + ":" + mouseEvent.getY());
+            scrollPane.getHorizontalScrollBar().setValue(hval + (int) (deltaMousePos.getX()));
+            scrollPane.getVerticalScrollBar().setValue(vval + (int) (deltaMousePos.getY()));
+
+            repaint();
+        }
     }
 
 
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {
+        if (treeLayout == null) return;
+
+        currentMousePos = mouseEvent.getPoint();
         // check if there is a node under the mouse cursor
-        if (locationHitsNode(mouseEvent.getPoint())) {
+        if (locationHitsNode(currentMousePos)) {
             setCursor(SELECT_CURSOR);
         } else {
             setCursor(DEFAULT_CURSOR);
