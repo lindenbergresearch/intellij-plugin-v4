@@ -332,6 +332,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         treePanel.add(buttonBarGraph.getComponent(), BorderLayout.NORTH);
         treePanel.add(scrollPane, BorderLayout.CENTER);
 
+        viewer.scrollPane = scrollPane;
+
         return new Pair<>(viewer, treePanel);
     }
 
@@ -600,4 +602,5 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
         }
     }
+
 }
