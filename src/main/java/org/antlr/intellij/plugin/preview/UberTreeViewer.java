@@ -51,6 +51,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     protected JBColor errorColor;
     protected JBColor endOfFileColor;
     protected JBColor terminalNodeColor;
+    protected JBColor terminalTextColor;
     protected JBColor selectedNodeColor;
 
     /*---- MOUSE --------------------------------------------------------------------------------*/
@@ -137,7 +138,8 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
         /* color and shape setup */
         boxColor = JBColor.BLUE;
-        terminalNodeColor = JBColor.ORANGE;
+        terminalNodeColor = null;
+        terminalTextColor = JBColor.BLACK;
         endOfFileColor = JBColor.DARK_GRAY;
         borderColor = null;
         arcSize = 9;
@@ -217,8 +219,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     protected void doAutoScale() {
         if (!hasTree()) return;
 
-        double xRatio = (double) (getParent().getWidth() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getWidth() + offset.getX());
-        double yRatio = (double) (getParent().getHeight() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getHeight() + offset.getY());
+        Rectangle viewport = scrollPane.getViewportBorderBounds();
+
+        double xRatio = (viewport.getWidth() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getWidth() + offset.getX());
+        double yRatio = (viewport.getHeight() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getHeight() + offset.getY());
 
         // determine the smallest scale factor
         scale = Math.min(xRatio, yRatio);
@@ -281,14 +285,17 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     private void updateOffset() {
         if (!hasTree()) return;
 
+        Rectangle viewport = scrollPane.getViewportBorderBounds();
+
         // no offset if the size of the layout tree is bigger then the actual viewport
-        if (getParent().getWidth() <= getScaledTreeSize().width) {
+        if (viewport.getWidth() <= getScaledTreeSize().width) {
             offset.setLocation(0, VIEWER_HORIZONTAL_MARGIN / 2.);
             return;
         }
 
+
         double offs;
-        offs = (double) getParent().getWidth() / 2. - getScaledTreeSize().width / 2.;
+        offs = viewport.getWidth() / 2. - getScaledTreeSize().width / 2.;
         offs = offs * (1. / scale);
         offset.setLocation(offs, VIEWER_HORIZONTAL_MARGIN / 2.);
     }
@@ -335,20 +342,20 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
             buff.add("mouse pos : " + currentMousePos.toString().substring(14));
             buff.add("mouse last: " + lastMousePos.toString().substring(14));
             buff.add("mouse delt: " + deltaMousePos.toString().substring(14));
+            buff.add("viewport  : " + scrollPane.getViewportBorderBounds().toString().substring(14));
         }
 
         buff.add("\n");
-
 
         Graphics2D g2 = (Graphics2D) g;
 
         // anti-alias the lines
         g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
+        //  g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
 
         // this has to be turned on to proper render all text positions
         // if set to 'on' labels will not be layouted corrc
-        g2.setRenderingHint(KEY_FRACTIONALMETRICS, VALUE_FRACTIONALMETRICS_ON);
+        g2.setRenderingHint(KEY_FRACTIONALMETRICS, VALUE_FRACTIONALMETRICS_OFF);
 
         // Anti-alias the text
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_GASP);
@@ -387,7 +394,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         }
 
         g2.setFont(saved);
-
     }
 
 
@@ -493,17 +499,17 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         }
 
         // ---------------- PAINT LABELS AND TEXT -------------------------------
-
         g2.setFont(font);
         g2.setColor(textColor);
 
         if (tree.getParent() == null) {
             g2.setColor(JBColor.WHITE);
-            g2.setFont(font.deriveFont(Font.BOLD).deriveFont((float) fontSize));
+            g2.setFont(font.deriveFont(Font.BOLD).deriveFont((float) fontSize + 4));
         }
 
         if (tree instanceof TerminalNode) {
-            g2.setFont(font.deriveFont(Font.ITALIC).deriveFont((float) fontSize));
+            g2.setFont(font.deriveFont(Font.BOLD).deriveFont((float) fontSize + 5));
+            g2.setColor(terminalTextColor);
         }
 
         String s = getText(tree);
@@ -554,9 +560,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      */
     private Dimension getScaledTreeSize() {
         Dimension scaledTreeSize = treeLayout.getBounds().getBounds().getSize();
+
         return new Dimension(
             (int) Math.round(scaledTreeSize.width * scale),
-            (int) Math.round(scaledTreeSize.height * scale)
+            (int) Math.round(scaledTreeSize.height * scale + VIEWER_HORIZONTAL_MARGIN)
         );
     }
 
@@ -567,20 +574,20 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      * @return True if tree-view > scrollbar dimension.
      */
     protected boolean treeExceedsViewport() {
-        return getScaledTreeSize().width > getParent().getWidth() ||
-            getScaledTreeSize().height > getParent().getHeight();
+        Rectangle viewport = scrollPane.getViewportBorderBounds();
+        return getScaledTreeSize().width > viewport.getWidth() ||
+            getScaledTreeSize().height > viewport.getHeight();
     }
 
 
     /**
      * Update the component's size based on the tree layout size.
      */
-    private void updatePreferredSize() {
+    protected void updatePreferredSize() {
         setPreferredSize(getScaledTreeSize());
-        invalidate();
 
         if (getParent() != null)
-            getParent().validate();
+            getParent().revalidate();
 
         repaint();
     }
@@ -822,5 +829,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         } else {
             setCursor(DEFAULT_CURSOR);
         }
+        repaint();
     }
 }
