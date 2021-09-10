@@ -140,7 +140,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         boxColor = JBColor.BLUE;
         terminalNodeColor = null;
         terminalTextColor = JBColor.BLACK;
-        endOfFileColor = JBColor.DARK_GRAY;
+        endOfFileColor = JBColor.LIGHT_GRAY;
         borderColor = null;
         arcSize = 9;
         minCellWidth = 100;
@@ -513,7 +513,8 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         }
 
         String s = getText(tree);
-        FontMetrics m = getFontMetrics(getFont());
+        FontMetrics m = g2.getFontMetrics(g2.getFont());
+
         float y = (float) (box.y + box.height / 2. - m.getHeight() / 2. + m.getAscent());
         float x = (float) (box.x + box.width / 2. - m.stringWidth(s) / 2.);
 
@@ -548,7 +549,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     @Override
     protected String getText(Tree tree) {
         String s = treeTextProvider.getText(tree);
-        s = Utils.escapeWhitespace(s, false);
+        s = Utils.escapeWhitespace(s.trim(), false);
         return s;
     }
 
