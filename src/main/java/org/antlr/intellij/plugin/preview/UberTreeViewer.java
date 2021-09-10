@@ -330,7 +330,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
             buff.add("scrollbars: " + scrollPane.getHorizontalScrollBar().getValue() + " : " + scrollPane.getVerticalScrollBar().getValue());
             buff.add("scrollbars: " + offsetText.getX() + " : " + offsetText.getY());
             buff.add("scroll val: " + String.format("%.3f", scrollPane.getHorizontalScrollBar().getMaximum() / scale) + " - " + String.format("%.3f",
-                    scrollPane.getVerticalScrollBar().getMaximum() / scale));
+                scrollPane.getVerticalScrollBar().getMaximum() / scale));
             buff.add("mouse     : " + (mouseDown ? "DOWN" : " UP "));
             buff.add("mouse pos : " + currentMousePos.toString().substring(14));
             buff.add("mouse last: " + lastMousePos.toString().substring(14));
@@ -418,12 +418,14 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
         if (tree instanceof ParserRuleContext) {
             ParserRuleContext ctx = (ParserRuleContext) tree;
-            ruleFailedAndMatchedNothing = ctx.exception != null && ctx.stop != null && ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
+            ruleFailedAndMatchedNothing =
+                ctx.exception != null &&
+                    ctx.stop != null &&
+                    ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
         }
 
         Color color;
         int boxRoundness = 1;
-
 
         if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing) color = errorColor;
         else if (tree instanceof TerminalNode) {
@@ -452,12 +454,12 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
             g.setColor(selectedNodeColor.brighter());
             g.drawRoundRect(
-                    (int) Math.round(box.x - 3),
-                    (int) Math.round(box.y - 3),
-                    (int) Math.round(box.width + 6),
-                    (int) Math.round(box.height + 6),
-                    arcSize * boxRoundness,
-                    arcSize * boxRoundness
+                (int) Math.round(box.x - 3),
+                (int) Math.round(box.y - 3),
+                (int) Math.round(box.width + 6),
+                (int) Math.round(box.height + 6),
+                arcSize * boxRoundness,
+                arcSize * boxRoundness
             );
         }
 
@@ -465,12 +467,12 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         if (color != null) {
             g.setColor(color);
             g.fillRoundRect(
-                    (int) Math.round(box.x),
-                    (int) Math.round(box.y),
-                    (int) Math.round(box.width),
-                    (int) Math.round(box.height),
-                    arcSize * boxRoundness,
-                    arcSize * boxRoundness
+                (int) Math.round(box.x),
+                (int) Math.round(box.y),
+                (int) Math.round(box.width),
+                (int) Math.round(box.height),
+                arcSize * boxRoundness,
+                arcSize * boxRoundness
             );
         }
 
@@ -478,12 +480,12 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         if (borderColor != null) {
             g.setColor(borderColor);
             g.drawRoundRect(
-                    (int) Math.round(box.x),
-                    (int) Math.round(box.y),
-                    (int) Math.round(box.width),
-                    (int) Math.round(box.height),
-                    arcSize * boxRoundness,
-                    arcSize * boxRoundness
+                (int) Math.round(box.x),
+                (int) Math.round(box.y),
+                (int) Math.round(box.width),
+                (int) Math.round(box.height),
+                arcSize * boxRoundness,
+                arcSize * boxRoundness
             );
         }
 
@@ -528,9 +530,9 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     protected Rectangle2D.Double getBoundsOfNode(Tree node) {
         Rectangle2D.Double bounds = treeLayout.getNodeBounds().get(node);
         return new Rectangle2D.Double(
-                bounds.x + offset.getX(),
-                bounds.y + offset.getY(),
-                bounds.width, bounds.height
+            bounds.x + offset.getX(),
+            bounds.y + offset.getY(),
+            bounds.width, bounds.height
         );
     }
 
@@ -558,8 +560,8 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     private Dimension getScaledTreeSize() {
         Dimension scaledTreeSize = treeLayout.getBounds().getBounds().getSize();
         return new Dimension(
-                (int) Math.round(scaledTreeSize.width * scale),
-                (int) Math.round(scaledTreeSize.height * scale)
+            (int) Math.round(scaledTreeSize.width * scale),
+            (int) Math.round(scaledTreeSize.height * scale)
         );
     }
 
@@ -571,7 +573,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      */
     protected boolean treeExceedsViewport() {
         return getScaledTreeSize().width > getParent().getWidth() ||
-                getScaledTreeSize().height > getParent().getHeight();
+            getScaledTreeSize().height > getParent().getHeight();
     }
 
 
@@ -614,10 +616,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     public void setTree(Tree root) {
         if (root != null) {
             treeLayout = new TreeLayout<>(
-                    getTreeLayoutAdaptor(root),
-                    new VariableExtentProvider(this),
-                    new DefaultConfiguration<>(gapBetweenLevels, gapBetweenNodes),
-                    true
+                getTreeLayoutAdaptor(root),
+                new VariableExtentProvider(this),
+                new DefaultConfiguration<>(gapBetweenLevels, gapBetweenNodes),
+                true
             );
 
             // Let the UI display this new AST.
@@ -664,10 +666,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
             Rectangle2D nodeBounds = getBoundsOfNode(node);
             Rectangle marginBox = new Rectangle(
-                    (int) Math.round(nodeBounds.getX() * scale - SCROLL_VIEWPORT_MARGIN),
-                    (int) Math.round(nodeBounds.getY() * scale - SCROLL_VIEWPORT_MARGIN),
-                    (int) Math.round(nodeBounds.getWidth() * scale + SCROLL_VIEWPORT_MARGIN * 2),
-                    (int) Math.round(nodeBounds.getHeight() * scale + SCROLL_VIEWPORT_MARGIN * 2)
+                (int) Math.round(nodeBounds.getX() * scale - SCROLL_VIEWPORT_MARGIN),
+                (int) Math.round(nodeBounds.getY() * scale - SCROLL_VIEWPORT_MARGIN),
+                (int) Math.round(nodeBounds.getWidth() * scale + SCROLL_VIEWPORT_MARGIN * 2),
+                (int) Math.round(nodeBounds.getHeight() * scale + SCROLL_VIEWPORT_MARGIN * 2)
             );
 
             scrollRectToVisible(marginBox);
