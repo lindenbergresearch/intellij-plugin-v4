@@ -412,6 +412,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      */
     private void customPaintBox(Graphics g, Tree tree) {
         Rectangle2D.Double box = getBoundsOfNode(tree);
+        Graphics2D g2 = (Graphics2D) g;
 
         // draw the box in the background
         boolean ruleFailedAndMatchedNothing = false;
@@ -424,12 +425,16 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
                     ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
         }
 
-        Color color;
+        Color color = boxColor;
         int boxRoundness = 1;
 
-        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing) color = errorColor;
-        else if (tree instanceof TerminalNode) {
+        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing)
+            color = errorColor;
+
+
+        if (tree instanceof TerminalNode) {
             Token token = ((TerminalNode) tree).getSymbol();
+
             if (token.getText().equals("<EOF>")) {
                 color = endOfFileColor;
                 boxRoundness = 2;
@@ -440,9 +445,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
                 color = terminalNodeColor;
                 boxRoundness = 0;
             }
-
-        } else if (boxColor != null) color = boxColor;
-        else color = null;
+        }
 
 
         /* selected node handled here */
@@ -450,10 +453,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
             color = selectedNodeColor;
 
             BasicStroke stroke = new BasicStroke(0.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-            ((Graphics2D) g).setStroke(stroke);
+            g2.setStroke(stroke);
 
-            g.setColor(selectedNodeColor.brighter());
-            g.drawRoundRect(
+            g2.setColor(selectedNodeColor.brighter());
+            g2.drawRoundRect(
                 (int) Math.round(box.x - 3),
                 (int) Math.round(box.y - 3),
                 (int) Math.round(box.width + 6),
@@ -465,8 +468,8 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
         /* fill box */
         if (color != null) {
-            g.setColor(color);
-            g.fillRoundRect(
+            g2.setColor(color);
+            g2.fillRoundRect(
                 (int) Math.round(box.x),
                 (int) Math.round(box.y),
                 (int) Math.round(box.width),
@@ -478,8 +481,8 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
         /* box border */
         if (borderColor != null) {
-            g.setColor(borderColor);
-            g.drawRoundRect(
+            g2.setColor(borderColor);
+            g2.drawRoundRect(
                 (int) Math.round(box.x),
                 (int) Math.round(box.y),
                 (int) Math.round(box.width),
@@ -491,32 +494,24 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
         // ---------------- PAINT LABELS AND TEXT -------------------------------
 
-//        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing) {
-//            g.setColor(errorColor);
-//        } else {
-//            g.setColor(textColor);
-//        }
-
-        g.setFont(font);
-        g.setColor(textColor);
+        g2.setFont(font);
+        g2.setColor(textColor);
 
         if (tree.getParent() == null) {
-            g.setColor(JBColor.WHITE);
-            g.setFont(font.deriveFont(Font.BOLD).deriveFont((float) fontSize));
+            g2.setColor(JBColor.WHITE);
+            g2.setFont(font.deriveFont(Font.BOLD).deriveFont((float) fontSize));
         }
 
-//        if (tree instanceof TerminalNode) {
-//            g.setFont(font.deriveFont(Font.ITALIC).deriveFont((float) fontSize ));
-//        }
-        //s = Utils.escapeWhitespace(s, true);
-
+        if (tree instanceof TerminalNode) {
+            g2.setFont(font.deriveFont(Font.ITALIC).deriveFont((float) fontSize));
+        }
 
         String s = getText(tree);
         FontMetrics m = getFontMetrics(getFont());
-        int y = (int) Math.round(box.y + box.height / 2. - m.getHeight() / 2. + m.getAscent());
-        int x = (int) Math.round(box.x + box.width / 2. - m.stringWidth(s) / 2.);
+        float y = (float) (box.y + box.height / 2. - m.getHeight() / 2. + m.getAscent());
+        float x = (float) (box.x + box.width / 2. - m.stringWidth(s) / 2.);
 
-        text(g, s, x, y);
+        g2.drawString(s, x, y);
     }
 
 
