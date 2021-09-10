@@ -401,24 +401,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     @Override
     protected void paintBox(Graphics g, Tree tree) {
         customPaintBox(g, tree);
-
-        Rectangle2D.Double box = getBoundsOfNode(tree);
-
-        if (tree instanceof PreviewInterpreterRuleContext) {
-            PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext) tree;
-
-            if (highlightUnreachedNodes && !ctx.reached) {
-                g.setColor(unreachableColor);
-                g.drawRoundRect(
-                        (int) Math.round(box.x),
-                        (int) Math.round(box.y),
-                        (int) Math.round(box.width - 1),
-                        (int) Math.round(box.height - 1),
-                        arcSize,
-                        arcSize
-                );
-            }
-        }
     }
 
 
