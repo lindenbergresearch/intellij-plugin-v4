@@ -53,7 +53,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     //perhaps in a few more years they will get around to backporting whatever it was they fixed.
     // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
     private static final boolean isTrackpadZoomSupported =
-            SystemInfo.isMac && (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
+        SystemInfo.isMac && (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
 
     public static final Logger LOG = Logger.getInstance("ANTLR PreviewPanel");
 
@@ -116,7 +116,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     private ActionToolbar createButtonBarGraph() {
         ToggleAction autoScaleDiagram = new ToggleAction("Auto-Scale",
-                "Set proper zoom-level upon live-testing grammars.", AllIcons.Actions.Refresh) {
+            "Set proper zoom-level upon live-testing grammars.", AllIcons.Actions.Refresh) {
 
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -135,7 +135,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setScaleLevel(1.0);
-                treeViewer.repaint();
+                treeViewer.updatePreferredSize();
             }
         };
 
@@ -152,7 +152,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setRelativeScaling(UberTreeViewer.SCALING_INCREMENT);
-                treeViewer.repaint();
+                treeViewer.updatePreferredSize();
             }
         };
 
@@ -160,7 +160,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setRelativeScaling(-UberTreeViewer.SCALING_INCREMENT);
-                treeViewer.repaint();
+                treeViewer.updatePreferredSize();
             }
         };
 
@@ -168,7 +168,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.doAutoScale();
-                treeViewer.repaint();
+                treeViewer.updatePreferredSize();
             }
         };
 
@@ -180,17 +180,17 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         DefaultActionGroup actionGroup = new DefaultActionGroup(
-                autoScaleDiagram,
-                fitScreen,
-                fitSelected
+            autoScaleDiagram,
+            fitScreen,
+            fitSelected
         );
 
         actionGroup.addSeparator();
 
         actionGroup.addAll(
-                zoomActualSize,
-                zoomIn,
-                zoomOut
+            zoomActualSize,
+            zoomIn,
+            zoomOut
         );
 
         ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true); ;
@@ -202,7 +202,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     private ActionToolbar createButtonBar() {
         final AnAction refreshAction = new ToggleAction("Refresh Preview Automatically",
-                "Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh) {
+            "Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh) {
 
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -244,10 +244,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
         DefaultActionGroup actionGroup = new DefaultActionGroup(
-                refreshAction,
-                cancelParserAction,
-                scrollFromSourceBtn,
-                scrollToSourceBtn
+            refreshAction,
+            cancelParserAction,
+            scrollFromSourceBtn,
+            scrollToSourceBtn
         );
 
         ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false); ;
@@ -310,9 +310,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         JPanel treePanel = new JPanel(new BorderLayout(10, 10));
 
         final UberTreeViewer viewer =
-                isTrackpadZoomSupported ?
-                        new TrackpadZoomingTreeView(null, null, false) :
-                        new UberTreeViewer(null, null, false);
+            isTrackpadZoomSupported ?
+                new TrackpadZoomingTreeView(null, null, false) :
+                new UberTreeViewer(null, null, false);
 
 
         viewer.setDoubleBuffered(true);
@@ -322,9 +322,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         // Wrap tree viewer component in scroll pane
         JScrollPane scrollPane = new JBScrollPane(
-                viewer,
-                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
+            viewer,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
         );
 
         scrollPane.setWheelScrollingEnabled(true);
@@ -366,8 +366,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
         // if start rule no longer exists, reset display/state.
         if (previewState.g != null &&
-                previewState.g != ParsingUtils.BAD_PARSER_GRAMMAR &&
-                previewState.startRuleName != null) {
+            previewState.g != ParsingUtils.BAD_PARSER_GRAMMAR &&
+            previewState.startRuleName != null) {
             Rule rule = previewState.g.getRule(previewState.startRuleName);
             if (rule == null) {
                 previewState.startRuleName = null;
@@ -520,9 +520,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 
         if (autoRefresh
-                && controller != null
-                && inputPanel.previewState != null
-                && inputPanel.previewState.startRuleName != null) {
+            && controller != null
+            && inputPanel.previewState != null
+            && inputPanel.previewState.startRuleName != null) {
             ApplicationManager.getApplication().invokeLater(() -> controller.grammarFileSavedEvent(virtualFile));
         }
     }
