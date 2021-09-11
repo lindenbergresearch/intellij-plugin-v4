@@ -83,36 +83,38 @@ public class InputPanel {
     private JPanel startRuleAndInputPanel;
     private TextFieldWithBrowseButton fileChooser;
     private JPanel outerMostPanel;
+    private JScrollPane errorScrollPane;
 
 
     public InputPanel(final PreviewPanel previewPanel) {
         WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
-        layout.setAlignment(FlowLayout.CENTER);
+        layout.setAlignment(FlowLayout.LEFT);
         this.startRuleAndInputPanel.setLayout(layout);
         this.previewPanel = previewPanel;
 
         FileChooserDescriptor singleFileDescriptor =
-                FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
+            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
+
         ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> browseActionListener =
-                new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
-                        "Select Input File", null,
-                        fileChooser,
-                        previewPanel.project,
-                        singleFileDescriptor,
-                        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
-                ) {
-                    protected void onFileChosen(@NotNull VirtualFile chosenFile) {
-                        // this next line is the code taken from super; pasted in
-                        // to avoid compile error on super.onFileCho[o]sen
-                        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
-                                chosenFileToResultingText(chosenFile));
-                        InputPanel.this.onFileChosen(chosenFile);
-                    }
-                };
+            new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
+                "Select Input File", null,
+                fileChooser,
+                previewPanel.project,
+                singleFileDescriptor,
+                TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
+            ) {
+                protected void onFileChosen(@NotNull VirtualFile chosenFile) {
+                    // this next line is the code taken from super; pasted in
+                    // to avoid compile error on super.onFileCho[o]sen
+                    TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
+                        chosenFileToResultingText(chosenFile));
+                    InputPanel.this.onFileChosen(chosenFile);
+                }
+            };
         fileChooser.getTextField().addActionListener(e -> {
             VirtualFile chosenFile = VirtualFileManager.getInstance()
-                    .getFileSystem("file")
-                    .findFileByPath(fileChooser.getText());
+                .getFileSystem("file")
+                .findFileByPath(fileChooser.getText());
             onFileChosen(chosenFile);
         });
         fileChooser.addActionListener(browseActionListener);
@@ -143,7 +145,7 @@ public class InputPanel {
         MarkupModel markupModel = editor.getMarkupModel();
         for (RangeHighlighter r : markupModel.getAllHighlighters()) {
             if (r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY) == null &&
-                    r.getUserData(SYNTAX_ERROR) == null) {
+                r.getUserData(SYNTAX_ERROR) == null) {
                 markupModel.removeHighlighter(r);
             }
         }
@@ -180,9 +182,9 @@ public class InputPanel {
                 } else if (eventInfo instanceof PredicateEvalInfo) {
                     PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
                     msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
-                            previewState,
-                            evalInfo.semctx, evalInfo.predictedAlt,
-                            evalInfo.evalResult);
+                        previewState,
+                        evalInfo.semctx, evalInfo.predictedAlt,
+                        evalInfo.evalResult);
                     msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
                 } else {
                     msg = "Unknown decision event: " + eventInfo;
@@ -213,21 +215,21 @@ public class InputPanel {
 
     public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
         int flags =
-                HintManager.HIDE_BY_ANY_KEY |
-                        HintManager.HIDE_BY_TEXT_CHANGE |
-                        HintManager.HIDE_BY_SCROLLING;
+            HintManager.HIDE_BY_ANY_KEY |
+                HintManager.HIDE_BY_TEXT_CHANGE |
+                HintManager.HIDE_BY_SCROLLING;
         int timeout = 0; // default?
         hintMgr.showErrorHint(editor, msg,
-                offset, offset + 1,
-                HintManager.ABOVE, flags, timeout);
+            offset, offset + 1,
+            HintManager.ABOVE, flags, timeout);
     }
 
 
     public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
         int flags =
-                HintManager.HIDE_BY_ANY_KEY |
-                        HintManager.HIDE_BY_TEXT_CHANGE |
-                        HintManager.HIDE_BY_SCROLLING;
+            HintManager.HIDE_BY_ANY_KEY |
+                HintManager.HIDE_BY_TEXT_CHANGE |
+                HintManager.HIDE_BY_SCROLLING;
         int timeout = 0; // default?
         JComponent infoLabel = HintUtil.createInformationLabel(msg);
         LightweightHint hint = new LightweightHint(infoLabel);
@@ -283,12 +285,12 @@ public class InputPanel {
         final EditorFactory factory = EditorFactory.getInstance();
         Document doc = factory.createDocument("");
         doc.addDocumentListener(
-                new DocumentAdapter() {
-                    @Override
-                    public void documentChanged(DocumentEvent e) {
-                        previewState.manualInputText = e.getDocument().getCharsSequence();
-                    }
+            new DocumentAdapter() {
+                @Override
+                public void documentChanged(DocumentEvent e) {
+                    previewState.manualInputText = e.getDocument().getCharsSequence();
                 }
+            }
         );
 
         Editor editor = createPreviewEditor(previewState.grammarFile, doc, false);
@@ -309,7 +311,7 @@ public class InputPanel {
 
         VirtualFile inputFile = previewState.inputFile;
         if (inputFile == null) {
-            errorConsole.setText("Invalid input file");
+            errorConsole.setText("Invalid input file!");
             return;
         }
 
@@ -338,16 +340,16 @@ public class InputPanel {
         LOG.info("createEditor: create new editor for " + grammarFile.getPath() + " " + previewPanel.project.getName());
         final EditorFactory factory = EditorFactory.getInstance();
         doc.addDocumentListener(
-                new DocumentAdapter() {
-                    @Override
-                    public void documentChanged(DocumentEvent event) {
-                        previewPanel.updateParseTreeFromDoc(grammarFile);
-                    }
+            new DocumentAdapter() {
+                @Override
+                public void documentChanged(DocumentEvent event) {
+                    previewPanel.updateParseTreeFromDoc(grammarFile);
                 }
+            }
         );
         final Editor editor = readOnly
-                ? factory.createViewer(doc, previewPanel.project)
-                : factory.createEditor(doc, previewPanel.project);
+            ? factory.createViewer(doc, previewPanel.project)
+            : factory.createEditor(doc, previewPanel.project);
         // force right margin
         ((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
         EditorSettings settings = editor.getSettings();
@@ -480,6 +482,7 @@ public class InputPanel {
 
     public void displayErrorInParseErrorConsole(SyntaxError e) {
         String msg = getErrorDisplayString(e);
+        errorScrollPane.setVisible(true);
         errorConsole.insert(msg + '\n', errorConsole.getText().length());
     }
 
@@ -529,6 +532,7 @@ public class InputPanel {
      */
     public void showTokenInfoUponCtrlKey(Editor editor, PreviewState previewState, int offset) {
         Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
+
         if (tokenUnderCursor == null) {
             PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
             CommonTokenStream tokenStream = (CommonTokenStream) parser.getInputStream();
@@ -541,28 +545,31 @@ public class InputPanel {
 
         String channelInfo = "";
         int channel = tokenUnderCursor.getChannel();
+
         if (channel != Token.DEFAULT_CHANNEL) {
             String chNum = channel == Token.HIDDEN_CHANNEL ? "hidden" : String.valueOf(channel);
             channelInfo = ", Channel " + chNum;
         }
+
         JBColor color = JBColor.BLUE;
         String tokenInfo =
-                String.format("#%d Type %s, Line %d:%d%s",
-                        tokenUnderCursor.getTokenIndex(),
-                        previewState.g.getTokenDisplayName(tokenUnderCursor.getType()),
-                        tokenUnderCursor.getLine(),
-                        tokenUnderCursor.getCharPositionInLine(),
-                        channelInfo
-                );
+            String.format("#%d Type %s, Line %d:%d%s",
+                tokenUnderCursor.getTokenIndex(),
+                previewState.g.getTokenDisplayName(tokenUnderCursor.getType()),
+                tokenUnderCursor.getLine(),
+                tokenUnderCursor.getCharPositionInLine(),
+                channelInfo
+            );
+
         if (channel == -1) {
             tokenInfo = "Skipped";
             color = JBColor.gray;
         }
 
         Interval sourceInterval = Interval.of(tokenUnderCursor.getStartIndex(),
-                tokenUnderCursor.getStopIndex() + 1);
-        highlightAndOfferHint(editor, offset, sourceInterval,
-                color, EffectType.LINE_UNDERSCORE, tokenInfo);
+            tokenUnderCursor.getStopIndex() + 1);
+
+        highlightAndOfferHint(editor, offset, sourceInterval, color, EffectType.LINE_UNDERSCORE, tokenInfo);
     }
 
 
@@ -578,7 +585,7 @@ public class InputPanel {
 
         ParseTree tree = previewState.parsingResult.tree;
         TerminalNode nodeWithToken =
-                (TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
+            (TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
         if (nodeWithToken == null) {
             // hidden token
             return;
@@ -591,7 +598,7 @@ public class InputPanel {
         Token startToken = tokenStream.get(tokenInterval.a);
         Token stopToken = tokenStream.get(tokenInterval.b);
         Interval sourceInterval =
-                Interval.of(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
+            Interval.of(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
 
         List<String> stack = parser.getRuleInvocationStack(parent);
         Collections.reverse(stack);
@@ -621,7 +628,7 @@ public class InputPanel {
         }
         String stackS = Utils.join(stack.toArray(), "\n");
         highlightAndOfferHint(editor, offset, sourceInterval,
-                JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
+            JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
     }
 
 
@@ -636,11 +643,11 @@ public class InputPanel {
         attr.setEffectType(effectType);
         MarkupModel markupModel = editor.getMarkupModel();
         markupModel.addRangeHighlighter(
-                sourceInterval.a,
-                sourceInterval.b,
-                InputPanel.TOKEN_INFO_LAYER, // layer
-                attr,
-                HighlighterTargetArea.EXACT_RANGE
+            sourceInterval.a,
+            sourceInterval.b,
+            InputPanel.TOKEN_INFO_LAYER, // layer
+            attr,
+            HighlighterTargetArea.EXACT_RANGE
         );
 
         if (hintText.contains("<")) {
@@ -668,7 +675,7 @@ public class InputPanel {
 
         Interval region = previewState.g.getStateToGrammarRegion(atnState);
         CommonToken token =
-                (CommonToken) previewState.g.tokenStream.get(region.a);
+            (CommonToken) previewState.g.tokenStream.get(region.a);
         jumpToGrammarPosition(project, token.getStartIndex());
     }
 
@@ -681,7 +688,7 @@ public class InputPanel {
 
         ParseTree tree = previewState.parsingResult.tree;
         TerminalNode nodeWithToken =
-                (TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
+            (TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
         if (nodeWithToken == null) {
             // hidden token
             return;
@@ -736,11 +743,11 @@ public class InputPanel {
         attr.setEffectColor(JBColor.RED);
         attr.setEffectType(EffectType.WAVE_UNDERSCORE);
         RangeHighlighter highlighter =
-                markupModel.addRangeHighlighter(a,
-                        b,
-                        ERROR_LAYER, // layer
-                        attr,
-                        HighlighterTargetArea.EXACT_RANGE);
+            markupModel.addRangeHighlighter(a,
+                b,
+                ERROR_LAYER, // layer
+                attr,
+                HighlighterTargetArea.EXACT_RANGE);
         highlighter.putUserData(SYNTAX_ERROR, e);
     }
 
