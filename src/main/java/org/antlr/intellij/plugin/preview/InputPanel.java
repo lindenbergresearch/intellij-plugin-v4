@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
@@ -84,6 +85,7 @@ public class InputPanel {
     private TextFieldWithBrowseButton fileChooser;
     private JPanel outerMostPanel;
     private JScrollPane errorScrollPane;
+    private PropertiesComponent propertiesComponent;
 
 
     public InputPanel(final PreviewPanel previewPanel) {
@@ -125,8 +127,14 @@ public class InputPanel {
         fileRadioButton.addActionListener(e -> selectFileEvent());
 
         resetStartRuleLabel();
+        propertiesComponent = PropertiesComponent.getInstance(previewPanel.project);
 
         editorMouseListener = new PreviewEditorMouseListener(this);
+    }
+
+
+    public PropertiesComponent getPropertiesComponent() {
+        return propertiesComponent;
     }
 
 
@@ -284,11 +292,19 @@ public class InputPanel {
     public void createManualInputPreviewEditor(final PreviewState previewState) {
         final EditorFactory factory = EditorFactory.getInstance();
         Document doc = factory.createDocument("");
+
+        String text = propertiesComponent.getValue("org.antlr.intellij.plugin.preview.input");
+        previewState.manualInputText = text.toString();
+
         doc.addDocumentListener(
             new DocumentAdapter() {
                 @Override
                 public void documentChanged(DocumentEvent e) {
                     previewState.manualInputText = e.getDocument().getCharsSequence();
+
+                    propertiesComponent.setValue("org.antlr.intellij.plugin.preview.input", previewState.manualInputText.toString());
+                    propertiesComponent.setValue("org.antlr.intellij.plugin.preview.startRule", previewState.startRuleName);
+                    LOG.info("save start-rule for session recover: '" + previewState.startRuleName + "'");
                 }
             }
         );

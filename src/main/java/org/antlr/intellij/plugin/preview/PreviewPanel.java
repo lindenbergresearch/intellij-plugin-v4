@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -12,6 +13,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -63,6 +65,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     public HierarchyViewer hierarchyViewer;
     public ProfilerPanel profilerPanel;
     private TokenStreamViewer tokenStreamViewer;
+    private JBTabbedPane tabbedPane;
 
     /**
      * Indicates if the preview should be automatically refreshed after grammar changes.
@@ -91,6 +94,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         splitPane.setShowDividerIcon(true);
 
         inputPanel = getEditorPanel();
+        inputPanel.getComponent().setBorder(BorderFactory.createEtchedBorder());
         inputPanel.addCaretListener(new CaretAdapter() {
             @Override
             public void caretPositionChanged(@NotNull CaretEvent event) {
@@ -175,7 +179,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         AnAction fitSelected = new AnAction("Fit Selected Node", "Zoom to selected tree node.", ShortcutFilter) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-
+                treeViewer.focusSelectedNode();
+                treeViewer.updatePreferredSize();
             }
         };
 
@@ -269,7 +274,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
     private JTabbedPane createParseTreeAndProfileTabbedPanel() {
-        JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
+        tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
         tabbedPane.setBorder(BorderFactory.createEtchedBorder());
 
         LOG.info("createParseTreePanel" + " " + project.getName());
@@ -320,6 +325,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         this.buttonBarGraph = createButtonBarGraph();
 
+
         // Wrap tree viewer component in scroll pane
         JScrollPane scrollPane = new JBScrollPane(
             viewer,
@@ -333,8 +339,15 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         treePanel.add(scrollPane, BorderLayout.CENTER);
 
         viewer.scrollPane = scrollPane;
+        viewer.setBackground(JBColor.background().darker().darker());
+        scrollPane.setBorder(BorderFactory.createEtchedBorder());
 
         return new Pair<>(viewer, treePanel);
+    }
+
+
+    public void restoreStartRule() {
+
     }
 
 
@@ -393,6 +406,14 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         LOG.info("switchToGrammar " + grammarFileName + " " + project.getName());
         ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
         PreviewState previewState = controller.getPreviewState(grammarFile);
+
+        // recover last start rule
+        String startRule = PropertiesComponent.getInstance(project).getValue("org.antlr.intellij.plugin.preview.startRule");
+
+        if (startRule != null) {
+            previewState.startRuleName = startRule;
+            LOG.info("recover start-rule from saved session: '" + startRule + "'");
+        }
 
         inputPanel.switchToGrammar(previewState, grammarFile);
         profilerPanel.switchToGrammar(previewState, grammarFile);
@@ -537,10 +558,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             updateTreeViewer(previewState, previewState.parsingResult);
             profilerPanel.setProfilerData(previewState, duration);
             inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
-            buttonBarGraph.getComponent().setEnabled(true);
         } else if (previewState.startRuleName == null) {
             indicateNoStartRuleInParseTreePane();
-            buttonBarGraph.getComponent().setEnabled(false);
         } else {
             indicateInvalidGrammarInParseTreePane();
         }
