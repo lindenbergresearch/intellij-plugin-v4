@@ -5,7 +5,6 @@ import com.intellij.util.ui.JBFont;
 import org.abego.treelayout.NodeExtentProvider;
 import org.abego.treelayout.TreeLayout;
 import org.abego.treelayout.util.DefaultConfiguration;
-import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -37,8 +36,10 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     public final static double MAX_SCALE_FACTOR = 1.8;
     public final static double MIN_SCALE_FACTOR = 0.05;
     public final static double SCALING_INCREMENT = 0.15;
-    public static final int VIEWER_HORIZONTAL_MARGIN = 26;
-    public static final int SCROLL_VIEWPORT_MARGIN = 30;
+    public final static double NODE_FOCUS_MARGIN = 140;
+    public final static double NODE_FOCUS_SCALE_FACTOR = 1.25;
+    public final static int VIEWER_HORIZONTAL_MARGIN = 26;
+    public final static int SCROLL_VIEWPORT_MARGIN = 30;
 
     /*---- CURSOR -------------------------------------------------------------------------------*/
     public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -662,11 +663,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
             // set selected node
             setSelectedTreeNode(node);
 
-            // raise event for all selection listeners
-            for (ParsingResultSelectionListener listener : selectionListeners) {
-                listener.onParserRuleSelected(node);
-            }
-
             Rectangle2D nodeBounds = getBoundsOfNode(node);
             Rectangle marginBox = new Rectangle(
                 (int) Math.round(nodeBounds.getX() * scale - SCROLL_VIEWPORT_MARGIN),
@@ -678,7 +674,40 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
             scrollRectToVisible(marginBox);
         }
 
+        // raise event for all selection listeners
+        for (ParsingResultSelectionListener listener : selectionListeners) {
+            listener.onParserRuleSelected(node);
+        }
+
         repaint();
+    }
+
+
+    /**
+     *
+     */
+    protected void focusSelectedNode() {
+        if (!hasTree()) return;
+
+        Tree node = getSelectedTreeNode();
+
+        if (node != null) {
+            setScaleLevel(NODE_FOCUS_SCALE_FACTOR);
+            updateScaling();
+            updatePreferredSize();
+
+            Rectangle2D nodeBounds = getBoundsOfNode(node);
+            Rectangle marginBox = new Rectangle(
+                (int) Math.round(nodeBounds.getX() * scale - NODE_FOCUS_MARGIN),
+                (int) Math.round(nodeBounds.getY() * scale - NODE_FOCUS_MARGIN),
+                (int) Math.round(nodeBounds.getWidth() * scale + NODE_FOCUS_MARGIN * 2),
+                (int) Math.round(nodeBounds.getHeight() * scale + NODE_FOCUS_MARGIN * 2)
+            );
+
+            scrollRectToVisible(marginBox);
+
+            repaint();
+        }
     }
 
 
