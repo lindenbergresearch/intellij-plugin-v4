@@ -10,37 +10,37 @@ import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.*;
 
-import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey KEYWORD =
-            createTextAttributesKey("ANTLRv4_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
+        createTextAttributesKey("ANTLRv4_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
 
     public static final TextAttributesKey RULENAME =
-            createTextAttributesKey("ANTLRv4_RULENAME", DefaultLanguageHighlighterColors.PARAMETER);
+        createTextAttributesKey("ANTLRv4_RULENAME", DefaultLanguageHighlighterColors.PARAMETER);
 
     public static final TextAttributesKey TOKENNAME =
-            createTextAttributesKey("ANTLRv4_TOKENNAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
+        createTextAttributesKey("ANTLRv4_TOKENNAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
 
     public static final TextAttributesKey STRING =
-            createTextAttributesKey("ANTLRv4_STRING", DefaultLanguageHighlighterColors.STRING);
+        createTextAttributesKey("ANTLRv4_STRING", DefaultLanguageHighlighterColors.STRING);
 
     public static final TextAttributesKey LINE_COMMENT =
-            createTextAttributesKey("ANTLRv4_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
+        createTextAttributesKey("ANTLRv4_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
 
     public static final TextAttributesKey DOC_COMMENT =
-            createTextAttributesKey("ANTLRv4_DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT);
+        createTextAttributesKey("ANTLRv4_DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT);
 
     public static final TextAttributesKey BLOCK_COMMENT =
-            createTextAttributesKey("ANTLRv4_BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
+        createTextAttributesKey("ANTLRv4_BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
 
     public static final TextAttributesKey INT =
-            createTextAttributesKey("ANTLRv4_INT", DefaultLanguageHighlighterColors.NUMBER);
+        createTextAttributesKey("ANTLRv4_INT", DefaultLanguageHighlighterColors.NUMBER);
 
     public static final TextAttributesKey BRACE =
-            createTextAttributesKey("ANTLRv4_BRACES", DefaultLanguageHighlighterColors.BRACES);
+        createTextAttributesKey("ANTLRv4_BRACES", DefaultLanguageHighlighterColors.BRACES);
 
 
     private static final TextAttributesKey[] BAD_CHAR_KEYS = pack(HighlighterColors.BAD_CHARACTER);
@@ -49,14 +49,12 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
     private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
 
-    @NotNull
     @Override
-    public Lexer getHighlightingLexer() {
+    public @NotNull Lexer getHighlightingLexer() {
         return new ANTLRv4LexerAdaptor(new ANTLRv4Lexer(null));
     }
 
 
-    @NotNull
     @Override
     public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
         if (KEYWORDS.contains(tokenType)) {
@@ -77,7 +75,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
         } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.INT)) {
             return pack(INT);
         } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL)
-                || tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.UNTERMINATED_STRING_LITERAL)) {
+            || tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.UNTERMINATED_STRING_LITERAL)) {
             return STRING_KEYS;
         } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.BLOCK_COMMENT)) {
             return COMMENT_KEYS;
