@@ -21,6 +21,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
     public static final String EOF_LABEL = "*EOF*";
     private final Parser parser;
     private final Grammar g;
+    private boolean compact = true;
 
 
     /**
@@ -62,6 +63,72 @@ public class AltLabelTextProvider implements TreeTextProvider {
 
 
     /**
+     * Returns the formatted text of the given tree-node.
+     *
+     * @param node Tree-node.
+     * @return Formatted string.
+     */
+    @Override
+    public String getText(Tree node) {
+
+        if (node instanceof TerminalNode) {
+            return getLabelForToken(((TerminalNode) node).getSymbol());
+            //Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
+        }
+
+        String text = "?";
+        if (node instanceof PreviewInterpreterRuleContext) {
+            Rule rule = getRule(node);
+            String[] altLabels = getAltLabels(rule);
+            int outerAltNum = getOuterAltNum(node);
+            text = rule.name;
+
+            if (altLabels != null) {
+                if (outerAltNum >= 0 && (outerAltNum < altLabels.length)) {
+                    if (compact) text = '#' + altLabels[outerAltNum];
+                    else text += '[' + altLabels[outerAltNum] + ']';
+                }
+            }
+
+            if (rule.getOriginalNumberOfAlts() > 1 && !compact) {
+                text += " *" + outerAltNum;
+            }
+        }
+
+        return text;//Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
+    }
+
+
+    /**
+     * Returns the formatted label of a given token.
+     *
+     * @param token Token.
+     * @return Label as string.
+     */
+    private String getLabelForToken(Token token) {
+        String text = token.getText();
+        String symName = parser.getVocabulary().getSymbolicName(token.getType());
+
+        if (text.equals("<EOF>")) return EOF_LABEL;
+        if (symName == null) return text;
+
+        if (compact) return symName + '(' + text + ')';
+
+        return symName + ": " + text;
+    }
+
+
+    public boolean isCompact() {
+        return compact;
+    }
+
+
+    public void setCompact(boolean compact) {
+        this.compact = compact;
+    }
+
+
+    /**
      * Returns the associated rule of the given tree-node.
      *
      * @param node Tree-node.
@@ -86,54 +153,4 @@ public class AltLabelTextProvider implements TreeTextProvider {
     }
 
 
-    /**
-     * Returns the formatted text of the given tree-node.
-     *
-     * @param node Tree-node.
-     * @return Formatted string.
-     */
-    @Override
-    public String getText(Tree node) {
-
-        if (node instanceof TerminalNode) {
-            return getLabelForToken(((TerminalNode) node).getSymbol());
-            //Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
-        }
-
-        String text = "?";
-        if (node instanceof PreviewInterpreterRuleContext) {
-            Rule rule = getRule(node);
-            String[] altLabels = getAltLabels(rule);
-            int outerAltNum = getOuterAltNum(node);
-            text = rule.name;
-
-            if (altLabels != null) {
-                if (outerAltNum >= 0 && (outerAltNum < altLabels.length)) {
-                    text += '[' + altLabels[outerAltNum] + ']';
-                }
-            }
-
-            if (rule.getOriginalNumberOfAlts() > 1) {
-                text += " *" + outerAltNum;
-            }
-        }
-
-        return text;//Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
-    }
-
-
-    /**
-     * Returns the formatted label of a given token.
-     *
-     * @param token Token.
-     * @return Label as string.
-     */
-    private String getLabelForToken(Token token) {
-        String text = token.getText();
-        String symName = parser.getVocabulary().getSymbolicName(token.getType());
-
-        if (text.equals("<EOF>")) return EOF_LABEL;
-        if (symName == null) return text;
-        return symName + ": " + text;
-    }
 }
