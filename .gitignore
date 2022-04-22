@@ -1,5 +1,5 @@
 # Build intermediate
-/gen/
+/src/main/gen/
 
 # Build output
 /out/
@@ -13,6 +13,7 @@
 *.pyc
 bilder.py
 intellij-plugin-v4.iml
+*bak*.tgz
 
 # Per-user settings
 # https://intellij-support.jetbrains.com/entries/23393067
@@ -42,3 +43,6 @@ intellij-plugin-v4.iml
 
 
 
+/.idea/dictionaries/
+
+/src/main/antlr/org/antlr/intellij/plugin/parser/ANTLRv4Lexer.tokens
