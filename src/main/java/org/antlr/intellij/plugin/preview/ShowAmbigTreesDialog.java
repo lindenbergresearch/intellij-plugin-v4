@@ -97,7 +97,7 @@ public class ShowAmbigTreesDialog extends JDialog {
                 " Interpretations of Ambiguous Input Phrase: " +
                 phrase;
             dialog.ambigPhraseLabel.setText(title);
-            dialog.setTrees(previewState, ambiguousParseTrees, title, 0);
+            dialog.setTrees(previewState, ambiguousParseTrees, title, 0, true);
         }
 
         dialog.pack();
@@ -150,7 +150,7 @@ public class ShowAmbigTreesDialog extends JDialog {
                 " Interpretations of Lookahead Phrase: " +
                 phrase;
             dialog.ambigPhraseLabel.setText(title);
-            dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1);
+            dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1, false);
         }
         dialog.pack();
         dialog.setVisible(true);
@@ -240,7 +240,8 @@ public class ShowAmbigTreesDialog extends JDialog {
         PreviewState previewState,
         List<? extends RuleContext> ambiguousParseTrees,
         String title,
-        int highlightTreeIndex
+        int highlightTreeIndex,
+        boolean highlightDiffs
     ) {
         if (ambiguousParseTrees != null) {
             int numTrees = ambiguousParseTrees.size();

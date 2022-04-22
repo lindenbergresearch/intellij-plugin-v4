@@ -121,17 +121,22 @@ public class InputPanel {
         this.previewPanel = previewPanel;
 
         FileChooserDescriptor singleFileDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-
-        BrowseActionListener browseActionListener =
-            new BrowseActionListener(
+        ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> browseActionListener =
+            new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
                 "Select Input File", null,
                 fileChooser,
                 previewPanel.project,
                 singleFileDescriptor,
                 TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
-            );
-
-
+            ) {
+                protected void onFileChosen(@NotNull VirtualFile chosenFile) {
+                    // this next line is the code taken from super; pasted in
+                    // to avoid compile error on super.onFileCho[o]sen
+                    TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
+                        chosenFileToResultingText(chosenFile));
+                    InputPanel.this.onFileChosen(chosenFile);
+                }
+            };
         fileChooser.getTextField().addActionListener(e -> {
             VirtualFile chosenFile = VirtualFileManager.getInstance()
                 .getFileSystem("file")

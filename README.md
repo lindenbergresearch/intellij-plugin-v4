@@ -139,7 +139,7 @@ the input. The profiler uses the parser interpreter but is fairly
 consistent with the speed of a generated and compiled parser but it does use
 single-stage full LL parsing which can be slower. It needs to do that so
 that it gets full and complete profiling information. For those in the know,
-it uses PredictionMode.LL_EXACT_AMBIG_DETECTION. For really big files and
+it uses `PredictionMode.LL_EXACT_AMBIG_DETECTION`. For really big files and
 slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
 
 ![parse-region.png](images/profiler.png)

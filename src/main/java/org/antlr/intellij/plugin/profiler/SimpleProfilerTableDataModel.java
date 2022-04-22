@@ -1,17 +1,17 @@
 package org.antlr.intellij.plugin.profiler;
 
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
     public static final String[] columnNames = {
-        "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
+        "Rule", "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
     };
     public static final String[] columnToolTips = {
+        "name of rule and decision no",
         "# decision invocations",
         "Rough estimate of time (ms) spent in prediction",
         "Total lookahead symbols examined",
@@ -19,14 +19,18 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
         "# of ambiguous input phrases",
         "# of non-DFA transitions during prediction (cache miss)"
     };
-    // microsecond decimal precision
-    private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
+    private final String[] ruleNamesByDecision;
     public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
 
 
-    public SimpleProfilerTableDataModel(ParseInfo parseInfo) {
+    public SimpleProfilerTableDataModel(ParseInfo parseInfo, Parser parser) {
         this.parseInfo = parseInfo;
+        /*copying rule names to not hold ref to parser object*/
+        ruleNamesByDecision = new String[parser.getATN().decisionToState.size()];
+        for (int i = 0; i < ruleNamesByDecision.length; i++) {
+            ruleNamesByDecision[i] = parser.getRuleNames()[parser.getATN().getDecisionState(i).ruleIndex];
+        }
         for (int i = 0; i < columnNames.length; i++) {
             nameToColumnMap.put(columnNames[i], i);
         }
@@ -57,16 +61,18 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
         DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
         switch (col) { // laborious but more efficient than reflection
             case 0:
-                return decisionInfo.invocations;
+                return String.format("%s (%d)", ruleNamesByDecision[decision], decision);
             case 1:
-                return milliUpToMicroFormatter.format(decisionInfo.timeInPrediction / (1000.0 * 1000.0));
+                return decisionInfo.invocations;
             case 2:
-                return decisionInfo.LL_TotalLook + decisionInfo.SLL_TotalLook;
+                return decisionInfo.timeInPrediction / (1000.0 * 1000.0);
             case 3:
-                return Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
+                return decisionInfo.LL_TotalLook + decisionInfo.SLL_TotalLook;
             case 4:
-                return decisionInfo.ambiguities.size();
+                return Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
             case 5:
+                return decisionInfo.ambiguities.size();
+            case 6:
                 return decisionInfo.SLL_ATNTransitions +
                     decisionInfo.LL_ATNTransitions;
         }

@@ -14,7 +14,7 @@ import javax.swing.*;
 import java.util.Map;
 
 public class ANTLRv4ColorsPage implements ColorSettingsPage {
-    private static final AttributesDescriptor[] ATTRIBUTES = {
+    private static final AttributesDescriptor[] ATTRIBUTES = new AttributesDescriptor[]{
         new AttributesDescriptor("Lexer rule", ANTLRv4SyntaxHighlighter.TOKENNAME),
         new AttributesDescriptor("Parser rule", ANTLRv4SyntaxHighlighter.RULENAME),
         new AttributesDescriptor("Keyword", ANTLRv4SyntaxHighlighter.KEYWORD),

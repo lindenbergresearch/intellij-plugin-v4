@@ -652,8 +652,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             return;
         }
 
-        if (startIndex >= 0) {
-            Editor editor = inputPanel.getInputEditor();
+        Editor editor = inputPanel.getInputEditor();
+        if (startIndex >= 0 && stopIndex + 1 <= editor.getDocument().getTextLength()) {
 //            editor.getSelectionModel().removeSelection();
 //            editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
 

@@ -6,8 +6,8 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. It works with
-      2017.1-2020.3.  It should work in other JetBrains IDEs.
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10.1. It works with
+      2020.2.1 and above.  It should work in other JetBrains IDEs.
      </p>
 
      <ul>
@@ -25,7 +25,7 @@
      <li> generates parser code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
      <li> code completion for tokens, rule names;
      <li> finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
-     <li> handles separate parsers and lectures like TParser.g4 and TLexer.g4 (1.7)
+     <li> handles separate parsers and lexers like TParser.g4 and TLexer.g4 (1.7)
      <li> Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
      <li> has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
      <li> view parse trees in hierarchy (sideways tree) view. (1.8)
@@ -73,14 +73,15 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>xxx (<a href="https://github.com/antlr/intellij-plugin-v4/issues/xxx">#xxx</a>)</li>
+	    <li>Updated to ANTLR 4.10.1</li>
+	    <li>Fixed an exception in IDEA 2022.1 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/533">#533</a>)</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.17+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.18+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
-    <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-    <idea-version since-build="171"/> <!-- requires IntelliJ 2017.1+ -->
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
+    <idea-version since-build="192"/> <!-- requires IntelliJ 2020.3+ due to java 11 issue really but allowing 2019.2 just in case it works for somebody -->
 
     <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
          on how to target different products -->
