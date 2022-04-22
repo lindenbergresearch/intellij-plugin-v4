@@ -20,7 +20,7 @@ public class LiteralChooserObject {
     public void renderTreeNode(SimpleColoredComponent component, JTree tree) {
         String literal = getText();
         SimpleTextAttributes attributes =
-                new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, tree.getForeground());
+            new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, tree.getForeground());
         component.append(literal, attributes);
         component.setIcon(icon);
     }

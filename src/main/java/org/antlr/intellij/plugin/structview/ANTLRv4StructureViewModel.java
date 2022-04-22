@@ -17,9 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 
 public class ANTLRv4StructureViewModel
-        extends StructureViewModelBase
+    extends StructureViewModelBase
 //	extends TextEditorBasedStructureViewModel
-        implements StructureViewModel.ElementInfoProvider {
+    implements StructureViewModel.ElementInfoProvider {
     private static final Sorter PARSER_LEXER_RULE_SORTER = new Sorter() {
         public Comparator<?> getComparator() {
             return (o1, o2) -> {
@@ -113,7 +113,7 @@ public class ANTLRv4StructureViewModel
     @NotNull
     protected Class<?>[] getSuitableClasses() {
         return new Class[]{ANTLRv4FileRoot.class,
-                LexerRuleSpecNode.class,
-                ParserRuleSpecNode.class};
+            LexerRuleSpecNode.class,
+            ParserRuleSpecNode.class};
     }
 }

@@ -11,7 +11,7 @@ public class RunANTLROnGrammarFileTest extends LightPlatformCodeInsightTestCase 
 
     public void testPackageOptionShouldNotBeAddedIfDeclaredInHeader() {
         VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithHeader.g4",
-                "grammar myGrammarWithHeader;\n@header { package com.foo.bar; }\nFOO: 'foo';");
+            "grammar myGrammarWithHeader;\n@header { package com.foo.bar; }\nFOO: 'foo';");
         List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
 
         assertFalse(options.contains("-package"));
@@ -20,7 +20,7 @@ public class RunANTLROnGrammarFileTest extends LightPlatformCodeInsightTestCase 
 
     public void testPackageOptionShouldBeAddedIfNotDeclaredInHeader() {
         VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithoutHeader.g4",
-                "grammar myGrammarWithoutHeader; FOO: 'foo';");
+            "grammar myGrammarWithoutHeader; FOO: 'foo';");
         List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
 
         assertTrue(options.contains("-package"));

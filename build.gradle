@@ -38,7 +38,7 @@ repositories {
 
 dependencies {
     antlr("org.antlr:antlr4:$antlr4Version") { // use ANTLR version 4
-        exclude group:'com.ibm.icu', module:'icu4j'
+        exclude group: 'com.ibm.icu', module: 'icu4j'
     }
     implementation "org.antlr:antlr4-intellij-adaptor:0.1"
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'

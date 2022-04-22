@@ -58,12 +58,12 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
     private void initAntlrFields(Project project, String qualFileName) {
         FileChooserDescriptor dirChooser =
-                FileChooserDescriptorFactory.createSingleFolderDescriptor();
+            FileChooserDescriptorFactory.createSingleFolderDescriptor();
         outputDirField.addBrowseFolderListener("Select output dir", null, project, dirChooser);
         outputDirField.setTextFieldPreferredWidth(50);
 
         dirChooser =
-                FileChooserDescriptorFactory.createSingleFolderDescriptor();
+            FileChooserDescriptorFactory.createSingleFolderDescriptor();
         libDirField.addBrowseFolderListener("Select lib dir", null, project, dirChooser);
         libDirField.setTextFieldPreferredWidth(50);
 
@@ -103,11 +103,11 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
     boolean isModified(ANTLRv4GrammarProperties originalProperties) {
         return !Objects.equals(originalProperties.getOutputDir(), getOutputDirText())
-                || !Objects.equals(originalProperties.getLibDir(), getLibDirText())
-                || !Objects.equals(originalProperties.getEncoding(), getFileEncodingText())
-                || !Objects.equals(originalProperties.getPackage(), getPackageFieldText())
-                || !Objects.equals(originalProperties.getLanguage(), getLanguageText())
-                || !Objects.equals(originalProperties.caseChangingStrategy, getCaseChangingStrategy());
+            || !Objects.equals(originalProperties.getLibDir(), getLibDirText())
+            || !Objects.equals(originalProperties.getEncoding(), getFileEncodingText())
+            || !Objects.equals(originalProperties.getPackage(), getPackageFieldText())
+            || !Objects.equals(originalProperties.getLanguage(), getLanguageText())
+            || !Objects.equals(originalProperties.caseChangingStrategy, getCaseChangingStrategy());
     }
 
 
@@ -151,12 +151,12 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
     @Override
     public String toString() {
         return "ConfigANTLRPerGrammar{" +
-                " generateParseTreeListenerCheckBox=" + generateParseTreeListenerCheckBox +
-                ", generateParseTreeVisitorCheckBox=" + generateParseTreeVisitorCheckBox +
-                ", packageField=" + packageField +
-                ", outputDirField=" + outputDirField +
-                ", libDirField=" + libDirField +
-                '}';
+            " generateParseTreeListenerCheckBox=" + generateParseTreeListenerCheckBox +
+            ", generateParseTreeVisitorCheckBox=" + generateParseTreeVisitorCheckBox +
+            ", packageField=" + packageField +
+            ", outputDirField=" + outputDirField +
+            ", libDirField=" + libDirField +
+            '}';
     }
 
 

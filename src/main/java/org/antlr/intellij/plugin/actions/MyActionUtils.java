@@ -123,8 +123,10 @@ public class MyActionUtils {
     }
 
 
-    public static RuleSpecNode getRuleSurroundingRef(PsiElement selectedPsiNode,
-                                                     final Class<? extends RuleSpecNode> ruleSpecNodeClass) {
+    public static RuleSpecNode getRuleSurroundingRef(
+        PsiElement selectedPsiNode,
+        final Class<? extends RuleSpecNode> ruleSpecNodeClass
+    ) {
         if (selectedPsiNode == null) { // didn't select a node in parse tree
             return null;
         }
@@ -186,7 +188,7 @@ public class MyActionUtils {
         LexerRuleRefNode lexerRule = getLexerRuleSurroundingRef(e);
 
         if ((lexerRule != null && el instanceof LexerRuleRefNode) ||
-                (parserRule != null && el instanceof ParserRuleRefNode)) {
+            (parserRule != null && el instanceof ParserRuleRefNode)) {
             String ruleName = el.getText();
             presentation.setText(String.format(title, ruleName));
         } else {

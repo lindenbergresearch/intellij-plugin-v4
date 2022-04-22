@@ -39,14 +39,14 @@ public class LexerWatchdog {
         if (iterationsOnCurrentIndex > THRESHOLD) {
             final Token token = tokenStream.get(currentIndex);
             final String displayName = token.getType() == Token.EOF
-                    ? token.getText()
-                    : previewParser.getVocabulary().getDisplayName(token.getType());
+                ? token.getText()
+                : previewParser.getVocabulary().getDisplayName(token.getType());
 
             throw new RecognitionException(
-                    "interpreter was killed after " + THRESHOLD + " iterations on token '" + displayName + "'",
-                    previewParser,
-                    tokenStream,
-                    previewParser.getContext()
+                "interpreter was killed after " + THRESHOLD + " iterations on token '" + displayName + "'",
+                previewParser,
+                tokenStream,
+                previewParser.getContext()
             ) {
                 @Override
                 public Token getOffendingToken() {

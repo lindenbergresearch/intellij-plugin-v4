@@ -42,7 +42,7 @@ public class UIHelper {
 
         return new Point2D.Double(
             center.x - bounds.getWidth() / 2.,
-            center.y + fm.getAscent() / 2. - fm.getDescent()/2.
+            center.y + fm.getAscent() / 2. - fm.getDescent() / 2.
         );
     }
 

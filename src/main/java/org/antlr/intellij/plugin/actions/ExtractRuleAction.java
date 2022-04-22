@@ -112,8 +112,8 @@ public class ExtractRuleAction extends AnAction {
         List<PsiElement> expressions = new ArrayList<>();
 
         Set<IElementType> candidateTypes = Stream.of(ANTLRv4Parser.RULE_element, ANTLRv4Parser.RULE_alternative)
-                .map(ANTLRv4TokenTypes::getRuleElementType)
-                .collect(Collectors.toSet());
+            .map(ANTLRv4TokenTypes::getRuleElementType)
+            .collect(Collectors.toSet());
 
         @Nullable PsiElement parent = context;
         while (parent != null) {

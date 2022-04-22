@@ -10,8 +10,8 @@ GitHub Actions are used for continuous integration, see files in `.github/workfl
 
 ## Lexing/parsing
 
-An ANTLR v4 grammar in `src/main/antlr` is used to generate a lexer/parser. 
-`ANTLRv4ParserDefinition` uses the [`antlr4-intellij-adaptor` library][2] to 
+An ANTLR v4 grammar in `src/main/antlr` is used to generate a lexer/parser.
+`ANTLRv4ParserDefinition` uses the [`antlr4-intellij-adaptor` library][2] to
 delegate parsing/lexing to these generated classes.
 
 Syntax highlighting is also using the generated lexer (by delegation) in
@@ -21,8 +21,8 @@ Syntax highlighting is also using the generated lexer (by delegation) in
 
 The plugin embeds a complete version of ANTLR v4. To highlight warnings in the
 editor, the file is parsed again in `ANTLRv4ExternalAnnotator`, but this time
-using the "official" parser. The annotator constructs a `org.antlr.v4.Tool` 
-with all the flags configured in the `Configure ANTLR...` dialog. 
+using the "official" parser. The annotator constructs a `org.antlr.v4.Tool`
+with all the flags configured in the `Configure ANTLR...` dialog.
 `GrammarIssuesCollector` sets up an error listener, then processes all the issues
 reported by the `Tool` to show them in the editor.
 
@@ -32,9 +32,9 @@ Contrary to ANTLRWorks, the IntelliJ plugin does not run the actual generated
 parser to test a grammar. Instead, it uses [ANTLR interpreters][3]. This is
 mainly because the IDE classpath and the project classpath are totally different,
 meaning generated parsers and their custom code and dependencies are not
-available from the IDE process. 
+available from the IDE process.
 
-The interpreter provides a convenient way to "run" grammars without needing 
+The interpreter provides a convenient way to "run" grammars without needing
 any generated code. A major drawback of this approach is that custom code will
 not be executed: `@members`, actions, predicates...
 
@@ -55,5 +55,7 @@ the parsing phase to detect potential infinite loops caused by bad grammars,
 thus preventing IDE freezes or OutOfMemoryExceptions.
 
 [1]: https://github.com/JetBrains/gradle-intellij-plugin
+
 [2]: https://github.com/antlr/antlr4-intellij-adaptor/
+
 [3]: https://github.com/antlr/antlr4/blob/master/doc/interpreters.md

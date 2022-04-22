@@ -40,7 +40,7 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
         RulesNode rules = PsiTreeUtil.getContextOfType(myElement, RulesNode.class);
         // find all rule defs (token, parser)
         Collection<? extends RuleSpecNode> ruleSpecNodes =
-                PsiTreeUtil.findChildrenOfAnyType(rules, ParserRuleSpecNode.class, LexerRuleSpecNode.class);
+            PsiTreeUtil.findChildrenOfAnyType(rules, ParserRuleSpecNode.class, LexerRuleSpecNode.class);
 
         return ruleSpecNodes.toArray();
     }
@@ -90,9 +90,9 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
     public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
         Project project = getElement().getProject();
         myElement.replace(MyPsiUtils.createLeafFromText(project,
-                myElement.getContext(),
-                newElementName,
-                ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)));
+            myElement.getContext(),
+            newElementName,
+            ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)));
         return myElement;
     }
 }

@@ -76,9 +76,11 @@ public class UniquifyRuleRefs extends AnAction {
     }
 
 
-    public void dupRuleAndMakeRefsUnique(Document doc,
-                                         String ruleName,
-                                         List<TerminalNode> rrefNodes) {
+    public void dupRuleAndMakeRefsUnique(
+        Document doc,
+        String ruleName,
+        List<TerminalNode> rrefNodes
+    ) {
         int base = 0;
         int i = 1;
         int nrefs = rrefNodes.size();

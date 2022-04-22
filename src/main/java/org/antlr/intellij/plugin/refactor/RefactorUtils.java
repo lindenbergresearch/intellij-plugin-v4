@@ -140,9 +140,11 @@ public class RefactorUtils {
     }
 
 
-    public static void replaceText(final Project project, final Document doc,
-                                   final int start, final int stop, // inclusive
-                                   final String text) {
+    public static void replaceText(
+        final Project project, final Document doc,
+        final int start, final int stop, // inclusive
+        final String text
+    ) {
         WriteCommandAction setTextAction = new WriteCommandAction(project) {
             @Override
             protected void run(final Result result) {
@@ -153,9 +155,11 @@ public class RefactorUtils {
     }
 
 
-    public static void insertText(final Project project, final Document doc,
-                                  final int where,
-                                  final String text) {
+    public static void insertText(
+        final Project project, final Document doc,
+        final int where,
+        final String text
+    ) {
         WriteCommandAction setTextAction = new WriteCommandAction(project) {
             @Override
             protected void run(final Result result) {
@@ -223,9 +227,9 @@ public class RefactorUtils {
      */
     public static int getCharIndexOfNextRuleStart(ParserRuleContext tree, int tokenIndex) {
         final ParserRuleContext selNode =
-                Trees.getRootOfSubtreeEnclosingRegion(tree, tokenIndex, tokenIndex);
+            Trees.getRootOfSubtreeEnclosingRegion(tree, tokenIndex, tokenIndex);
         final ParserRuleContext ruleRoot = (ParserRuleContext)
-                getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
+            getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
 
         return ruleRoot.getStop().getStopIndex() + 2; // insert after '\n' following ';'
     }

@@ -32,15 +32,15 @@ public class CreateRuleFixTest extends LightPlatformCodeInsightTestCase {
 
         // When
         ApplicationManager.getApplication().runWriteAction(
-                () -> createRuleFix.invoke(getProject(), getEditor(), getFile())
+            () -> createRuleFix.invoke(getProject(), getEditor(), getFile())
         );
 
         // Then
         assertEquals(
-                "grammar missingRule;\n\n" +
-                        "myRule: newRule;\n\n" +
-                        "newRule: ' ';",
-                getFile().getText()
+            "grammar missingRule;\n\n" +
+                "myRule: newRule;\n\n" +
+                "newRule: ' ';",
+            getFile().getText()
         );
     }
 

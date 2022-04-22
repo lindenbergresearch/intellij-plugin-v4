@@ -93,9 +93,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected TreeTextProvider treeTextProvider;
 
 
-
-
-
     /**
      * Default tree-text provider.
      */

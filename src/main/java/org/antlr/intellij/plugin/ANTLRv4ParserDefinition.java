@@ -22,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ANTLRv4ParserDefinition implements ParserDefinition {
     public static final IFileElementType FILE =
-            new IFileElementType(ANTLRv4Language.INSTANCE);
+        new IFileElementType(ANTLRv4Language.INSTANCE);
 
 
     public ANTLRv4ParserDefinition() {
         PSIElementTypeFactory.defineLanguageIElementTypes(
-                ANTLRv4Language.INSTANCE,
-                ANTLRv4Lexer.tokenNames,
-                ANTLRv4Parser.ruleNames
+            ANTLRv4Language.INSTANCE,
+            ANTLRv4Lexer.tokenNames,
+            ANTLRv4Parser.ruleNames
         );
     }
 

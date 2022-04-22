@@ -29,9 +29,11 @@ public class PreviewInterpreterRuleContext extends GrammarInterpreterRuleContext
      * @param invokingStateNumber The invoking state number.
      * @param ruleIndex           The rule index for the current context.
      */
-    public PreviewInterpreterRuleContext(ParserRuleContext parent,
-                                         int invokingStateNumber,
-                                         int ruleIndex) {
+    public PreviewInterpreterRuleContext(
+        ParserRuleContext parent,
+        int invokingStateNumber,
+        int ruleIndex
+    ) {
         super(parent, invokingStateNumber, ruleIndex);
     }
 
@@ -54,7 +56,7 @@ public class PreviewInterpreterRuleContext extends GrammarInterpreterRuleContext
         if (!(obj instanceof PreviewInterpreterRuleContext)) return false;
         PreviewInterpreterRuleContext other = (PreviewInterpreterRuleContext) obj;
         return this == other ||
-                (ruleIndex == other.ruleIndex && outerAltNum == other.outerAltNum);
+            (ruleIndex == other.ruleIndex && outerAltNum == other.outerAltNum);
     }
 
 

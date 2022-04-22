@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 public class LiteralChooser extends DialogWrapper {
     Tree tree;
     LinkedHashSet<String> selectedElements =
-            new LinkedHashSet<>();
+        new LinkedHashSet<>();
 
 
     public LiteralChooser(@Nullable Project project, java.util.List<String> literals) {

@@ -95,13 +95,15 @@ public class MyPsiUtils {
     }
 
 
-    public static PsiElement createLeafFromText(Project project, PsiElement context,
-                                                String text, IElementType type) {
+    public static PsiElement createLeafFromText(
+        Project project, PsiElement context,
+        String text, IElementType type
+    ) {
         PsiFileFactoryImpl factory = (PsiFileFactoryImpl) PsiFileFactory.getInstance(project);
         PsiElement el = factory.createElementFromText(text,
-                ANTLRv4Language.INSTANCE,
-                type,
-                context);
+            ANTLRv4Language.INSTANCE,
+            type,
+            context);
         return PsiTreeUtil.getDeepestFirst(el); // forces parsing of file!!
         // start rule depends on root passed in
     }
@@ -124,7 +126,7 @@ public class MyPsiUtils {
         String fileName = "a.g4"; // random name but must be .g4
         PsiFileFactoryImpl factory = (PsiFileFactoryImpl) PsiFileFactory.getInstance(project);
         return factory.createFileFromText(fileName, ANTLRv4Language.INSTANCE,
-                text, false, false);
+            text, false, false);
     }
 
 
@@ -133,8 +135,8 @@ public class MyPsiUtils {
             PsiElement p = element.getContext();
             if (p != null) p = p.getContext();
             return p instanceof AtAction &&
-                    element instanceof ParserRuleRefNode &&
-                    element.getText().equals(tokenText);
+                element instanceof ParserRuleRefNode &&
+                element.getText().equals(tokenText);
         });
     }
 
@@ -210,10 +212,10 @@ public class MyPsiUtils {
         PsiElement p = startNode;
         if (p == null) return null;
         System.out.println(Thread.currentThread().getName() + ": visit root " + p +
-                ", offset=" + offset +
-                ", class=" + p.getClass().getSimpleName() +
-                ", text=" + p.getNode().getText() +
-                ", node range=" + p.getTextRange());
+            ", offset=" + offset +
+            ", class=" + p.getClass().getSimpleName() +
+            ", text=" + p.getNode().getText() +
+            ", node range=" + p.getTextRange());
 
         PsiElement c = p.getFirstChild();
         while (c != null) {

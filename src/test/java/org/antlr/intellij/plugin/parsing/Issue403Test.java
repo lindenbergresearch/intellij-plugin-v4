@@ -17,7 +17,7 @@ public class Issue403Test extends TestCase {
     public void test_options_should_not_be_recognized_as_keyword_in_rule() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "statement: (OPTIONS options=tablePropertyList);";
+            "statement: (OPTIONS options=tablePropertyList);";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -35,7 +35,7 @@ public class Issue403Test extends TestCase {
     public void test_options_block_without_spaces() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "options{}";
+            "options{}";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -54,7 +54,7 @@ public class Issue403Test extends TestCase {
     public void test_options_block_with_space() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "options {}";
+            "options {}";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -73,7 +73,7 @@ public class Issue403Test extends TestCase {
     public void test_options_block_with_tab() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "options \t\r\n{}";
+            "options \t\r\n{}";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -92,7 +92,7 @@ public class Issue403Test extends TestCase {
     public void test_tokens_block_with_tab() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "tokens \t\r\n{}";
+            "tokens \t\r\n{}";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -111,7 +111,7 @@ public class Issue403Test extends TestCase {
     public void test_channels_block_with_tab() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "channels \t\r\n{}";
+            "channels \t\r\n{}";
 
         ANTLRv4Parser parser = createParser(grammar);
 

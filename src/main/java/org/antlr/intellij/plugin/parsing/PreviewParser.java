@@ -51,7 +51,7 @@ public class PreviewParser extends GrammarParserInterpreter {
         int predictedAlt = super.visitDecisionState(p);
         if (p.getNumberOfTransitions() > 1) {
             if (p.decision == this.overrideDecision &&
-                    this._input.index() == this.overrideDecisionInputIndex) {
+                this._input.index() == this.overrideDecisionInputIndex) {
                 ((PreviewInterpreterRuleContext) overrideDecisionRoot).isDecisionOverrideRoot = true;
             }
         }

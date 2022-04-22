@@ -140,11 +140,11 @@ public class ParsingUtils {
                     inputStream = tokenSource.getInputStream();
                 }
                 tokenUnderCursor = new org.antlr.v4.runtime.CommonToken(
-                        new Pair<>(tokenSource, inputStream),
-                        Token.INVALID_TYPE,
-                        -1,
-                        prevToken != null ? prevToken.getStopIndex() + 1 : 0,
-                        begin - 1
+                    new Pair<>(tokenSource, inputStream),
+                    Token.INVALID_TYPE,
+                    -1,
+                    prevToken != null ? prevToken.getStopIndex() + 1 : 0,
+                    begin - 1
                 );
                 break;
             }
@@ -200,15 +200,17 @@ public class ParsingUtils {
     }
 
 
-    public static ParsingResult parseText(Grammar g,
-                                          LexerGrammar lg,
-                                          String startRuleName,
-                                          final VirtualFile grammarFile,
-                                          String inputText,
-                                          Project project) {
+    public static ParsingResult parseText(
+        Grammar g,
+        LexerGrammar lg,
+        String startRuleName,
+        final VirtualFile grammarFile,
+        String inputText,
+        Project project
+    ) {
         ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, grammarFile);
         CharStream input = grammarProperties.getCaseChangingStrategy()
-                .applyTo(CharStreams.fromString(inputText, grammarFile.getPath()));
+            .applyTo(CharStreams.fromString(inputText, grammarFile.getPath()));
         LexerInterpreter lexEngine;
         lexEngine = lg.createLexerInterpreter(input);
         SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
@@ -219,16 +221,18 @@ public class ParsingUtils {
     }
 
 
-    public static ParsingResult parseText(Grammar g,
-                                          LexerGrammar lg,
-                                          String startRuleName,
-                                          final VirtualFile grammarFile,
-                                          SyntaxErrorListener syntaxErrorListener,
-                                          TokenStream tokens,
-                                          int startIndex) {
+    public static ParsingResult parseText(
+        Grammar g,
+        LexerGrammar lg,
+        String startRuleName,
+        final VirtualFile grammarFile,
+        SyntaxErrorListener syntaxErrorListener,
+        TokenStream tokens,
+        int startIndex
+    ) {
         if (g == null || lg == null) {
             ANTLRv4PluginController.LOG.info("parseText can't parse: missing lexer or parser no Grammar object for " +
-                    (grammarFile != null ? grammarFile.getName() : "<unknown file>"));
+                (grammarFile != null ? grammarFile.getName() : "<unknown file>"));
             return null;
         }
 
@@ -440,8 +444,8 @@ public class ParsingUtils {
 
     public static Tree findOverriddenDecisionRoot(Tree ctx) {
         return Trees.findNodeSuchThat(
-                ctx,
-                t -> t instanceof PreviewInterpreterRuleContext && ((PreviewInterpreterRuleContext) t).isDecisionOverrideRoot()
+            ctx,
+            t -> t instanceof PreviewInterpreterRuleContext && ((PreviewInterpreterRuleContext) t).isDecisionOverrideRoot()
         );
     }
 

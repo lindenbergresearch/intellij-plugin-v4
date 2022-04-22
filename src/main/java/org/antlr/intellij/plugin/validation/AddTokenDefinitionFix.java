@@ -93,7 +93,9 @@ public class AddTokenDefinitionFix extends BaseIntentionAction {
     }
 
 
-    private void runTemplate(@NotNull Editor editor, Project project, String tokenDefLeftSide, String tokenDefinitionExpression, PsiFile psiFile, int newLastLineStart) {
+    private void runTemplate(
+        @NotNull Editor editor, Project project, String tokenDefLeftSide, String tokenDefinitionExpression, PsiFile psiFile, int newLastLineStart
+    ) {
         PsiElement elementAt = Objects.requireNonNull(psiFile.findElementAt(newLastLineStart), "Unable to find element at position " + newLastLineStart).getParent();
         Template template = buildTemplate(tokenDefinitionExpression, elementAt, tokenDefLeftSide.length());
         TemplateManager.getInstance(project).startTemplate(editor, template);

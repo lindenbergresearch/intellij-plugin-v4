@@ -32,7 +32,7 @@ This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. Works with Intell
 You can configure the ANTLR tool options per grammar file; right-click
 in a grammar or on a grammar element within the structured view.
 When you change and save a grammar, it automatically builds with ANTLR
-in the background according to the preferences you have set.  ANTLR
+in the background according to the preferences you have set. ANTLR
 tool errors appear in a console you can opened by clicking on a button
 in the bottom tab.
 
@@ -53,16 +53,16 @@ second, intellij should pop up an action you can select for that shortcut.
 ctrl-return, or whatever you have configured for the generate pop-up,
 will bring up a list of things you can generate. The only one so far is
 a generator to create lexical rules for any literals, referenced in the parser
- grammar, that have not been defined.
+grammar, that have not been defined.
 
 ## Limitations
 
-The `ANTLR Preview` window is based on a grammar interpreter, not on the actual generated parser. 
+The `ANTLR Preview` window is based on a grammar interpreter, not on the actual generated parser.
 This means that things like actions and predicates will not be evaluated during live preview,
-because the interpreter is language agnostic. 
+because the interpreter is language agnostic.
 
-For the same reasons, if your parser and/or lexer classes extend a custom implementation of the 
-base parser/lexer classes, your custom code will *not* be run during live preview. 
+For the same reasons, if your parser and/or lexer classes extend a custom implementation of the
+base parser/lexer classes, your custom code will *not* be run during live preview.
 
 ## History
 
@@ -71,12 +71,15 @@ See [Releases](https://github.com/antlr/intellij-plugin-v4/releases)
 ## Screenshots
 
 ### Java grammar view
+
 ![Java grammar view](images/java-grammar.png)
 
 ### Find usages
+
 ![Find usages](images/findusages.png)
 
 ### Code completion
+
 ![Code completion](images/completion.png)
 
 ### Live templates
@@ -93,8 +96,8 @@ It guesses rule names or just uses T__&lt;n>. Respects literals already defined.
 
 ### Live parse tree preview
 
-You can test any rule in the (parser) grammar.  Right click on rule in grammar
-or navigator to "Test ANTLR Rule".  Changing grammar and saving, updates
+You can test any rule in the (parser) grammar. Right click on rule in grammar
+or navigator to "Test ANTLR Rule". Changing grammar and saving, updates
 parse tree. It works with combined grammars and separated but separated
 must be in same directory and named XParser.g4 and XLexer.g4.
 No raw Java actions are executed obviously during interpretation in
@@ -111,7 +114,8 @@ You can also use the ctrl key while moving the mouse in preview window to get to
 
 The meta key while moving the mouse shows the parser call stack (path to the root of parse tree).
 
-When there are errors, you will see the output in the small console under the input editor in case you need to cut and paste. But, for general viewing you can however the cursor over an underlined error and it will show you the message in a pop-up. Basically the input window behaves like a regular editor window except that it is subject to the grammar in your other editor.
+When there are errors, you will see the output in the small console under the input editor in case you need to cut and paste. But, for general viewing you can however the cursor over an underlined
+error and it will show you the message in a pop-up. Basically the input window behaves like a regular editor window except that it is subject to the grammar in your other editor.
 
 ![error-popup.png](images/error-popup.png)
 
@@ -121,24 +125,29 @@ With alt-mouse movement, you'll see parse region for rule matching token under c
 
 ### Grammar Profiler
 
-The profiler helps you understand which decisions in your grammar are complicated or expensive.  Profiling data is always available just like the parse tree during grammar interpretation.  The profiler cannot track code execution because it is running the grammar interpreter not executing compiled code.  It provides both a simplified set of columns and an expert set the provides a great deal more information. Clicking on a row in the profiler highlights the decision in the grammar and also highlights relevant pieces of the input, such as ambiguities or the deepest lookahead. You can sort the columns by clicking on the header row. Hover over the header row to get tooltips describing the column.
+The profiler helps you understand which decisions in your grammar are complicated or expensive. Profiling data is always available just like the parse tree during grammar interpretation. The profiler
+cannot track code execution because it is running the grammar interpreter not executing compiled code. It provides both a simplified set of columns and an expert set the provides a great deal more
+information. Clicking on a row in the profiler highlights the decision in the grammar and also highlights relevant pieces of the input, such as ambiguities or the deepest lookahead. You can sort the
+columns by clicking on the header row. Hover over the header row to get tooltips describing the column.
 
 If you see ambiguities highlighted, those you should definitely take a look
- at in your grammar. If you see decisions requiring full context sensitivity,
- when viewing the expert columns, those are very expensive and could be causing
- speed problems. Note that the profiler always tries to keep up-to-date with
- the input. The profiler uses the parser interpreter but is fairly
- consistent with the speed of a generated and compiled parser but it does use
- single-stage full LL parsing which can be slower.  It needs to do that so
- that it gets full and complete profiling information. For those in the know,
- it uses PredictionMode.LL_EXACT_AMBIG_DETECTION. For really big files and
- slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
+at in your grammar. If you see decisions requiring full context sensitivity,
+when viewing the expert columns, those are very expensive and could be causing
+speed problems. Note that the profiler always tries to keep up-to-date with
+the input. The profiler uses the parser interpreter but is fairly
+consistent with the speed of a generated and compiled parser but it does use
+single-stage full LL parsing which can be slower. It needs to do that so
+that it gets full and complete profiling information. For those in the know,
+it uses PredictionMode.LL_EXACT_AMBIG_DETECTION. For really big files and
+slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
 
 ![parse-region.png](images/profiler.png)
 
 ### Grammar ambiguities and lookahead
 
-A grammar that matches an input phrase more than one way is considered ambiguous and it's generally an error because we want to interpret input phrases in just one way. ANTLR resolves ambiguities on-the-fly to create a single interpretation (parse tree) but sometimes, for debugging purposes, you'd like to know how else to grammar can match some input. When you have selected an ambiguity using the profiler described in the previous section, you can right click in the preview input window like so:
+A grammar that matches an input phrase more than one way is considered ambiguous and it's generally an error because we want to interpret input phrases in just one way. ANTLR resolves ambiguities
+on-the-fly to create a single interpretation (parse tree) but sometimes, for debugging purposes, you'd like to know how else to grammar can match some input. When you have selected an ambiguity using
+the profiler described in the previous section, you can right click in the preview input window like so:
 
 ![ambig-right-click.png](images/ambig-right-click.png)
 
@@ -146,11 +155,14 @@ It will pop up a dialog box that looks like this:
 
 ![ambig1.png](images/ambig1.png)
 
-The darkened background node is the node for the rule containing the decision that is ambiguous.  The yellow boxes outlining nodes indicates that it differs from the chosen interpretation of the parse tree. Here's another example that shows two interpretations (of `User f() {`):
+The darkened background node is the node for the rule containing the decision that is ambiguous. The yellow boxes outlining nodes indicates that it differs from the chosen interpretation of the parse
+tree. Here's another example that shows two interpretations (of `User f() {`):
 
 ![ambig2.png](images/ambig2.png)
 
-Even when a grammar is getting a single interpretation of the input, we often wonder why it's not choosing the path we expected.  When you right click on a lookahead sequence in the input window, it will pop up a dialog to show you how ANTLR tried to use the input to match the alternative. The trees with gray backgrounds indicate the parse trees that were attempted but that failed at some input depth. The tree with a white background chose the chosen parse tree:
+Even when a grammar is getting a single interpretation of the input, we often wonder why it's not choosing the path we expected. When you right click on a lookahead sequence in the input window, it
+will pop up a dialog to show you how ANTLR tried to use the input to match the alternative. The trees with gray backgrounds indicate the parse trees that were attempted but that failed at some input
+depth. The tree with a white background chose the chosen parse tree:
 
 ![lookahead1.png](images/lookahead1.png)
 
@@ -166,18 +178,17 @@ Even when a grammar is getting a single interpretation of the input, we often wo
 
 ![Output console](images/tool-console.png)
 
-
 ### Color preferences
 
 ![Live preview](images/color-prefs.png)
 
 # Contributing
 
-We [moved to Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. To contribute to the project, 
-you need a recent version of IntelliJ IDEA (either Community or Ultimate) with the `Gradle` and `Plugin DevKit` 
-plugins enabled. 
+We [moved to Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. To contribute to the project,
+you need a recent version of IntelliJ IDEA (either Community or Ultimate) with the `Gradle` and `Plugin DevKit`
+plugins enabled.
 
-Use `File > Open` and select the `build.gradle` file to import the project. Once everything is imported, you can run a 
+Use `File > Open` and select the `build.gradle` file to import the project. Once everything is imported, you can run a
 sandboxed IDE using the `runIde` task, either from the `Gradle` tool window of from the CLI:
 
 ```

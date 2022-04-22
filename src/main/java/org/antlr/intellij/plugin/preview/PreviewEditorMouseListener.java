@@ -65,11 +65,11 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
         }
 
         final AmbiguityInfo ambigInfo =
-                (AmbiguityInfo) MyActionUtils.getHighlighterWithDecisionEventType(highlightersAtOffset,
-                        AmbiguityInfo.class);
+            (AmbiguityInfo) MyActionUtils.getHighlighterWithDecisionEventType(highlightersAtOffset,
+                AmbiguityInfo.class);
         final LookaheadEventInfo lookaheadInfo =
-                (LookaheadEventInfo) MyActionUtils.getHighlighterWithDecisionEventType(highlightersAtOffset,
-                        LookaheadEventInfo.class);
+            (LookaheadEventInfo) MyActionUtils.getHighlighterWithDecisionEventType(highlightersAtOffset,
+                LookaheadEventInfo.class);
         if (ambigInfo != null) {
             JBPopup popup = ShowAmbigTreesDialog.createAmbigTreesPopup(previewState, ambigInfo);
             popup.showInBestPositionFor(editor);

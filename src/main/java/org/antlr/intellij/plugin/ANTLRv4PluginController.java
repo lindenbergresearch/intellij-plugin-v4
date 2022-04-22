@@ -83,7 +83,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
     public ToolWindow consoleWindow;
 
     public Map<String, PreviewState> grammarToPreviewState =
-            Collections.synchronizedMap(new HashMap<>());
+        Collections.synchronizedMap(new HashMap<>());
     public ToolWindow previewWindow;    // same for all grammar editor
     public PreviewPanel previewPanel;    // same for all grammar editor
 
@@ -113,7 +113,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
     public static void showConsoleWindow(final Project project) {
         ApplicationManager.getApplication().invokeLater(
-                () -> ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null)
+            () -> ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null)
         );
     }
 
@@ -266,39 +266,39 @@ public class ANTLRv4PluginController implements ProjectComponent {
         // Listen for editor window changes
         MessageBusConnection msgBus = project.getMessageBus().connect(project);
         msgBus.subscribe(
-                FileEditorManagerListener.FILE_EDITOR_MANAGER,
-                myFileEditorManagerAdapter
+            FileEditorManagerListener.FILE_EDITOR_MANAGER,
+            myFileEditorManagerAdapter
         );
 
         EditorFactory factory = EditorFactory.getInstance();
         factory.addEditorFactoryListener(
-                new EditorFactoryAdapter() {
-                    @Override
-                    public void editorCreated(@NotNull EditorFactoryEvent event) {
-                        final Editor editor = event.getEditor();
-                        final Document doc = editor.getDocument();
-                        VirtualFile vfile = FileDocumentManager.getInstance().getFile(doc);
-                        if (vfile != null && vfile.getName().endsWith(".g4")) {
-                            GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
-                            editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
-                            editor.addEditorMouseListener(listener);
-                        }
-                    }
-
-
-                    @Override
-                    public void editorReleased(@NotNull EditorFactoryEvent event) {
-                        Editor editor = event.getEditor();
-                        if (editor.getProject() != null && editor.getProject() != project) {
-                            return;
-                        }
-                        GrammarEditorMouseAdapter listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
-                        if (listener != null) {
-                            editor.removeEditorMouseListener(listener);
-                            editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, null);
-                        }
+            new EditorFactoryAdapter() {
+                @Override
+                public void editorCreated(@NotNull EditorFactoryEvent event) {
+                    final Editor editor = event.getEditor();
+                    final Document doc = editor.getDocument();
+                    VirtualFile vfile = FileDocumentManager.getInstance().getFile(doc);
+                    if (vfile != null && vfile.getName().endsWith(".g4")) {
+                        GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
+                        editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
+                        editor.addEditorMouseListener(listener);
                     }
                 }
+
+
+                @Override
+                public void editorReleased(@NotNull EditorFactoryEvent event) {
+                    Editor editor = event.getEditor();
+                    if (editor.getProject() != null && editor.getProject() != project) {
+                        return;
+                    }
+                    GrammarEditorMouseAdapter listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
+                    if (listener != null) {
+                        editor.removeEditorMouseListener(listener);
+                        editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, null);
+                    }
+                }
+            }
         );
     }
 
@@ -335,7 +335,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
     public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
         LOG.info("currentEditorFileChangedEvent " + (oldFile != null ? oldFile.getPath() : "none") +
-                " -> " + (newFile != null ? newFile.getPath() : "none") + " " + project.getName());
+            " -> " + (newFile != null ? newFile.getPath() : "none") + " " + project.getName());
         if (newFile == null) { // all files must be closed I guess
             return;
         }
@@ -418,11 +418,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
         boolean canBeCancelled = true;
         boolean forceGeneration = false;
         Task gen =
-                new RunANTLROnGrammarFile(grammarFile,
-                        project,
-                        title,
-                        canBeCancelled,
-                        forceGeneration);
+            new RunANTLROnGrammarFile(grammarFile,
+                project,
+                title,
+                canBeCancelled,
+                forceGeneration);
         ProgressManager.getInstance().run(gen);
     }
 
@@ -473,7 +473,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
     public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
         for (PreviewState s : grammarToPreviewState.values()) {
             if (s != null && s.lg != null &&
-                    (sameFile(grammarFileName, s.lg.fileName) || s.lg == ParsingUtils.BAD_LEXER_GRAMMAR)) {
+                (sameFile(grammarFileName, s.lg.fileName) || s.lg == ParsingUtils.BAD_LEXER_GRAMMAR)) {
                 // s has a lexer with same filename, see if there is a parser grammar
                 // (not a combined grammar)
                 if (s.g != null && s.g.getType() == ANTLRParser.PARSER) {
@@ -510,19 +510,19 @@ public class ANTLRv4PluginController implements ProjectComponent {
         // Parse text in a background thread to avoid freezing the UI if the grammar is badly written
         // an takes ages to interpret the input.
         parsingProgressIndicator = BackgroundTaskUtil.executeAndTryWait(
-                (indicator) -> {
-                    long start = System.nanoTime();
+            (indicator) -> {
+                long start = System.nanoTime();
 
-                    previewState.parsingResult = ParsingUtils.parseText(
-                            previewState.g, previewState.lg, previewState.startRuleName,
-                            grammarFile, inputText, project
-                    );
+                previewState.parsingResult = ParsingUtils.parseText(
+                    previewState.g, previewState.lg, previewState.startRuleName,
+                    grammarFile, inputText, project
+                );
 
-                    return () -> previewPanel.onParsingCompleted(previewState, System.nanoTime() - start);
-                },
-                () -> previewPanel.notifySlowParsing(),
-                ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS,
-                false
+                return () -> previewPanel.onParsingCompleted(previewState, System.nanoTime() - start);
+            },
+            () -> previewPanel.notifySlowParsing(),
+            ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS,
+            false
         );
     }
 

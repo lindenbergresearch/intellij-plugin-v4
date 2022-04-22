@@ -73,7 +73,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
         for (ParseTree node : literalNodes) {
             String literal = node.getText();
             String ruleText = String.format("%s : %s ;",
-                    RefactorUtils.getLexerRuleNameFromLiteral(literal), literal);
+                RefactorUtils.getLexerRuleNameFromLiteral(literal), literal);
             lexerRules.put(literal, ruleText);
         }
 
@@ -91,7 +91,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
         }
 
         final LiteralChooser chooser =
-                new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
+            new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
         chooser.show();
         List<String> selectedElements = chooser.getSelectedElements();
         // chooser disposed automatically.
@@ -124,9 +124,9 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 
             String allRules = Utils.join(selectedElements.iterator(), "\n");
             text =
-                    text.substring(0, cursorOffset) +
-                            "\n" + allRules + "\n" +
-                            text.substring(cursorOffset, text.length());
+                text.substring(0, cursorOffset) +
+                    "\n" + allRules + "\n" +
+                    text.substring(cursorOffset, text.length());
             MyPsiUtils.replacePsiFileFromText(project, psiFile, text);
         }
     }

@@ -64,11 +64,11 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 
         boolean forceGeneration = true; // from action, they really mean it
         RunANTLROnGrammarFile gen =
-                new RunANTLROnGrammarFile(grammarFile,
-                        project,
-                        title,
-                        canBeCancelled,
-                        forceGeneration);
+            new RunANTLROnGrammarFile(grammarFile,
+                project,
+                title,
+                canBeCancelled,
+                forceGeneration);
 
         boolean autogen = ANTLRv4GrammarPropertiesStore.getGrammarProperties(project, grammarFile).shouldAutoGenerateParser();
         if (!unsaved || !autogen) {
@@ -83,10 +83,10 @@ public class GenerateParserAction extends AnAction implements DumbAware {
             LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
             // pop up a notification
             Notification notification =
-                    new Notification(RunANTLROnGrammarFile.groupDisplayId,
-                            "parser for " + grammarFile.getName() + " generated",
-                            "to " + gen.getOutputDirName(),
-                            NotificationType.INFORMATION);
+                new Notification(RunANTLROnGrammarFile.groupDisplayId,
+                    "parser for " + grammarFile.getName() + " generated",
+                    "to " + gen.getOutputDirName(),
+                    NotificationType.INFORMATION);
             Notifications.Bus.notify(notification, project);
         }
     }

@@ -219,7 +219,7 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 
         if (psiElement != null) {
             fail("Expected element at offset " + myFixture.getCaretOffset() + " to resolve to nothing, but resolved to "
-                    + psiElement);
+                + psiElement);
         }
     }
 

@@ -86,19 +86,21 @@ public class InlineRuleAction extends AnAction {
     }
 
 
-    public void replaceRuleRefs(Document doc, CommonTokenStream tokens,
-                                String ruleName,
-                                List<TerminalNode> rrefNodes,
-                                String ruleText) {
+    public void replaceRuleRefs(
+        Document doc, CommonTokenStream tokens,
+        String ruleName,
+        List<TerminalNode> rrefNodes,
+        String ruleText
+    ) {
         int base = 0;
         for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
             Token rrefToken = t.getSymbol();
             Token nextToken = tokens.get(rrefToken.getTokenIndex() + 1);
             String thisReplacementRuleText = ruleText;
             if ((nextToken.getType() == ANTLRv4Lexer.STAR ||
-                    nextToken.getType() == ANTLRv4Lexer.PLUS ||
-                    nextToken.getType() == ANTLRv4Lexer.QUESTION) &&
-                    !ruleText.startsWith("(")) {
+                nextToken.getType() == ANTLRv4Lexer.PLUS ||
+                nextToken.getType() == ANTLRv4Lexer.QUESTION) &&
+                !ruleText.startsWith("(")) {
                 // need (...) if we replace foo* or foo+ and ruleText doesn't have parens yet
                 thisReplacementRuleText = "(" + ruleText + ")";
             }

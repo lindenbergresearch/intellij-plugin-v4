@@ -49,8 +49,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
     private static final TokenIElementType SEMICOLON = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.SEMI);
 
     private static final TokenSet RULE_BLOCKS = TokenSet.create(
-            ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_lexerBlock),
-            ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_ruleBlock)
+        ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_lexerBlock),
+        ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_ruleBlock)
     );
 
 
@@ -62,7 +62,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
                 PsiElement rbrace = tokensSpec.getLastChild();
                 if (rbrace.getNode().getElementType() == RBRACE) {
                     descriptors.add(new FoldingDescriptor(tokensSpec,
-                            new TextRange(tokens.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+                        new TextRange(tokens.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
                 }
             }
         }
@@ -77,7 +77,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
                 PsiElement rbrace = optionsSpec.getLastChild();
                 if (rbrace.getNode().getElementType() == RBRACE) {
                     descriptors.add(new FoldingDescriptor(optionsSpec,
-                            new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+                        new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
                 }
             }
         }
@@ -242,10 +242,12 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
 
     @Override
-    protected void buildLanguageFoldRegions(@NotNull List<FoldingDescriptor> descriptors,
-                                            @NotNull PsiElement root,
-                                            @NotNull Document document,
-                                            boolean quick) {
+    protected void buildLanguageFoldRegions(
+        @NotNull List<FoldingDescriptor> descriptors,
+        @NotNull PsiElement root,
+        @NotNull Document document,
+        boolean quick
+    ) {
         if (!(root instanceof ANTLRv4FileRoot)) return;
 
         addRuleRefFoldingDescriptors(descriptors, root);

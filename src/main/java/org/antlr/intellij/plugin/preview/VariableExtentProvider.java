@@ -53,8 +53,6 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
 
         return h + (lines.length - 1) * fontMetrics.getHeight();
     }
-    
-    
-    
-    
+
+
 }

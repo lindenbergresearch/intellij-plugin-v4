@@ -54,9 +54,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
      * Called 3rd
      */
     @Override
-    public void apply(@NotNull PsiFile file,
-                      List<GrammarIssue> issues,
-                      @NotNull AnnotationHolder holder) {
+    public void apply(
+        @NotNull PsiFile file,
+        List<GrammarIssue> issues,
+        @NotNull AnnotationHolder holder
+    ) {
         for (GrammarIssue issue : issues) {
             if (issue.getOffendingTokens().isEmpty()) {
                 annotateFileIssue(file, holder, issue);

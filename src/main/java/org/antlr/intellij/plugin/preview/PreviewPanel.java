@@ -225,7 +225,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             zoomOut
         );
 
-        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true); ;
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true);
+        ;
         toolbar.setTargetComponent(this);
 
         return toolbar;
@@ -282,7 +283,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             scrollToSourceBtn
         );
 
-        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false); ;
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
+        ;
         toolbar.setTargetComponent(this);
 
         return toolbar;

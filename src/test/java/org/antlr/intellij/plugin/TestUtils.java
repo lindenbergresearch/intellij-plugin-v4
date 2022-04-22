@@ -14,12 +14,12 @@ public class TestUtils {
             // We don't want to release the editor in the Tool Output tool window, so we ignore
             // ObjectNotDisposedExceptions related to this particular editor
             if (e.getClass().getName().equals("com.intellij.openapi.util.TraceableDisposable$ObjectNotDisposedException")
-                    || e instanceof CompoundRuntimeException) {
+                || e instanceof CompoundRuntimeException) {
                 StringWriter stringWriter = new StringWriter();
                 e.printStackTrace(new PrintWriter(stringWriter));
                 String stack = stringWriter.toString();
                 if (stack.contains("ANTLRv4PluginController.createToolWindows")
-                        || stack.contains("org.antlr.intellij.plugin.preview.InputPanel.createPreviewEditor")) {
+                    || stack.contains("org.antlr.intellij.plugin.preview.InputPanel.createPreviewEditor")) {
                     return;
                 }
             }

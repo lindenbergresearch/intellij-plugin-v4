@@ -15,7 +15,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.UIUtil;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
@@ -95,16 +94,16 @@ class ParseTreeContextualMenu {
         try {
             if (!ImageIO.write(bi, imageFormat, file)) {
                 Notification notification = new Notification(
-                        "ANTLR 4 export",
-                        "Error while exporting parse tree to file " + file.getAbsolutePath(),
-                        "unknown format '" + imageFormat + "'?",
-                        NotificationType.WARNING
+                    "ANTLR 4 export",
+                    "Error while exporting parse tree to file " + file.getAbsolutePath(),
+                    "unknown format '" + imageFormat + "'?",
+                    NotificationType.WARNING
                 );
                 Notifications.Bus.notify(notification);
             }
         } catch (IOException e) {
             Logger.getInstance(ParseTreeContextualMenu.class)
-                    .error("Error while exporting parse tree to file " + file.getAbsolutePath(), e);
+                .error("Error while exporting parse tree to file " + file.getAbsolutePath(), e);
         }
     }
 
@@ -124,7 +123,7 @@ class ParseTreeContextualMenu {
             svgGenerator.stream(file.getAbsolutePath(), true);
         } catch (SVGGraphics2DIOException e) {
             Logger.getInstance(ParseTreeContextualMenu.class)
-                    .error("Error while exporting parse tree to SVG file " + file.getAbsolutePath(), e);
+                .error("Error while exporting parse tree to SVG file " + file.getAbsolutePath(), e);
         }
     }
 }

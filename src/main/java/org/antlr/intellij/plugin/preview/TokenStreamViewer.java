@@ -116,9 +116,9 @@ class TokenStreamViewer extends JPanel implements ListSelectionListener {
         String typeString = recognizer.getVocabulary().getSymbolicName(t.getType());
 
         return MessageFormat.format(
-                "[@{0},{1}:{2}=''{3}'',<{4}>{5},{6}:{7}]",
-                t.getTokenIndex(), t.getStartIndex(), t.getStopIndex(), txt, typeString, channelStr,
-                t.getLine(), t.getCharPositionInLine()
+            "[@{0},{1}:{2}=''{3}'',<{4}>{5},{6}:{7}]",
+            t.getTokenIndex(), t.getStartIndex(), t.getStopIndex(), txt, typeString, channelStr,
+            t.getLine(), t.getCharPositionInLine()
         );
     }
 }

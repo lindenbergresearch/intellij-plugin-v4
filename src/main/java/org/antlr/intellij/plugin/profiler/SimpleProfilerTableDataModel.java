@@ -9,15 +9,15 @@ import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
     public static final String[] columnNames = {
-            "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
+        "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
     };
     public static final String[] columnToolTips = {
-            "# decision invocations",
-            "Rough estimate of time (ms) spent in prediction",
-            "Total lookahead symbols examined",
-            "Max lookahead symbols examined in any decision event",
-            "# of ambiguous input phrases",
-            "# of non-DFA transitions during prediction (cache miss)"
+        "# decision invocations",
+        "Rough estimate of time (ms) spent in prediction",
+        "Total lookahead symbols examined",
+        "Max lookahead symbols examined in any decision event",
+        "# of ambiguous input phrases",
+        "# of non-DFA transitions during prediction (cache miss)"
     };
     // microsecond decimal precision
     private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
@@ -68,7 +68,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
                 return decisionInfo.ambiguities.size();
             case 5:
                 return decisionInfo.SLL_ATNTransitions +
-                        decisionInfo.LL_ATNTransitions;
+                    decisionInfo.LL_ATNTransitions;
         }
         return "n/a";
     }

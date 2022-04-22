@@ -148,7 +148,7 @@ public class GrammarIssuesCollector {
             List<String> rulesToHighlight = new ArrayList<>();
             LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage) issue.getMsg();
             Collection<? extends Collection<Rule>> cycles =
-                    (Collection<? extends Collection<Rule>>) lmsg.getArgs()[0];
+                (Collection<? extends Collection<Rule>>) lmsg.getArgs()[0];
             for (Collection<Rule> cycle : cycles) {
                 for (Rule r : cycle) {
                     rulesToHighlight.add(r.name);

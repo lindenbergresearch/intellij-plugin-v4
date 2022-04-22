@@ -43,19 +43,19 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
                 return false;
             }
             if (prevPrevPrevRealToken.getType() != ANTLRv4Parser.AT &&
-                    prevPrevPrevRealToken.getType() != ANTLRv4Parser.COLONCOLON) {
+                prevPrevPrevRealToken.getType() != ANTLRv4Parser.COLONCOLON) {
                 return false;
             }
         }
 
         boolean okBefore =
-                previousRealTokenType == ANTLRv4Parser.RBRACE ||
-                        previousRealTokenType == ANTLRv4Parser.SEMI ||
-                        previousRealTokenType == ANTLRv4Parser.BEGIN_ACTION;
+            previousRealTokenType == ANTLRv4Parser.RBRACE ||
+                previousRealTokenType == ANTLRv4Parser.SEMI ||
+                previousRealTokenType == ANTLRv4Parser.BEGIN_ACTION;
         boolean okAfter =
-                nextRealTokenType == ANTLRv4Parser.TOKEN_REF ||
-                        nextRealTokenType == ANTLRv4Parser.RULE_REF ||
-                        nextRealTokenType == Token.EOF;
+            nextRealTokenType == ANTLRv4Parser.TOKEN_REF ||
+                nextRealTokenType == ANTLRv4Parser.RULE_REF ||
+                nextRealTokenType == Token.EOF;
 
         return okBefore && okAfter;
     }

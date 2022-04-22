@@ -58,11 +58,13 @@ public class RunANTLROnGrammarFile extends Task.Modal {
     private final boolean forceGeneration;
 
 
-    public RunANTLROnGrammarFile(VirtualFile grammarFile,
-                                 @Nullable final Project project,
-                                 @NotNull final String title,
-                                 final boolean canBeCancelled,
-                                 boolean forceGeneration) {
+    public RunANTLROnGrammarFile(
+        VirtualFile grammarFile,
+        @Nullable final Project project,
+        @NotNull final String title,
+        final boolean canBeCancelled,
+        boolean forceGeneration
+    ) {
         super(project, title, canBeCancelled);
         this.grammarFile = grammarFile;
         this.project = project;
@@ -163,8 +165,8 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
     private static VirtualFile getContentRoot(Project project, VirtualFile vfile) {
         VirtualFile root =
-                ProjectRootManager.getInstance(project)
-                        .getFileIndex().getContentRootForFile(vfile);
+            ProjectRootManager.getInstance(project)
+                .getFileIndex().getContentRootForFile(vfile);
         if (root != null) return root;
         return vfile.getParent();
     }
@@ -262,10 +264,10 @@ public class RunANTLROnGrammarFile extends Task.Modal {
             e.printStackTrace(pw);
             String msg = sw.toString();
             Notification notification =
-                    new Notification(groupDisplayId,
-                            "can't generate parser for " + vfile.getName(),
-                            e.toString(),
-                            NotificationType.INFORMATION);
+                new Notification(groupDisplayId,
+                    "can't generate parser for " + vfile.getName(),
+                    e.toString(),
+                    NotificationType.INFORMATION);
             Notifications.Bus.notify(notification, project);
             console.print(timeStamp + ": antlr4 " + msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
             listener.hasOutput = true; // show console below
@@ -283,6 +285,6 @@ public class RunANTLROnGrammarFile extends Task.Modal {
         String package_ = argMap.get("-package");
 
         return getGrammarProperties(project, grammarFile)
-                .resolveOutputDirName(project, contentRoot, package_);
+            .resolveOutputDirName(project, contentRoot, package_);
     }
 }

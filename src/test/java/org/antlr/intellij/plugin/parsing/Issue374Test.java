@@ -13,8 +13,8 @@ public class Issue374Test extends TestCase {
     public void test_lexer_rule_should_be_parsed_after_header() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "@header {}\n" +
-                "WS: [ \\t\\r\\n]+ -> skip ;";
+            "@header {}\n" +
+            "WS: [ \\t\\r\\n]+ -> skip ;";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -32,10 +32,10 @@ public class Issue374Test extends TestCase {
     public void test_lexer_rule_should_be_parsed_after_options() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "options {" +
-                " foo = {};" +
-                "}\n" +
-                "WS: [ \\t\\r\\n]+ -> skip ;";
+            "options {" +
+            " foo = {};" +
+            "}\n" +
+            "WS: [ \\t\\r\\n]+ -> skip ;";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -53,10 +53,10 @@ public class Issue374Test extends TestCase {
     public void test_lexer_rule_should_be_parsed_after_tokens() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "tokens {" +
-                " foo, bar" +
-                "}\n" +
-                "WS: [ \\t\\r\\n]+ -> skip ;";
+            "tokens {" +
+            " foo, bar" +
+            "}\n" +
+            "WS: [ \\t\\r\\n]+ -> skip ;";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -74,10 +74,10 @@ public class Issue374Test extends TestCase {
     public void test_lexer_rule_should_be_parsed_after_channels() {
         // Given
         String grammar = "grammar Sample;\n" +
-                "channels {" +
-                " foo, bar" +
-                "}\n" +
-                "WS: [ \\t\\r\\n]+ -> skip ;";
+            "channels {" +
+            " foo, bar" +
+            "}\n" +
+            "WS: [ \\t\\r\\n]+ -> skip ;";
 
         ANTLRv4Parser parser = createParser(grammar);
 
@@ -95,10 +95,10 @@ public class Issue374Test extends TestCase {
     public void test_parser_rule_allows_options() {
         // Given
         String grammar = "parser grammar Sample;\n" +
-                "options { key = value; }\n" +
-                "entry\n" +
-                "options { key = value; }\n" +
-                ": 'text' EOF ;";
+            "options { key = value; }\n" +
+            "entry\n" +
+            "options { key = value; }\n" +
+            ": 'text' EOF ;";
 
         ANTLRv4Parser parser = createParser(grammar);
 

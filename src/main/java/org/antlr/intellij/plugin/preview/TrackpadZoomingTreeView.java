@@ -14,6 +14,8 @@ public class TrackpadZoomingTreeView extends UberTreeViewer implements Magnifica
     static final double SCALE_MAX = 2.5;
     static final double SCALE_RANGE = SCALE_MAX - SCALE_MIN;
     public final ScaleModel scaleModel = new ScaleModel(1000);
+
+
     public TrackpadZoomingTreeView(java.util.List<String> ruleNames, Tree tree) {
         super(ruleNames, tree);
         //TODO: memory leak?

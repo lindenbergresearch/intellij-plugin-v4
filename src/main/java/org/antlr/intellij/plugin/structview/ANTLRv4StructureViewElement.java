@@ -43,14 +43,14 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
     @Override
     public boolean canNavigate() {
         return element instanceof NavigationItem &&
-                ((NavigationItem) element).canNavigate();
+            ((NavigationItem) element).canNavigate();
     }
 
 
     @Override
     public boolean canNavigateToSource() {
         return element instanceof NavigationItem &&
-                ((NavigationItem) element).canNavigateToSource();
+            ((NavigationItem) element).canNavigateToSource();
     }
 
 
