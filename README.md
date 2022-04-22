@@ -1,10 +1,11 @@
 # IntelliJ Idea Plugin for ANTLR v4 ![Java CI](https://github.com/antlr/intellij-plugin-v4/workflows/Java%20CI/badge.svg?branch=master) [![Latest version](https://img.shields.io/jetbrains/plugin/v/7358.svg?label=latest%20version)](https://plugins.jetbrains.com/plugin/7358) ![Downloads](https://img.shields.io/jetbrains/plugin/d/7358.svg)
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 2017.1 .. 2020.3 plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)).
+An [IntelliJ](https://www.jetbrains.com/idea/) 2020.3+ plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)). (Technically, the plugin will load in 2019.2+ but
+you might not have much luck earlier than 2020.3)
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.10.1. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
 
 ## Features:
 
@@ -21,7 +22,7 @@ This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. Works with Intell
 - generates Java code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
 - code completion for tokens, rule names;
 - finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
-- handles separate parsers and lectures like TParser.g4 and TLexer.g4 (1.7)
+- handles separate parsers and lexers like TParser.g4 and TLexer.g4 (1.7)
 - Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
 - has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
 - can view parse trees for input matched in more than one way (ambiguities) (1.7)
@@ -184,7 +185,7 @@ depth. The tree with a white background chose the chosen parse tree:
 
 # Contributing
 
-We [moved to Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. To contribute to the project,
+We [use Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) to build. To contribute to the project,
 you need a recent version of IntelliJ IDEA (either Community or Ultimate) with the `Gradle` and `Plugin DevKit`
 plugins enabled.
 
@@ -200,4 +201,21 @@ To launch unit tests, run `./gradlew check`.
 
 To build a zipped version of the plugin and its dependencies, run `./gradlew buildPlugin`.
 
+You can tweak the version of the IntelliJ platform used to build/test the plugin in `gradle.properties`, such as:
+
+```
+ideaVersion=IC-2020.2.2
+```
+
+As of 1.18, java 11 is assumed but you might get away with earlier java.
+
 A high level description of how the plugin works can be found in `ARCHITECTURE.md`.
+
+# Releasing
+
+* Search for 4.9, 4.10 etc... of ANTLR.
+* Update release notes in plugin.xml
+* Test with multiple IDE versions
+* Run unit tests
+* Upload to https://plugins.jetbrains.com/plugin/add#intellij
+* Write release note in github
