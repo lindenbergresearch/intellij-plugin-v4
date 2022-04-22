@@ -12,7 +12,6 @@ import com.intellij.util.ui.UIUtil;
 import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
-import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
@@ -26,8 +25,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
-
 public class ShowAmbigTreesDialog extends JDialog {
     private static final int MAX_PHRASE_WIDTH = 25;
 
@@ -36,7 +33,7 @@ public class ShowAmbigTreesDialog extends JDialog {
     private JScrollPane treeScrollPane;
     private JSlider treeSizeSlider;
     private JLabel ambigPhraseLabel;
-    private TreeViewer[] treeViewers;
+    private UberTreeViewer[] treeViewers;
 
 
     public ShowAmbigTreesDialog() {
@@ -98,7 +95,7 @@ public class ShowAmbigTreesDialog extends JDialog {
                     " Interpretations of Ambiguous Input Phrase: " +
                     phrase;
             dialog.ambigPhraseLabel.setText(title);
-            dialog.setTrees(previewState, ambiguousParseTrees, title, 0, true);
+            dialog.setTrees(previewState, ambiguousParseTrees, title, 0);
         }
 
         dialog.pack();
@@ -149,7 +146,7 @@ public class ShowAmbigTreesDialog extends JDialog {
                     " Interpretations of Lookahead Phrase: " +
                     phrase;
             dialog.ambigPhraseLabel.setText(title);
-            dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1, false);
+            dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1);
         }
         dialog.pack();
         dialog.setVisible(true);
@@ -218,7 +215,7 @@ public class ShowAmbigTreesDialog extends JDialog {
                 markFromRoots((PreviewInterpreterRuleContext) tchild,
                         (PreviewInterpreterRuleContext) uchild);
             } else {
-                return; // mismatched kids. should be caught above but...
+                return; // mismatched kids. should be caught above but...®
             }
         }
     }
@@ -226,7 +223,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 
     public void setScale(double scale) {
         if (treeViewers == null) return;
-        for (TreeViewer viewer : treeViewers) {
+        for (UberTreeViewer viewer : treeViewers) {
             viewer.setScale(scale);
         }
         treeScrollPane.revalidate();
@@ -236,12 +233,11 @@ public class ShowAmbigTreesDialog extends JDialog {
     public void setTrees(PreviewState previewState,
                          List<? extends RuleContext> ambiguousParseTrees,
                          String title,
-                         int highlightTreeIndex,
-                         boolean highlightDiffs) {
+                         int highlightTreeIndex) {
         if (ambiguousParseTrees != null) {
             int numTrees = ambiguousParseTrees.size();
             setTitle(title);
-            treeViewers = new TreeViewer[numTrees];
+            treeViewers = new UberTreeViewer[numTrees];
             JBPanel panelOfTrees = new JBPanel();
             PreviewInterpreterRuleContext chosenTree =
                     (PreviewInterpreterRuleContext) ambiguousParseTrees.get(highlightTreeIndex);
@@ -251,15 +247,15 @@ public class ShowAmbigTreesDialog extends JDialog {
                     panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
                 }
                 PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext) ambiguousParseTrees.get(i);
-                treeViewers[i] = new TrackpadZoomingTreeView(null, null, highlightDiffs); // && ctx != chosenTree);
+                treeViewers[i] = new TrackpadZoomingTreeView(null, null); // && ctx != chosenTree);
                 AltLabelTextProvider treeText =
                         new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
                 treeViewers[i].setTreeTextProvider(treeText);
                 treeViewers[i].setTree(ctx);
-                treeViewers[i].setHighlightedBoxColor(new JBColor(JBColor.lightGray, JBColor.GREEN));
-
+              //  treeViewers[i].setHighlightedBoxColor(new JBColor(JBColor.lightGray, JBColor.GREEN));
+//TODO: FIX NODE HIGHLIGHTING!
                 // highlight root so people can see it across trees; might not be top node
-                treeViewers[i].addHighlightedNodes(singletonList(ParsingUtils.findOverriddenDecisionRoot(ctx)));
+             //   treeViewers[i].addHighlightedNodes(singletonList(ParsingUtils.findOverriddenDecisionRoot(ctx)));
                 if (ctx != chosenTree) {
                     mark(chosenTree, ctx);
                 }

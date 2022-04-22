@@ -1,17 +1,17 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBFont;
-import org.abego.treelayout.NodeExtentProvider;
+import org.abego.treelayout.TreeForTreeLayout;
 import org.abego.treelayout.TreeLayout;
 import org.abego.treelayout.util.DefaultConfiguration;
-import org.antlr.v4.gui.TreeViewer;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
+import org.antlr.intellij.plugin.preview.ui.BasicStyledElement;
+import org.antlr.intellij.plugin.preview.ui.BasicStyledTreeNode;
+import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
+import org.antlr.v4.gui.TreeLayoutAdaptor;
+import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.runtime.misc.Utils;
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
+import org.antlr.v4.runtime.tree.Trees;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,15 +31,16 @@ import static java.awt.RenderingHints.*;
  * Custom tree layout viewer component.
  * Enhanced version based on: {@code TreeViewer}
  */
-public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMotionListener {
+public class UberTreeViewer extends JComponent implements MouseListener, MouseMotionListener {
     /*---- CONSTANTS ----------------------------------------------------------------------------*/
-    public final static double MAX_SCALE_FACTOR = 1.8;
+    public final static double MAX_SCALE_FACTOR = 3.95;
     public final static double MIN_SCALE_FACTOR = 0.05;
     public final static double SCALING_INCREMENT = 0.15;
     public final static double NODE_FOCUS_MARGIN = 140;
     public final static double NODE_FOCUS_SCALE_FACTOR = 1.25;
     public final static int VIEWER_HORIZONTAL_MARGIN = 26;
     public final static int SCROLL_VIEWPORT_MARGIN = 30;
+//    public final static float DEFAULT_FONT_SIZE = 13;
 
     /*---- CURSOR -------------------------------------------------------------------------------*/
     public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -47,13 +48,13 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     public static final Cursor DRAG_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
     /*---- COLORS -------------------------------------------------------------------------------*/
-    protected JBColor unreachableColor;
+//    protected JBColor unreachableColor;
     protected JBColor edgesColor;
-    protected JBColor errorColor;
-    protected JBColor endOfFileColor;
-    protected JBColor terminalNodeColor;
-    protected JBColor terminalTextColor;
-    protected JBColor selectedNodeColor;
+//    protected JBColor errorColor;
+//    protected JBColor endOfFileColor;
+//    protected JBColor terminalNodeColor;
+//    protected JBColor terminalTextColor;
+//    protected JBColor selectedNodeColor;
 
     /*---- MOUSE --------------------------------------------------------------------------------*/
     private boolean mouseDown;
@@ -61,7 +62,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
     protected JScrollPane scrollPane;
-    private final boolean highlightUnreachedNodes;
 
     protected int minCellWidth;
     protected float edgesStrokeWidth;
@@ -69,43 +69,48 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     protected Point2D offset;
     private long count;
     protected Tree selectedTreeNode;
+    protected BasicStyledElement styledTreeNode;
+
+    protected Font font;
+    boolean useCurvedEdges;
+
+    protected double gapBetweenLevels;
+    protected double gapBetweenNodes;
+
+    protected int nodeWidthPadding;  // added to left/right
+    protected int nodeHeightPadding; // added above/below
+//    protected int arcSize;           // make an arc in node outline?
+
+    protected double scale;
+
+//    protected Color boxColor;     // set to a color to make it draw background
+//    protected Color highlightedBoxColor = Color.lightGray;
+//    protected Color borderColor = null;
+//    protected Color textColor = Color.black;
+
+    protected TreeLayout<Tree> treeLayout;
+    protected Tree root;
+    protected TreeTextProvider treeTextProvider;
+
+
+
 
 
     /**
-     * Provides layout information based on font and text of a tree node.
+     * Default tree-text provider.
      */
-    public static class VariableExtentProvider implements NodeExtentProvider<Tree> {
-        UberTreeViewer viewer;
+    public static class DefaultTreeTextProvider implements TreeTextProvider {
+        private final List<String> ruleNames;
 
 
-        public VariableExtentProvider(UberTreeViewer viewer) {
-            this.viewer = viewer;
+        public DefaultTreeTextProvider(List<String> ruleNames) {
+            this.ruleNames = ruleNames;
         }
 
 
         @Override
-        public double getWidth(Tree tree) {
-            FontMetrics fontMetrics = viewer.getFontMetrics(viewer.font);
-            String s = viewer.getText(tree);
-            int w = fontMetrics.stringWidth(s) + viewer.nodeWidthPadding * 2;
-
-            // Do not use min size for terminals.
-            if (tree instanceof TerminalNode) {
-                return w;
-            }
-
-            return Math.max(w, viewer.minCellWidth);
-        }
-
-
-        @Override
-        public double getHeight(Tree tree) {
-            FontMetrics fontMetrics = viewer.getFontMetrics(viewer.font);
-            int h = fontMetrics.getHeight() + viewer.nodeHeightPadding * 2;
-            String s = viewer.getText(tree);
-            String[] lines = s.split("\n");
-            //   System.out.println("getHeight(" + s + ") = " + h * lines.length + " lines=" + lines.length);
-            return h + (lines.length - 1) * fontMetrics.getHeight();
+        public String getText(Tree node) {
+            return String.valueOf(Trees.getNodeText(node, ruleNames));
         }
     }
 
@@ -113,48 +118,42 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     /**
      * Creates the UberTreeViewer component based on the given tree node.
      *
-     * @param ruleNames               A list of rule names.
-     * @param tree                    The root tree node of the diagram.
-     * @param highlightUnreachedNodes If set unreached nodes are highlighted.
+     * @param ruleNames A list of rule names.
+     * @param tree      The root tree node of the diagram.
      */
-    public UberTreeViewer(List<String> ruleNames, Tree tree, boolean highlightUnreachedNodes) {
-        super(ruleNames, tree);
-        this.highlightUnreachedNodes = highlightUnreachedNodes;
-
-        this.highlightedNodes = new ArrayList<>();
-
+    public UberTreeViewer(List<String> ruleNames, Tree tree) {
         /* draw offset for diagram - needed to draw centered */
         offset = new Point2D.Double(0, 0);
 
         /* font setup */
-        fontSize = 13;
-        font = JBFont.regular().deriveFont((float) (fontSize));
-        fontName = font.getFontName();
+        //   font = JBFont.regular();
+        font = DefaultStyles.BOLD_FONT;
 
         /* edges setup */
-        boolean useCurvedEdges = true;
-        setUseCurvedEdges(useCurvedEdges);
+        useCurvedEdges = false;
         edgesColor = JBColor.BLACK;
-        edgesStrokeWidth = 1.3f;
+        edgesStrokeWidth = 1.96f;
 
         /* color and shape setup */
-        boxColor = JBColor.BLUE;
-        terminalNodeColor = null;
-        terminalTextColor = JBColor.BLACK;
-        endOfFileColor = JBColor.LIGHT_GRAY;
-        borderColor = null;
-        arcSize = 9;
-        minCellWidth = 100;
-        gapBetweenLevels = 30;
-        nodeHeightPadding = 6;
-        nodeWidthPadding = 6;
+//        boxColor = JBColor.BLUE;
+//        terminalNodeColor = JBColor.WHITE;
+//        terminalTextColor = JBColor.BLACK;
+//        endOfFileColor = JBColor.LIGHT_GRAY;
+//        borderColor = edgesColor;
+//        arcSize = 10;
+        minCellWidth = 110;
+        gapBetweenLevels = 20;
+        gapBetweenNodes = 20;
+        nodeHeightPadding = 7;
+        nodeWidthPadding = 7;
 
-        highlightedBoxColor = JBColor.PINK;
-        selectedNodeColor = JBColor.PINK;
-        unreachableColor = JBColor.orange;
-        errorColor = JBColor.RED;
-        textColor = JBColor.WHITE;
+//        highlightedBoxColor = JBColor.PINK;
+//        selectedNodeColor = JBColor.PINK;
+//        unreachableColor = JBColor.orange;
+//        errorColor = JBColor.RED;
+//        textColor = JBColor.WHITE;
 
+        scale = 1.f;
         autoscaling = true;
 
         // add handler for mouse events
@@ -167,6 +166,12 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         deltaMousePos = new Point(0, 0);
 
         setAutoscrolls(true);
+
+        setRuleNames(ruleNames);
+
+        if (tree != null) {
+            setTree(tree);
+        }
     }
 
 
@@ -178,7 +183,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
     }
 
 
-    @Override
     protected void paintEdges(Graphics g, Tree parent) {
         if (!getTree().isLeaf(parent)) {
             BasicStroke stroke = new BasicStroke(edgesStrokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -195,7 +199,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
                 double x2 = childBounds.getCenterX();
                 double y2 = childBounds.getMinY();
 
-                if (getUseCurvedEdges() && x1 != x2) {
+            /*    if (getUseCurvedEdges() && x1 != x2) {
                     double alpha = Math.abs(x1 - x2) * 0.1;
                     CubicCurve2D c = new CubicCurve2D.Double();
                     double ctrlx1 = x1;
@@ -206,11 +210,41 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
                     ((Graphics2D) g).draw(c);
                 } else {
                     g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
+                }*/
+
+                if (useCurvedEdges) {
+                    CubicCurve2D c = new CubicCurve2D.Double();
+                    double ctrly1 = (y1 + y2) / 2;
+                    c.setCurve(x1, y1, x1, ctrly1, x2, y1, x2, y2);
+                    ((Graphics2D) g).draw(c);
+                } else {
+                    g.drawLine((int) x1, (int) y1,
+                        (int) x2, (int) y2);
                 }
 
                 paintEdges(g, child);
             }
         }
+    }
+
+
+    /**
+     * Returns the current scale.
+     *
+     * @return Scale.
+     */
+    public double getScale() {
+        return scale;
+    }
+
+
+    /**
+     * Set the current scale.
+     *
+     * @param scale Scale.
+     */
+    public void setScale(double scale) {
+        this.scale = scale;
     }
 
 
@@ -315,7 +349,7 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         ArrayList<String> buff = new ArrayList<>();
 
         buff.add("PARAMETER:\n");
-        buff.add("parent: " + getParent().getWidth() + "x" + getParent().getHeight());
+        buff.add("parent: " + getParent().getWidth() + 'x' + getParent().getHeight());
 
 
         if (treeLayout != null) {
@@ -361,7 +395,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
         // Anti-alias the text
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_GASP);
 
-        paintEdges(g, getTree().getRoot());
 
 //        Rectangle2D bnd = treeLayout.getBounds();
 //
@@ -371,16 +404,23 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
 
 
         // paint the boxes
-        for (Tree Tree : treeLayout.getNodeBounds().keySet()) {
-            paintBox(g, Tree);
+//        for (Tree Tree : treeLayout.getNodeBounds().keySet()) {
+//            paintBox(g, Tree);
+//        }
+        g2.scale(getScale(), getScale());
+
+        if (root != null && styledTreeNode != null) {
+            paintEdges(g, getTree().getRoot());
+            updateStyledTreeNodes();
+            styledTreeNode.render(g2);
         }
+
 
         double delta = ((double) System.nanoTime() - time) / 1000000.;
 
-
         Font saved = g2.getFont();
 
-        Font menlo = new Font("Menlo", Font.PLAIN, 14);
+        Font menlo = new Font("Menlo", Font.PLAIN, 15);
 
         g2.setFont(menlo.deriveFont((float) (13. * (1. / scale))).deriveFont(Font.BOLD));
         g2.setColor(JBColor.BLACK);
@@ -405,10 +445,9 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      * @param g    Graphics context.
      * @param tree The tree node.
      */
-    @Override
-    protected void paintBox(Graphics g, Tree tree) {
-        customPaintBox(g, tree);
-    }
+//    protected void paintBox(Graphics g, Tree tree) {
+//        customPaintBox(g, tree);
+//    }
 
 
     /**
@@ -417,110 +456,119 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      * @param g    Graphics Context.
      * @param tree Tree-Node to paint.
      */
-    private void customPaintBox(Graphics g, Tree tree) {
-        Rectangle2D.Double box = getBoundsOfNode(tree);
-        Graphics2D g2 = (Graphics2D) g;
-
-        // draw the box in the background
-        boolean ruleFailedAndMatchedNothing = false;
-
-        if (tree instanceof ParserRuleContext) {
-            ParserRuleContext ctx = (ParserRuleContext) tree;
-            ruleFailedAndMatchedNothing =
-                ctx.exception != null &&
-                    ctx.stop != null &&
-                    ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
-        }
-
-        Color color = boxColor;
-        int boxRoundness = 1;
-
-        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing)
-            color = errorColor;
-
-
-        if (tree instanceof TerminalNode) {
-            Token token = ((TerminalNode) tree).getSymbol();
-
-            if (token.getText().equals("<EOF>")) {
-                color = endOfFileColor;
-                boxRoundness = 2;
-            } else if (token.getType() == 0) {
-                color = errorColor;
-                boxRoundness = 3;
-            } else {
-                color = terminalNodeColor;
-                boxRoundness = 0;
-            }
-        }
-
-
-        /* selected node handled here */
-        if (isSelectedTreeNode(tree)) {
-            color = selectedNodeColor;
-
-            BasicStroke stroke = new BasicStroke(0.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-            g2.setStroke(stroke);
-
-            g2.setColor(selectedNodeColor.brighter());
-            g2.drawRoundRect(
-                (int) Math.round(box.x - 3),
-                (int) Math.round(box.y - 3),
-                (int) Math.round(box.width + 6),
-                (int) Math.round(box.height + 6),
-                arcSize * boxRoundness,
-                arcSize * boxRoundness
-            );
-        }
-
-        /* fill box */
-        if (color != null) {
-            g2.setColor(color);
-            g2.fillRoundRect(
-                (int) Math.round(box.x),
-                (int) Math.round(box.y),
-                (int) Math.round(box.width),
-                (int) Math.round(box.height),
-                arcSize * boxRoundness,
-                arcSize * boxRoundness
-            );
-        }
-
-        /* box border */
-        if (borderColor != null) {
-            g2.setColor(borderColor);
-            g2.drawRoundRect(
-                (int) Math.round(box.x),
-                (int) Math.round(box.y),
-                (int) Math.round(box.width),
-                (int) Math.round(box.height),
-                arcSize * boxRoundness,
-                arcSize * boxRoundness
-            );
-        }
-
-        // ---------------- PAINT LABELS AND TEXT -------------------------------
-        g2.setFont(font);
-        g2.setColor(textColor);
-
-        if (tree.getParent() == null) {
-            g2.setColor(JBColor.WHITE);
-            g2.setFont(font.deriveFont(Font.BOLD).deriveFont((float) fontSize + 4));
-        }
-
-        if (tree instanceof TerminalNode) {
-            g2.setFont(font.deriveFont(Font.BOLD).deriveFont((float) fontSize + 5));
-            g2.setColor(terminalTextColor);
-        }
-
-        String s = getText(tree);
-        FontMetrics m = g2.getFontMetrics(g2.getFont());
-
-        float y = (float) (box.y + box.height / 2. - m.getHeight() / 2. + m.getAscent());
-        float x = (float) (box.x + box.width / 2. - m.stringWidth(s) / 2.);
-
-        g2.drawString(s, x, y);
-    }
+//    private void customPaintBox(Graphics g, Tree tree) {
+//        Rectangle2D.Double box = getBoundsOfNode(tree);
+//        Graphics2D g2 = (Graphics2D) g;
+//
+//        // draw the box in the background
+//        boolean ruleFailedAndMatchedNothing = false;
+//
+//        if (tree instanceof ParserRuleContext) {
+//            ParserRuleContext ctx = (ParserRuleContext) tree;
+//            ruleFailedAndMatchedNothing =
+//                ctx.exception != null &&
+//                    ctx.stop != null &&
+//                    ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
+//        }
+//
+//        Color color = boxColor;
+//        int boxRoundness = 1;
+//
+//        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing)
+//            color = errorColor;
+//
+//
+//        if (tree instanceof TerminalNode) {
+//            Token token = ((TerminalNode) tree).getSymbol();
+//
+//            if (token.getText().equals("<EOF>")) {
+//                color = endOfFileColor;
+//                boxRoundness = 2;
+//            } else if (token.getType() == 0) {
+//                color = errorColor;
+//                boxRoundness = 1;
+//            } else {
+//                color = terminalNodeColor;
+//                boxRoundness = 2;
+//            }
+//        }
+//
+//
+//
+//
+//        /* selected node handled here */
+//        if (isSelectedTreeNode(tree)) {
+//            color = selectedNodeColor;
+//
+//            BasicStroke stroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+//            g2.setStroke(stroke);
+//
+//            g2.setColor(selectedNodeColor.brighter());
+//            g2.drawRoundRect(
+//                (int) Math.round(box.x),
+//                (int) Math.round(box.y),
+//                (int) Math.round(box.width),
+//                (int) Math.round(box.height),
+//                arcSize * boxRoundness,
+//                arcSize * boxRoundness
+//            );
+//        } else if (borderColor != null) { /* box border */
+//            BasicStroke stroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+//            g2.setStroke(stroke);
+//
+//            g2.setColor(borderColor);
+//            g2.drawRoundRect(
+//                (int) Math.round(box.x),
+//                (int) Math.round(box.y),
+//                (int) Math.round(box.width),
+//                (int) Math.round(box.height),
+//                arcSize * boxRoundness,
+//                arcSize * boxRoundness
+//            );
+//        }
+//
+//
+//        /* fill box */
+//        if (color != null) {
+//            g2.setColor(color);
+//            g2.fillRoundRect(
+//                (int) Math.round(box.x),
+//                (int) Math.round(box.y),
+//                (int) Math.round(box.width),
+//                (int) Math.round(box.height),
+//                arcSize * boxRoundness,
+//                arcSize * boxRoundness
+//            );
+//        }
+//
+//        // ---------------- PAINT LABELS AND TEXT -------------------------------
+//        g2.setFont(font);
+//        g2.setColor(textColor);
+//        String s = getText(tree);
+//
+//
+//        if (tree.getParent() == null) {
+//            s = '[' + s + ']';
+//        }
+//
+//        if (tree instanceof TerminalNode) {
+//            g2.setFont(font.deriveFont((float) DEFAULT_FONT_SIZE));
+//
+//            if (isSelectedTreeNode(tree)) {
+//                g2.setColor(textColor);
+//            } else {
+//                g2.setColor(terminalTextColor);
+//            }
+//
+//        }
+//
+//        FontMetrics m = g2.getFontMetrics(g2.getFont());
+//
+//        float y = (float) (box.y + box.height / 2. - m.getHeight() / 2. + m.getAscent());
+//        float x = (float) (box.x + box.width / 2. - m.stringWidth(s) / 2.);
+//
+//        g2.drawString(s, x, y);
+//    }
 
 
     /**
@@ -529,7 +577,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      * @param node The tree node.
      * @return Bounds as {@code Rectangle2D}.
      */
-    @Override
     protected Rectangle2D.Double getBoundsOfNode(Tree node) {
         Rectangle2D.Double bounds = treeLayout.getNodeBounds().get(node);
         return new Rectangle2D.Double(
@@ -547,7 +594,6 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      * @return The labels as string.
      * @see AltLabelTextProvider
      */
-    @Override
     protected String getText(Tree tree) {
         String s = treeTextProvider.getText(tree);
         s = Utils.escapeWhitespace(s.trim(), false);
@@ -604,10 +650,38 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      * @param x The X coordinate to draw at.
      * @param y The Y coordinate to draw at.
      */
-    @Override
     public void text(Graphics g, String s, int x, int y) {
         // s = Utils.escapeWhitespace(s, false);
         g.drawString(s, x, y);
+    }
+
+
+    /**
+     * Get the TreeTextProvider {@link TreeTextProvider}
+     *
+     * @return TreeTextProvider
+     */
+    public TreeTextProvider getTreeTextProvider() {
+        return treeTextProvider;
+    }
+
+
+    /**
+     * Sets the TreeTextProvider. {@link TreeTextProvider}
+     *
+     * @param treeTextProvider TreeTextProvider
+     */
+    public void setTreeTextProvider(TreeTextProvider treeTextProvider) {
+        this.treeTextProvider = treeTextProvider;
+    }
+
+
+    /**
+     * Get an adaptor for root that indicates how to walk ANTLR trees.
+     * Override to change the adaptor from the default of {@link TreeLayoutAdaptor}
+     */
+    public TreeForTreeLayout<Tree> getTreeLayoutAdaptor(Tree root) {
+        return new TreeLayoutAdaptor(root);
     }
 
 
@@ -616,21 +690,72 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      *
      * @param root The root node of the tree.
      */
-    @Override
     public void setTree(Tree root) {
-        if (root != null) {
-            treeLayout = new TreeLayout<>(
-                getTreeLayoutAdaptor(root),
-                new VariableExtentProvider(this),
-                new DefaultConfiguration<>(gapBetweenLevels, gapBetweenNodes),
-                true
+        this.root = root;
+
+        // reset if no tree instance has been passed
+        if (root == null) {
+            treeLayout = null;
+            styledTreeNode = null;
+            repaint();
+            return;
+        }
+
+        treeLayout = new TreeLayout<>(
+            getTreeLayoutAdaptor(root),
+            new VariableExtentProvider(this),
+            new DefaultConfiguration<>(gapBetweenLevels, gapBetweenNodes),
+            true
+        );
+
+        updateStyledTreeNodes();
+        updatePreferredSize();
+    }
+
+
+    public void setRuleNames(List<String> ruleNames) {
+        setTreeTextProvider(new DefaultTreeTextProvider(ruleNames));
+    }
+
+
+    /**
+     * return the Tree from the Tree-layouter.
+     *
+     * @return Layouted tree.
+     */
+    protected TreeForTreeLayout<Tree> getTree() {
+        return treeLayout.getTree();
+    }
+
+
+    /**
+     *
+     */
+    protected void updateStyledTreeNodes() {
+        styledTreeNode = new BasicStyledElement();
+
+        Rectangle2D.Double viewport =
+            new Rectangle2D.Double(
+                offset.getX(),
+                offset.getY(),
+                getScaledTreeSize().getWidth(),
+                getScaledTreeSize().getHeight()
             );
 
-            // Let the UI display this new AST.
-            updatePreferredSize();
-        } else {
-            treeLayout = null;
-            repaint();
+        // root node
+        styledTreeNode.setViewport(viewport);
+
+        // paint the boxes
+        for (Tree tree : treeLayout.getNodeBounds().keySet()) {
+            BasicStyledTreeNode node =
+                new BasicStyledTreeNode(
+                    styledTreeNode,
+                    getBoundsOfNode(tree),
+                    DefaultStyles.DEFAULT_STYLE
+                );
+
+            node.setText(getText(tree));
+            styledTreeNode.add(node);
         }
     }
 
@@ -642,6 +767,17 @@ public class UberTreeViewer extends TreeViewer implements MouseListener, MouseMo
      */
     public boolean hasTree() {
         return treeLayout != null;
+    }
+
+
+    /**
+     * Test tree-node for root-node.
+     *
+     * @param tree Tree
+     * @return True if is root node-
+     */
+    public boolean isRoot(Tree tree) {
+        return tree.getParent() == null;
     }
 
 

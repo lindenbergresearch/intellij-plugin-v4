@@ -59,17 +59,21 @@ public class GrammarIssuesCollector {
 
         antlr.removeListeners();
         antlr.addListener(listener);
+
         try {
             StringReader sr = new StringReader(fileContents);
             ANTLRReaderStream in = new ANTLRReaderStream(sr);
+
             in.name = file.getName();
             GrammarRootAST ast = antlr.parse(file.getName(), in);
+
             if (ast == null || ast.hasErrors) {
                 for (GrammarIssue issue : listener.getIssues()) {
                     processIssue(file, issue);
                 }
                 return listener.getIssues();
             }
+
             Grammar g = antlr.createGrammar(ast);
             g.fileName = grammarFileName;
 
@@ -80,14 +84,17 @@ public class GrammarIssuesCollector {
             }
 
             VirtualFile vfile = file.getVirtualFile();
+
             if (vfile == null) {
                 LOG.error("doAnnotate no virtual file for " + file);
                 return listener.getIssues();
             }
+
             g.fileName = vfile.getPath();
             antlr.process(g, false);
 
             Map<String, GrammarAST> unusedRules = getUnusedParserRules(g);
+
             if (unusedRules != null) {
                 for (String r : unusedRules.keySet()) {
                     Token ruleDefToken = unusedRules.get(r).getToken();
@@ -170,7 +177,9 @@ public class GrammarIssuesCollector {
 
     private static Map<String, GrammarAST> getUnusedParserRules(Grammar g) {
         if (g.ast == null || g.isLexer()) return null;
+
         List<GrammarAST> ruleNodes = g.ast.getNodesWithTypePreorderDFS(IntervalSet.of(ANTLRParser.RULE_REF));
+
         // in case of errors, we walk AST ourselves
         // ANTLR's Grammar object might have bailed on rule defs etc...
         Set<String> ruleRefs = new HashSet<>();

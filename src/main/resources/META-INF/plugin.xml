@@ -126,6 +126,10 @@ For really big files and slow grammars, there is an appreciable delay when displ
 		<action id="antlr.UniquifyRuleRefs" class="org.antlr.intellij.plugin.actions.UniquifyRuleRefs" text="Make Refs to Rule Unique...">
 			<add-to-group group-id="RefactoringMenu" anchor="after" relative-to-action="antlr.ExtractRule"/>
 		</action>
+
+      <!--action class="org.antlr.intellij.plugin.TestAction" description="An scala test action" text="Test Scala Action" id="antlr.ScalaTestAction">
+          <add-to-group group-id="ToolsMenu" anchor="last"/>
+      </action-->
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

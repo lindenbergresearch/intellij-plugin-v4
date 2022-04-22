@@ -9,6 +9,7 @@ import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
@@ -24,6 +25,7 @@ import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -120,7 +122,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     private ActionToolbar createButtonBarGraph() {
         ToggleAction autoScaleDiagram = new ToggleAction("Auto-Scale",
-            "Set proper zoom-level upon live-testing grammars.", AllIcons.Actions.Refresh) {
+            "Set proper zoom-level upon live-testing grammars.", Replace) {
 
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -137,8 +139,34 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         AnAction zoomActualSize = new AnAction("Actual Size", "Set zoom-level to 1:1.", ActualZoom) {
             @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                if (treeViewer.getScale() == 1) {
+                    e.getPresentation().setEnabled(false);
+                }
+            }
+
+
+            @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setScaleLevel(1.0);
+                treeViewer.updatePreferredSize();
+            }
+        };
+
+        AnAction zoomOut = new AnAction("Zoom Out", null, ZoomOut) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                if (treeViewer.getScale() - UberTreeViewer.SCALING_INCREMENT < UberTreeViewer.MIN_SCALE_FACTOR) {
+                    e.getPresentation().setEnabled(false);
+                }
+            }
+
+
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setRelativeScaling(-UberTreeViewer.SCALING_INCREMENT);
                 treeViewer.updatePreferredSize();
             }
         };
@@ -148,7 +176,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             public void update(@NotNull AnActionEvent e) {
                 super.update(e);
                 if (treeViewer.getScale() + UberTreeViewer.SCALING_INCREMENT > UberTreeViewer.MAX_SCALE_FACTOR) {
-
+                    e.getPresentation().setEnabled(false);
                 }
             }
 
@@ -160,15 +188,14 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
 
-        AnAction zoomOut = new AnAction("Zoom Out", null, ZoomOut) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                treeViewer.setRelativeScaling(-UberTreeViewer.SCALING_INCREMENT);
-                treeViewer.updatePreferredSize();
-            }
-        };
-
         AnAction fitScreen = new AnAction("Fit Screen", "Fit content to screen.", FitContent) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                e.getPresentation().setEnabled(!treeViewer.autoscaling);
+            }
+
+
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.doAutoScale();
@@ -316,8 +343,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         final UberTreeViewer viewer =
             isTrackpadZoomSupported ?
-                new TrackpadZoomingTreeView(null, null, false) :
-                new UberTreeViewer(null, null, false);
+                new TrackpadZoomingTreeView(null, null) :
+                new UberTreeViewer(null, null);
 
 
         viewer.setDoubleBuffered(true);
@@ -343,11 +370,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         scrollPane.setBorder(BorderFactory.createEtchedBorder());
 
         return new Pair<>(viewer, treePanel);
-    }
-
-
-    public void restoreStartRule() {
-
     }
 
 
@@ -500,6 +522,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
     private void showError(String message) {
+
         clearTabs(new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE, message)));
     }
 
@@ -585,40 +608,56 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      */
     @Override
     public void onLexerTokenSelected(Token token) {
-        if (!highlightSource) {
+        if (!highlightSource || scrollFromSource) {
             return;
         }
+
+        inputPanel.clearInputEditorHighlighters();
+        if (token == null) return;
 
         int startIndex = token.getStartIndex();
         int stopIndex = token.getStopIndex();
 
-        inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
+        Editor editor = inputPanel.getInputEditor();
+        Interval sourceInterval = Interval.of(startIndex, stopIndex + 1);
+        inputPanel.highlightAndOfferHint(editor, 0, sourceInterval, JBColor.GREEN, EffectType.ROUNDED_BOX, token.toString());
+        // inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
     }
 
 
     @Override
     public void onParserRuleSelected(Tree tree) {
-        if (!highlightSource) {
+        if (!highlightSource || scrollFromSource) {
             return;
         }
 
+        inputPanel.clearInputEditorHighlighters();
+        if (tree == null) return;
+
         int startIndex;
         int stopIndex;
+        String msg;
 
         if (tree instanceof ParserRuleContext) {
             startIndex = ((ParserRuleContext) tree).getStart().getStartIndex();
             stopIndex = ((ParserRuleContext) tree).getStop().getStopIndex();
+            msg = "Rule: " + ((ParserRuleContext) tree).getText();
         } else if (tree instanceof TerminalNode) {
             startIndex = ((TerminalNode) tree).getSymbol().getStartIndex();
             stopIndex = ((TerminalNode) tree).getSymbol().getStopIndex();
+            msg = "Terminal-Node: " + ((TerminalNode) tree).getSymbol().getText();
         } else {
             return;
         }
 
         if (startIndex >= 0) {
             Editor editor = inputPanel.getInputEditor();
-            editor.getSelectionModel().removeSelection();
-            editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
+//            editor.getSelectionModel().removeSelection();
+//            editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
+
+            //   Editor editor = inputPanel.getInputEditor();
+            Interval sourceInterval = Interval.of(startIndex, stopIndex + 1);
+            inputPanel.highlightAndOfferHint(editor, startIndex, sourceInterval, (JBColor) JBColor.MAGENTA, EffectType.ROUNDED_BOX, msg);
         }
     }
 

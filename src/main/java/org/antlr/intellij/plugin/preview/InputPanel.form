@@ -10,22 +10,19 @@
     </properties>
     <border type="none"/>
     <children>
-      <grid id="aba34" binding="startRuleAndInputPanel" layout-manager="FlowLayout" hgap="5" vgap="0" flow-align="1">
+      <grid id="aba34" binding="startRuleAndInputPanel" layout-manager="FlowLayout" hgap="5" vgap="0" flow-align="0">
         <constraints border-constraint="North"/>
         <properties>
           <minimumSize width="233" height="60"/>
         </properties>
-        <border type="etched"/>
+        <border type="none"/>
         <children>
-          <component id="68f06" class="javax.swing.JLabel" binding="startRuleLabel">
+          <grid id="954fc" binding="radioButtonPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
             <constraints/>
             <properties>
-              <text value="Label"/>
+              <alignmentX value="0.0"/>
+              <alignmentY value="0.0"/>
             </properties>
-          </component>
-          <grid id="954fc" binding="radioButtonPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
-            <constraints/>
-            <properties/>
             <border type="none"/>
             <children>
               <component id="2d3c1" class="javax.swing.JRadioButton" binding="inputRadioButton" default-binding="true">
@@ -47,6 +44,12 @@
               </component>
             </children>
           </grid>
+          <component id="68f06" class="javax.swing.JLabel" binding="startRuleLabel">
+            <constraints/>
+            <properties>
+              <text value="Label"/>
+            </properties>
+          </component>
         </children>
       </grid>
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
@@ -58,16 +61,21 @@
           <text value=""/>
         </properties>
       </component>
-      <scrollpane id="77094">
+      <scrollpane id="77094" binding="errorScrollPane">
         <constraints border-constraint="South"/>
-        <properties/>
+        <properties>
+          <preferredSize width="514" height="71"/>
+          <visible value="true"/>
+        </properties>
         <border type="none"/>
         <children>
           <component id="37477" class="javax.swing.JTextArea" binding="errorConsole">
             <constraints/>
             <properties>
               <editable value="false"/>
+              <foreground color="-4240569"/>
               <lineWrap value="true"/>
+              <preferredSize width="500" height="71"/>
               <rows value="3"/>
             </properties>
           </component>

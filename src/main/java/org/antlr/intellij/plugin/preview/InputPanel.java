@@ -21,6 +21,7 @@ import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.JBColor;
@@ -43,6 +44,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -88,37 +90,55 @@ public class InputPanel {
     private PropertiesComponent propertiesComponent;
 
 
+    private class BrowseActionListener extends ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> {
+        public BrowseActionListener(
+            @Nullable @NlsContexts.DialogTitle String title, @Nullable @NlsContexts.Label String description,
+            @Nullable ComponentWithBrowseButton<JTextField> textField, @Nullable Project project,
+            FileChooserDescriptor fileChooserDescriptor, TextComponentAccessor<? super JTextField> accessor
+        ) {
+            super(title, description, textField, project, fileChooserDescriptor, accessor);
+        }
+
+
+        protected void onFileChosen(@NotNull VirtualFile chosenFile) {
+            // this next line is the code taken from super; pasted in
+            // to avoid compile error on super.onFileCho[o]sen
+            TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(
+                fileChooser.getChildComponent(),
+                chosenFileToResultingText(chosenFile)
+            );
+
+            InputPanel.this.onFileChosen(chosenFile);
+        }
+
+    }
+
+
     public InputPanel(final PreviewPanel previewPanel) {
         WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
         layout.setAlignment(FlowLayout.LEFT);
         this.startRuleAndInputPanel.setLayout(layout);
         this.previewPanel = previewPanel;
 
-        FileChooserDescriptor singleFileDescriptor =
-            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
+        FileChooserDescriptor singleFileDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
 
-        ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> browseActionListener =
-            new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
+        BrowseActionListener browseActionListener =
+            new BrowseActionListener(
                 "Select Input File", null,
                 fileChooser,
                 previewPanel.project,
                 singleFileDescriptor,
                 TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
-            ) {
-                protected void onFileChosen(@NotNull VirtualFile chosenFile) {
-                    // this next line is the code taken from super; pasted in
-                    // to avoid compile error on super.onFileCho[o]sen
-                    TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
-                        chosenFileToResultingText(chosenFile));
-                    InputPanel.this.onFileChosen(chosenFile);
-                }
-            };
+            );
+
+
         fileChooser.getTextField().addActionListener(e -> {
             VirtualFile chosenFile = VirtualFileManager.getInstance()
                 .getFileSystem("file")
                 .findFileByPath(fileChooser.getText());
             onFileChosen(chosenFile);
         });
+
         fileChooser.addActionListener(browseActionListener);
         fileChooser.getButton().addActionListener(e -> fileRadioButton.setSelected(true));
         fileChooser.setTextFieldPreferredWidth(40);
@@ -222,22 +242,20 @@ public class InputPanel {
 
 
     public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
-        int flags =
-            HintManager.HIDE_BY_ANY_KEY |
-                HintManager.HIDE_BY_TEXT_CHANGE |
-                HintManager.HIDE_BY_SCROLLING;
+        int flags = HintManager.HIDE_BY_ANY_KEY |
+            HintManager.HIDE_BY_TEXT_CHANGE |
+            HintManager.HIDE_BY_SCROLLING;
+
         int timeout = 0; // default?
-        hintMgr.showErrorHint(editor, msg,
-            offset, offset + 1,
-            HintManager.ABOVE, flags, timeout);
+        hintMgr.showErrorHint(editor, msg, offset, offset + 1, HintManager.ABOVE, flags, timeout);
     }
 
 
     public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
-        int flags =
-            HintManager.HIDE_BY_ANY_KEY |
-                HintManager.HIDE_BY_TEXT_CHANGE |
-                HintManager.HIDE_BY_SCROLLING;
+        int flags = HintManager.HIDE_BY_ANY_KEY |
+            HintManager.HIDE_BY_TEXT_CHANGE |
+            HintManager.HIDE_BY_SCROLLING;
+
         int timeout = 0; // default?
         JComponent infoLabel = HintUtil.createInformationLabel(msg);
         LightweightHint hint = new LightweightHint(infoLabel);
@@ -294,7 +312,7 @@ public class InputPanel {
         Document doc = factory.createDocument("");
 
         String text = propertiesComponent.getValue("org.antlr.intellij.plugin.preview.input");
-        previewState.manualInputText = text.toString();
+        previewState.manualInputText = text;
 
         doc.addDocumentListener(
             new DocumentAdapter() {
@@ -567,7 +585,7 @@ public class InputPanel {
             channelInfo = ", Channel " + chNum;
         }
 
-        JBColor color = JBColor.BLUE;
+        JBColor color = JBColor.PINK;
         String tokenInfo =
             String.format("#%d Type %s, Line %d:%d%s",
                 tokenUnderCursor.getTokenIndex(),
@@ -585,7 +603,7 @@ public class InputPanel {
         Interval sourceInterval = Interval.of(tokenUnderCursor.getStartIndex(),
             tokenUnderCursor.getStopIndex() + 1);
 
-        highlightAndOfferHint(editor, offset, sourceInterval, color, EffectType.LINE_UNDERSCORE, tokenInfo);
+        highlightAndOfferHint(editor, offset, sourceInterval, color, EffectType.ROUNDED_BOX, tokenInfo);
     }
 
 
@@ -642,16 +660,18 @@ public class InputPanel {
                 }
             }
         }
-        String stackS = Utils.join(stack.toArray(), "\n");
-        highlightAndOfferHint(editor, offset, sourceInterval,
-            JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
+
+        String stackS = Utils.join(stack.toArray(), " -> ");
+        highlightAndOfferHint(editor, offset, sourceInterval, JBColor.YELLOW, EffectType.ROUNDED_BOX, stackS);
     }
 
 
-    public void highlightAndOfferHint(Editor editor, int offset,
-                                      Interval sourceInterval,
-                                      JBColor color,
-                                      EffectType effectType, String hintText) {
+    public void highlightAndOfferHint(
+        Editor editor, int offset,
+        Interval sourceInterval,
+        JBColor color,
+        EffectType effectType, String hintText
+    ) {
         CaretModel caretModel = editor.getCaretModel();
         final TextAttributes attr = new TextAttributes();
         attr.setForegroundColor(color);
