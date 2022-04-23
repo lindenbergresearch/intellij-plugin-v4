@@ -7,7 +7,7 @@
   <description><![CDATA[
   <p>
       This plugin is for ANTLR v4 grammars and includes ANTLR 4.10.1. It works with
-      2020.2.1 and above.  It should work in other JetBrains IDEs.
+      2021.2 and above. It should work in other JetBrains IDEs.
      </p>
 
      <ul>
@@ -81,7 +81,8 @@ For really big files and slow grammars, there is an appreciable delay when displ
   </change-notes>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
-    <idea-version since-build="192"/> <!-- requires IntelliJ 2020.3+ due to java 11 issue really but allowing 2019.2 just in case it works for somebody -->
+    <!-- requires IntelliJ 2021.2+ due to java 11 issue really but allowing 2019.2 just in case it works for somebody -->
+    <idea-version since-build="212"/>
 
     <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
          on how to target different products -->
