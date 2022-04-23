@@ -10,6 +10,8 @@ import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.*;
 
@@ -65,28 +67,43 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
             return pack(BRACE);
         }
 
-        if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)) {
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF))) {
             return pack(TOKENNAME);
         }
-        if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.POUND)) {
+
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.POUND))) {
             return pack(RULENAME);
-        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF)) {
-            return pack(RULENAME);
-        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.INT)) {
-            return pack(INT);
-        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL)
-            || tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.UNTERMINATED_STRING_LITERAL)) {
-            return STRING_KEYS;
-        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.BLOCK_COMMENT)) {
-            return COMMENT_KEYS;
-        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.DOC_COMMENT)) {
-            return COMMENT_KEYS;
-        } else if (tokenType == TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.LINE_COMMENT)) {
-            return COMMENT_KEYS;
-        } else if (tokenType == BAD_TOKEN_TYPE) {
-            return BAD_CHAR_KEYS;
-        } else {
-            return EMPTY_KEYS;
         }
+
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF))) {
+            return pack(RULENAME);
+        }
+
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.INT))) {
+            return pack(INT);
+        }
+
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL))
+            || Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.UNTERMINATED_STRING_LITERAL))) {
+            return STRING_KEYS;
+        }
+
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.BLOCK_COMMENT))) {
+            return COMMENT_KEYS;
+        }
+
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.DOC_COMMENT))) {
+            return COMMENT_KEYS;
+        }
+
+        if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.LINE_COMMENT))) {
+            return COMMENT_KEYS;
+        }
+
+        if (Objects.equals(tokenType, BAD_TOKEN_TYPE)) {
+            return BAD_CHAR_KEYS;
+        }
+
+        return EMPTY_KEYS;
     }
 }
