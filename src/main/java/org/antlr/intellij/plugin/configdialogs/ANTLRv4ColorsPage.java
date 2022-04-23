@@ -47,17 +47,17 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
     public String getDemoText() {
         return
             "grammar Foo;\n\n" + "options { tokenVocab=DSPLLexer; }\n\n" +
-                "\n" +
+                '\n' +
                 "compilationUnit : STUFF EOF;\n" +
-                "\n" +
+                '\n' +
                 "STUFF : 'stuff' -> pushMode(OTHER_MODE);\n" +
                 "WS : [ \\t]+ -> channel(HIDDEN);\n" +
                 "NEWLINE : [\\r\\n]+ -> type(WS);\n" +
                 "BAD_CHAR : . -> skip;\n" +
                 "INT : [1..9] [0..9]*\n" +
-                "\n" +
+                '\n' +
                 "mode OTHER_MODE;\n" +
-                "\n" +
+                '\n' +
                 "KEYWORD : 'keyword' -> popMode;\n";
     }
 
@@ -71,14 +71,14 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
 
     @NotNull
     @Override
-    public AttributesDescriptor[] getAttributeDescriptors() {
+    public AttributesDescriptor @NotNull [] getAttributeDescriptors() {
         return ATTRIBUTES;
     }
 
 
     @NotNull
     @Override
-    public ColorDescriptor[] getColorDescriptors() {
+    public ColorDescriptor @NotNull [] getColorDescriptors() {
         return ColorDescriptor.EMPTY_ARRAY;
     }
 
