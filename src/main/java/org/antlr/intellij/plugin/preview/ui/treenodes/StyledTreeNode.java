@@ -1,5 +1,9 @@
-package org.antlr.intellij.plugin.preview.ui;
+package org.antlr.intellij.plugin.preview.ui.treenodes;
 
+import org.antlr.intellij.plugin.preview.ui.StyleProperties;
+import org.antlr.intellij.plugin.preview.ui.StyledElement;
+import org.antlr.intellij.plugin.preview.ui.StyledShape;
+import org.antlr.intellij.plugin.preview.ui.StyledText;
 import org.antlr.v4.runtime.tree.Tree;
 
 import java.awt.geom.Rectangle2D;

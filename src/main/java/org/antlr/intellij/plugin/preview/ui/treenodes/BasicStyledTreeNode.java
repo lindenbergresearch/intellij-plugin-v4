@@ -1,5 +1,7 @@
-package org.antlr.intellij.plugin.preview.ui;
+package org.antlr.intellij.plugin.preview.ui.treenodes;
 
+
+import org.antlr.intellij.plugin.preview.ui.*;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -15,6 +17,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     public BasicStyledTreeNode() {
         super();
+        styleProperties = DefaultStyles.DEFAULT_STYLE;
     }
 
 
@@ -35,8 +38,6 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     @Override
     public void setup() {
-        styleProperties = DefaultStyles.DEFAULT_STYLE;
-
         shape = new StyledRoundRect(DefaultStyles.ROUND_RECT_WIDTH, DefaultStyles.ROUND_RECT_HEIGHT);
         shape.setParent(this);
         add(shape);
