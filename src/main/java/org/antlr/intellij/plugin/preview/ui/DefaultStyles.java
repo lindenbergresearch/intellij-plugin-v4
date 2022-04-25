@@ -3,6 +3,8 @@ package org.antlr.intellij.plugin.preview.ui;
 
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
+import org.antlr.intellij.plugin.preview.ui.StyledText.HorizontalLayout;
+import org.antlr.intellij.plugin.preview.ui.StyledText.VerticalLayout;
 
 import java.awt.*;
 
@@ -26,27 +28,27 @@ public class DefaultStyles {
 
     /* ----- COLORS ------------------------------------------*/
 
-    public final static JBColor _BRIGHT = new JBColor(new Color(232, 232, 233), new Color(1, 2, 3));
-    public final static JBColor _DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
-    public final static JBColor _BLUE = JBColor.BLUE;//new JBColor(new Color(77, 136, 201), new Color(86, 127, 210));
-    public final static JBColor _RED = new JBColor(new Color(204, 80, 80), new Color(134, 72, 72));
-    public final static JBColor _GREEN = new JBColor(new Color(88, 204, 88), new Color(74, 145, 74));
-    public final static JBColor _YELLOW = new JBColor(new Color(182, 182, 61), new Color(175, 175, 92));
-    public final static JBColor _PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
-    public final static JBColor _CYAN = new JBColor(new Color(58, 192, 192), new Color(63, 141, 141));
+    public final static JBColor JB_COLOR_BRIGHT = new JBColor(new Color(232, 232, 233), new Color(1, 2, 3));
+    public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
+    public final static JBColor JB_COLOR_BLUE = JBColor.BLUE;//new JBColor(new Color(77, 136, 201), new Color(86, 127, 210));
+    public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(134, 72, 72));
+    public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(88, 204, 88), new Color(74, 145, 74));
+    public final static JBColor JB_COLOR_YELLOW = new JBColor(new Color(182, 182, 61), new Color(175, 175, 92));
+    public final static JBColor JB_COLOR_PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
+    public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 192, 192), new Color(63, 141, 141));
 
 
     /* ----- CONSTANTS ---------------------------------------*/
 
     // round rectangle diameter
-    public static final int ROUND_RECT_WIDTH = 10;
-    public static final int ROUND_RECT_HEIGHT = 10;
+    public static final int ROUND_RECT_WIDTH = 5;
+    public static final int ROUND_RECT_HEIGHT = 5;
 
     // text layout setup
-    public static final StyledText.HorizontalLayout
-        HORIZONTAL_TEXT_LAYOUT = StyledText.HorizontalLayout.CENTER;
-    public static final StyledText.VerticalLayout
-        VERTICAL_TEXT_LAYOUT = StyledText.VerticalLayout.MIDDLE;
+    public static final HorizontalLayout
+        HORIZONTAL_TEXT_LAYOUT = HorizontalLayout.CENTER;
+    public static final VerticalLayout
+        VERTICAL_TEXT_LAYOUT = VerticalLayout.MIDDLE;
 
     // default stroke setup
     public static final Stroke DEFAULT_STROKE =
@@ -56,18 +58,74 @@ public class DefaultStyles {
             BasicStroke.JOIN_ROUND
         );
 
+    // default stroke setup
+    public static final Stroke THIN_STROKE =
+        new BasicStroke(
+            0.6f,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_ROUND
+        );
+
+    // default stroke setup
+    public static final Stroke THICK_STROKE =
+        new BasicStroke(
+            1.7f,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_ROUND
+        );
+
+
     /* ----- DEFAULT STYLES ----------------------------------*/
 
     public static final StyleProperties DEFAULT_STYLE =
         new StyleProperties(
             StyledElementMargin.DEFAULT,
-            _BRIGHT,
-            _BLUE,
-            _BRIGHT,
+            JB_COLOR_BRIGHT,
+            JB_COLOR_BLUE,
+            JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
             REGULAR_FONT
         );
 
+    public static final StyleProperties ERROR_NODE_STYLE =
+        new StyleProperties(
+            StyledElementMargin.DEFAULT,
+            JB_COLOR_BRIGHT,
+            JB_COLOR_RED,
+            JB_COLOR_BRIGHT,
+            DEFAULT_STROKE,
+            REGULAR_FONT
+        );
+
+    public static final StyleProperties ROOT_NODE_STYLE =
+        new StyleProperties(
+            StyledElementMargin.DEFAULT,
+            JB_COLOR_BRIGHT,
+            JB_COLOR_CYAN,
+            JB_COLOR_BRIGHT,
+            THICK_STROKE,
+            BOLD_FONT
+        );
+
+    public static final StyleProperties TERMINAL_NODE_STYLE =
+        new StyleProperties(
+            StyledElementMargin.DEFAULT,
+            JB_COLOR_BRIGHT,
+            JB_COLOR_GREEN,
+            JB_COLOR_BRIGHT,
+            DEFAULT_STROKE,
+            REGULAR_FONT
+        );
+
+    public static final StyleProperties SELECTED_NODE_STYLE =
+        new StyleProperties(
+            StyledElementMargin.DEFAULT,
+            JB_COLOR_BRIGHT,
+            (JBColor)JB_COLOR_BLUE.brighter(),
+            JB_COLOR_BRIGHT,
+            THICK_STROKE,
+            BOLD_FONT
+        );
     /* ----- DEFAULT SHAPES ----------------------------------*/
 
 }
