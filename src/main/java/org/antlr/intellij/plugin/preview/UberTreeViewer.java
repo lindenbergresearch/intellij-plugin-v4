@@ -4,12 +4,17 @@ import com.intellij.ui.JBColor;
 import org.abego.treelayout.TreeForTreeLayout;
 import org.abego.treelayout.TreeLayout;
 import org.abego.treelayout.util.DefaultConfiguration;
+import org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighter;
 import org.antlr.intellij.plugin.preview.ui.BasicStyledElement;
-import org.antlr.intellij.plugin.preview.ui.BasicStyledTreeNode;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
+import org.antlr.intellij.plugin.preview.ui.StyledElement;
+import org.antlr.intellij.plugin.preview.ui.treenodes.*;
 import org.antlr.v4.gui.TreeLayoutAdaptor;
 import org.antlr.v4.gui.TreeTextProvider;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Utils;
+import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.Trees;
 
@@ -69,7 +74,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected Point2D offset;
     private long count;
     protected Tree selectedTreeNode;
-    protected BasicStyledElement styledTreeNode;
+    protected BasicStyledElement styledRootNode;
 
     protected Font font;
     boolean useCurvedEdges;
@@ -253,8 +258,14 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
         Rectangle viewport = scrollPane.getViewportBorderBounds();
 
-        double xRatio = (viewport.getWidth() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getWidth() + offset.getX());
-        double yRatio = (viewport.getHeight() - VIEWER_HORIZONTAL_MARGIN) / (treeLayout.getBounds().getHeight() + offset.getY());
+        double xRatio =
+            (viewport.getWidth() - VIEWER_HORIZONTAL_MARGIN) /
+                (treeLayout.getBounds().getWidth() + offset.getX());
+
+
+        double yRatio =
+            (viewport.getHeight() - VIEWER_HORIZONTAL_MARGIN) /
+                (treeLayout.getBounds().getHeight() + offset.getY());
 
         // determine the smallest scale factor
         scale = Math.min(xRatio, yRatio);
@@ -346,7 +357,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         ArrayList<String> buff = new ArrayList<>();
 
         buff.add("PARAMETER:\n");
-        buff.add("parent: " + getParent().getWidth() + 'x' + getParent().getHeight());
+        buff.add("**********\n\n");
+        buff.add("parent        : " + getParent().getWidth() + 'x' + getParent().getHeight());
 
 
         if (treeLayout != null) {
@@ -357,24 +369,25 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             return;
         }
 
-        buff.add("fc&off: " + String.format("%.3f", scale) + " / " + String.format("%.3f", offset.getX()));
-        buff.add("compon: " + getWidth() + "x" + getHeight());
-        buff.add("tree  : " + treeLayout.getBounds().getWidth() + "x" + treeLayout.getBounds().getHeight());
-        buff.add("tree N: " + String.format("%.3f", treeLayout.getBounds().getWidth() * scale) + "x" + String.format("%.3f", treeLayout.getBounds().getHeight() * scale));
+        buff.add("scale, offset : " + String.format("%.3f", scale) + " | " + String.format("%.3f", offset.getX()));
+        buff.add("component     : " + getWidth() + 'x' + getHeight());
+        buff.add("tree size     : " + treeLayout.getBounds().getWidth() + 'x' + treeLayout.getBounds().getHeight());
+        buff.add("tree scaled   : " + String.format("%.3f", treeLayout.getBounds().getWidth() * scale) + 'x' + String.format("%.3f",
+            treeLayout.getBounds().getHeight() * scale));
 
 
         Point2D offsetText = new Point(0, 0);
         if (scrollPane != null) {
             offsetText.setLocation(scrollPane.getHorizontalScrollBar().getValue() / scale, scrollPane.getVerticalScrollBar().getValue() / scale);
-            buff.add("scrollbars: " + scrollPane.getHorizontalScrollBar().getValue() + " : " + scrollPane.getVerticalScrollBar().getValue());
-            buff.add("scrollbars: " + offsetText.getX() + " : " + offsetText.getY());
-            buff.add("scroll val: " + String.format("%.3f", scrollPane.getHorizontalScrollBar().getMaximum() / scale) + " - " + String.format("%.3f",
+            buff.add("scrollbars    : " + scrollPane.getHorizontalScrollBar().getValue() + " : " + scrollPane.getVerticalScrollBar().getValue());
+            buff.add("scrollbars    : " + offsetText.getX() + " : " + offsetText.getY());
+            buff.add("scroll val    : " + String.format("%.3f", scrollPane.getHorizontalScrollBar().getMaximum() / scale) + " - " + String.format("%.3f",
                 scrollPane.getVerticalScrollBar().getMaximum() / scale));
-            buff.add("mouse     : " + (mouseDown ? "DOWN" : " UP "));
-            buff.add("mouse pos : " + currentMousePos.toString().substring(14));
-            buff.add("mouse last: " + lastMousePos.toString().substring(14));
-            buff.add("mouse delt: " + deltaMousePos.toString().substring(14));
-            buff.add("viewport  : " + scrollPane.getViewportBorderBounds().toString().substring(14));
+            buff.add("mouse         : " + (mouseDown ? "DOWN" : " UP "));
+            buff.add("mouse pos     : " + currentMousePos.toString().substring(14));
+            buff.add("mouse last    : " + lastMousePos.toString().substring(14));
+            buff.add("mouse delta   : " + deltaMousePos.toString().substring(14));
+            buff.add("viewport      : " + scrollPane.getViewportBorderBounds().toString().substring(18).replace("width", "w").replace("height", "h"));
         }
 
         buff.add("\n");
@@ -406,24 +419,23 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 //        }
         g2.scale(getScale(), getScale());
 
-        if (root != null && styledTreeNode != null) {
+        if (root != null && styledRootNode != null) {
             paintEdges(g, getTree().getRoot());
             updateStyledTreeNodes();
-            styledTreeNode.render(g2);
+            styledRootNode.render(g2);
         }
 
 
         double delta = ((double) System.nanoTime() - time) / 1000000.;
 
         Font saved = g2.getFont();
-
-        Font menlo = new Font("Menlo", Font.PLAIN, 15);
+        Font menlo = new Font("Menlo", Font.PLAIN, 10);
 
         g2.setFont(menlo.deriveFont((float) (13. * (1. / scale))).deriveFont(Font.BOLD));
-        g2.setColor(JBColor.BLACK);
+        g2.setColor(ANTLRv4SyntaxHighlighter.KEYWORD.getDefaultAttributes().getForegroundColor());
 
-        buff.add("count: #" + count++);
-        buff.add("time: " + String.format("%.3f", delta) + "ms");
+        buff.add("render no     : #" + count++ + " redraws");
+        buff.add("r-time        : " + String.format("%.3f", delta) + "ms");
 
         double y = 10. + offsetText.getY();
         for (String s : buff) {
@@ -693,7 +705,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // reset if no tree instance has been passed
         if (root == null) {
             treeLayout = null;
-            styledTreeNode = null;
+            styledRootNode = null;
             repaint();
             return;
         }
@@ -726,10 +738,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
 
     /**
-     *
+     * Create StyledTreeNodes from the parse-tree-nodes.
      */
     protected void updateStyledTreeNodes() {
-        styledTreeNode = new BasicStyledElement();
+        styledRootNode = new BasicStyledElement();
 
         Rectangle2D.Double viewport =
             new Rectangle2D.Double(
@@ -740,20 +752,59 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             );
 
         // root node
-        styledTreeNode.setViewport(viewport);
+        styledRootNode.setViewport(viewport);
 
         // paint the boxes
         for (Tree tree : treeLayout.getNodeBounds().keySet()) {
-            BasicStyledTreeNode node =
-                new BasicStyledTreeNode(
-                    styledTreeNode,
-                    getBoundsOfNode(tree),
-                    DefaultStyles.DEFAULT_STYLE
-                );
-
-            node.setText(getText(tree));
-            styledTreeNode.add(node);
+            styledRootNode.add(
+                treeNodeToStyledElement(tree)
+            );
         }
+    }
+
+
+    /**
+     * Creates a StyledElement out of a tree-node.
+     *
+     * @param tree Tree node to convert.
+     * @return The corresponding StyledElement.
+     */
+    public StyledElement treeNodeToStyledElement(Tree tree) {
+        StyledTreeNode node =
+            new BasicStyledTreeNode(
+                styledRootNode,
+                getBoundsOfNode(tree),
+                DefaultStyles.DEFAULT_STYLE
+            );
+
+        boolean ruleFailedAndMatchedNothing = false;
+
+        if (tree instanceof ParserRuleContext) {
+            ParserRuleContext ctx = (ParserRuleContext) tree;
+            ruleFailedAndMatchedNothing =
+                ctx.exception != null &&
+                    ctx.stop != null &&
+                    ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
+        }
+
+        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing)
+            node = new ErrorTreeNode(styledRootNode, getBoundsOfNode(tree));
+
+
+        if (tree instanceof TerminalNode)
+            node = new TerminalTreeNode(styledRootNode, getBoundsOfNode(tree));
+
+
+        if (isSelectedTreeNode(tree))
+            node = new SelectedTreeNode(styledRootNode, getBoundsOfNode(tree));
+
+        if (isRoot(tree))
+            node = new RootTreeNode(styledRootNode, getBoundsOfNode(tree));
+
+        // add node text
+        node.setText(getText(tree));
+
+        return node;
     }
 
 
