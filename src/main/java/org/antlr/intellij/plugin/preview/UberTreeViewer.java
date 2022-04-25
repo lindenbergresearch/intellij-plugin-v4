@@ -28,6 +28,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.awt.RenderingHints.*;
 
@@ -45,7 +46,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public final static double NODE_FOCUS_SCALE_FACTOR = 1.25;
     public final static int VIEWER_HORIZONTAL_MARGIN = 26;
     public final static int SCROLL_VIEWPORT_MARGIN = 30;
-//    public final static float DEFAULT_FONT_SIZE = 13;
 
     /*---- CURSOR -------------------------------------------------------------------------------*/
     public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -53,13 +53,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public static final Cursor DRAG_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
 
     /*---- COLORS -------------------------------------------------------------------------------*/
-//    protected JBColor unreachableColor;
     protected JBColor edgesColor;
-//    protected JBColor errorColor;
-//    protected JBColor endOfFileColor;
-//    protected JBColor terminalNodeColor;
-//    protected JBColor terminalTextColor;
-//    protected JBColor selectedNodeColor;
 
     /*---- MOUSE --------------------------------------------------------------------------------*/
     private boolean mouseDown;
@@ -84,14 +78,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
     protected int nodeWidthPadding;  // added to left/right
     protected int nodeHeightPadding; // added above/below
-//    protected int arcSize;           // make an arc in node outline?
 
     protected double scale;
-
-//    protected Color boxColor;     // set to a color to make it draw background
-//    protected Color highlightedBoxColor = Color.lightGray;
-//    protected Color borderColor = null;
-//    protected Color textColor = Color.black;
 
     protected TreeLayout<Tree> treeLayout;
     protected Tree root;
@@ -136,24 +124,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         edgesColor = JBColor.BLACK;
         edgesStrokeWidth = 1.96f;
 
-        /* color and shape setup */
-//        boxColor = JBColor.BLUE;
-//        terminalNodeColor = JBColor.WHITE;
-//        terminalTextColor = JBColor.BLACK;
-//        endOfFileColor = JBColor.LIGHT_GRAY;
-//        borderColor = edgesColor;
-//        arcSize = 10;
         minCellWidth = 110;
         gapBetweenLevels = 20;
         gapBetweenNodes = 20;
         nodeHeightPadding = 7;
         nodeWidthPadding = 7;
-
-//        highlightedBoxColor = JBColor.PINK;
-//        selectedNodeColor = JBColor.PINK;
-//        unreachableColor = JBColor.orange;
-//        errorColor = JBColor.RED;
-//        textColor = JBColor.WHITE;
 
         scale = 1.f;
         autoscaling = true;
@@ -185,6 +160,12 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     }
 
 
+    /**
+     * Draws the connection lines between nodes in the given tree.
+     *
+     * @param g      Graphics context to draw to.
+     * @param parent Parent tree-node.
+     */
     protected void paintEdges(Graphics g, Tree parent) {
         if (!getTree().isLeaf(parent)) {
             BasicStroke stroke = new BasicStroke(edgesStrokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -200,19 +181,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
                 Rectangle2D.Double childBounds = getBoundsOfNode(child);
                 double x2 = childBounds.getCenterX();
                 double y2 = childBounds.getMinY();
-
-            /*    if (getUseCurvedEdges() && x1 != x2) {
-                    double alpha = Math.abs(x1 - x2) * 0.1;
-                    CubicCurve2D c = new CubicCurve2D.Double();
-                    double ctrlx1 = x1;
-                    double ctrly1 = y1 + alpha;
-                    double ctrlx2 = x2;
-                    double ctrly2 = y2 - alpha;
-                    c.setCurve(x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2, x2, y2);
-                    ((Graphics2D) g).draw(c);
-                } else {
-                    g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
-                }*/
 
                 if (useCurvedEdges) {
                     CubicCurve2D c = new CubicCurve2D.Double();
@@ -405,18 +373,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // Anti-alias the text
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_GASP);
 
-
-//        Rectangle2D bnd = treeLayout.getBounds();
-//
-//
-//        g2.setColor(JBColor.RED.darker().darker().darker());
-//        g2.fillRect((int) (bnd.getX() + offset.getX()), (int) (bnd.getY() + offset.getY()), (int) bnd.getWidth(), (int) bnd.getHeight());
-
-
-        // paint the boxes
-//        for (Tree Tree : treeLayout.getNodeBounds().keySet()) {
-//            paintBox(g, Tree);
-//        }
         g2.scale(getScale(), getScale());
 
         if (root != null && styledRootNode != null) {
@@ -445,139 +401,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
         g2.setFont(saved);
     }
-
-
-    /**
-     * Draws a custom diagram box based on the tree nodes
-     * layout information,
-     *
-     * @param g    Graphics context.
-     * @param tree The tree node.
-     */
-//    protected void paintBox(Graphics g, Tree tree) {
-//        customPaintBox(g, tree);
-//    }
-
-
-    /**
-     * Custom diagram box paint method.
-     *
-     * @param g    Graphics Context.
-     * @param tree Tree-Node to paint.
-     */
-//    private void customPaintBox(Graphics g, Tree tree) {
-//        Rectangle2D.Double box = getBoundsOfNode(tree);
-//        Graphics2D g2 = (Graphics2D) g;
-//
-//        // draw the box in the background
-//        boolean ruleFailedAndMatchedNothing = false;
-//
-//        if (tree instanceof ParserRuleContext) {
-//            ParserRuleContext ctx = (ParserRuleContext) tree;
-//            ruleFailedAndMatchedNothing =
-//                ctx.exception != null &&
-//                    ctx.stop != null &&
-//                    ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
-//        }
-//
-//        Color color = boxColor;
-//        int boxRoundness = 1;
-//
-//        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing)
-//            color = errorColor;
-//
-//
-//        if (tree instanceof TerminalNode) {
-//            Token token = ((TerminalNode) tree).getSymbol();
-//
-//            if (token.getText().equals("<EOF>")) {
-//                color = endOfFileColor;
-//                boxRoundness = 2;
-//            } else if (token.getType() == 0) {
-//                color = errorColor;
-//                boxRoundness = 1;
-//            } else {
-//                color = terminalNodeColor;
-//                boxRoundness = 2;
-//            }
-//        }
-//
-//
-//
-//
-//        /* selected node handled here */
-//        if (isSelectedTreeNode(tree)) {
-//            color = selectedNodeColor;
-//
-//            BasicStroke stroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-//            g2.setStroke(stroke);
-//
-//            g2.setColor(selectedNodeColor.brighter());
-//            g2.drawRoundRect(
-//                (int) Math.round(box.x),
-//                (int) Math.round(box.y),
-//                (int) Math.round(box.width),
-//                (int) Math.round(box.height),
-//                arcSize * boxRoundness,
-//                arcSize * boxRoundness
-//            );
-//        } else if (borderColor != null) { /* box border */
-//            BasicStroke stroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-//            g2.setStroke(stroke);
-//
-//            g2.setColor(borderColor);
-//            g2.drawRoundRect(
-//                (int) Math.round(box.x),
-//                (int) Math.round(box.y),
-//                (int) Math.round(box.width),
-//                (int) Math.round(box.height),
-//                arcSize * boxRoundness,
-//                arcSize * boxRoundness
-//            );
-//        }
-//
-//
-//        /* fill box */
-//        if (color != null) {
-//            g2.setColor(color);
-//            g2.fillRoundRect(
-//                (int) Math.round(box.x),
-//                (int) Math.round(box.y),
-//                (int) Math.round(box.width),
-//                (int) Math.round(box.height),
-//                arcSize * boxRoundness,
-//                arcSize * boxRoundness
-//            );
-//        }
-//
-//        // ---------------- PAINT LABELS AND TEXT -------------------------------
-//        g2.setFont(font);
-//        g2.setColor(textColor);
-//        String s = getText(tree);
-//
-//
-//        if (tree.getParent() == null) {
-//            s = '[' + s + ']';
-//        }
-//
-//        if (tree instanceof TerminalNode) {
-//            g2.setFont(font.deriveFont((float) DEFAULT_FONT_SIZE));
-//
-//            if (isSelectedTreeNode(tree)) {
-//                g2.setColor(textColor);
-//            } else {
-//                g2.setColor(terminalTextColor);
-//            }
-//
-//        }
-//
-//        FontMetrics m = g2.getFontMetrics(g2.getFont());
-//
-//        float y = (float) (box.y + box.height / 2. - m.getHeight() / 2. + m.getAscent());
-//        float x = (float) (box.x + box.width / 2. - m.stringWidth(s) / 2.);
-//
-//        g2.drawString(s, x, y);
-//    }
 
 
     /**
@@ -613,7 +436,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     /**
      * Returns the dimension of the tree layout
      *
-     * @return
+     * @return Dimension of the rendered tree.
      */
     private Dimension getScaledTreeSize() {
         Dimension scaledTreeSize = treeLayout.getBounds().getBounds().getSize();
@@ -868,7 +691,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
 
     /**
-     *
+     * Set proper viewport and scaling to fit to a specific node.
      */
     protected void focusSelectedNode() {
         if (!hasTree()) return;
@@ -919,8 +742,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     /**
      * Checks if a given location hits a node.
      *
-     * @param p
-     * @return
+     * @param p Location as Pout2D.
+     * @return True if hits a node.
      */
     private boolean locationHitsNode(Point2D p) {
         return getNodeFromLocation(p) != null;
@@ -934,8 +757,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * @return True if node matches.
      */
     public boolean isSelectedTreeNode(Tree tree) {
-        if (selectedTreeNode == null) return false;
-        return tree == selectedTreeNode;
+        return selectedTreeNode != null &&
+            Objects.equals(tree, selectedTreeNode);
     }
 
 
@@ -970,9 +793,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
 
     @Override
-    public void mouseClicked(MouseEvent mouseEvent) {
-
-    }
+    public void mouseClicked(MouseEvent mouseEvent) {}
 
 
     @Override
@@ -1002,20 +823,17 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
 
     @Override
-    public void mouseEntered(MouseEvent mouseEvent) {
-
-    }
+    public void mouseEntered(MouseEvent mouseEvent) {}
 
 
     @Override
-    public void mouseExited(MouseEvent mouseEvent) {
-
-    }
+    public void mouseExited(MouseEvent mouseEvent) {}
 
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
-        if (treeLayout == null) return;
+        if (treeLayout == null)
+            return;
 
         setCursor(DRAG_CURSOR);
         deltaMousePos.setLocation(lastMousePos.getX() - mouseEvent.getX(), lastMousePos.getY() - mouseEvent.getY());
@@ -1034,7 +852,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
 
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {
-        if (treeLayout == null) return;
+        if (treeLayout == null)
+            return;
 
         currentMousePos = mouseEvent.getPoint();
         // check if there is a node under the mouse cursor
