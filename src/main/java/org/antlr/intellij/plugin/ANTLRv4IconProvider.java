@@ -16,13 +16,13 @@ public class ANTLRv4IconProvider extends IconProvider {
     @Override
     public Icon getIcon(@NotNull PsiElement element, int flags) {
         if (element instanceof LexerRuleRefNode) {
-            return Icons.LEXER_RULE;
+            return ANTLRv4Icons.LEXER_RULE;
         } else if (element instanceof ParserRuleRefNode) {
-            return Icons.PARSER_RULE;
+            return ANTLRv4Icons.PARSER_RULE;
         } else if (element instanceof ANTLRv4FileRoot) {
-            return Icons.FILE;
+            return ANTLRv4Icons.FILE;
         } else if (element instanceof ModeSpecNode) {
-            return Icons.MODE;
+            return ANTLRv4Icons.MODE;
         }
         return null;
     }

@@ -39,6 +39,6 @@ public class ANTLRv4FileType extends LanguageFileType {
     @Nullable
     @Override
     public Icon getIcon() {
-        return Icons.FILE;
+        return ANTLRv4Icons.FILE;
     }
 }
