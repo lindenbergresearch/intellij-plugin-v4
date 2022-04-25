@@ -14,6 +14,9 @@ public class StyledElementMargin {
     public static final StyledElementMargin
         DEFAULT = new StyledElementMargin(0, 0, 0, 0);
 
+    public static final StyledElementMargin
+        BIG = new StyledElementMargin(5, 5, 5, 5);
+
 
     /**
      * Constructs a margin with all values set to zero.
