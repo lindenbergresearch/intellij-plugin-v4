@@ -5,7 +5,7 @@ import java.awt.geom.Rectangle2D;
 
 
 /**
- *
+ * Styled text element.
  */
 public abstract class StyledText extends StyledElement {
 
@@ -31,7 +31,7 @@ public abstract class StyledText extends StyledElement {
     /* ----- CONFIG ATTRIBUTES -----------------------------------------------------------------------*/
     protected VerticalLayout verticalTextLayout;
     protected HorizontalLayout horizontalTextLayout;
-    protected String text;
+    public String text;
 
 
     /**
