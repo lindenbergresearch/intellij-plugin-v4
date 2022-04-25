@@ -1,20 +1,16 @@
 package org.antlr.intellij.plugin.preview;
 
 import org.abego.treelayout.NodeExtentProvider;
-import org.antlr.intellij.plugin.preview.ui.StyledTreeNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 
 import java.awt.*;
-import java.util.Map;
 
 /**
- *
+ * Provides the dimension of a styled tree-node based on the text properties.
  */
 public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     private final UberTreeViewer viewer;
-
-    Map<Tree, StyledTreeNode> cache;
 
 
     public VariableExtentProvider(UberTreeViewer viewer) {
