@@ -27,8 +27,8 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
+import org.antlr.intellij.plugin.ANTLRv4Icons;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import org.antlr.intellij.plugin.Icons;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
@@ -155,6 +155,10 @@ public class InputPanel {
         propertiesComponent = PropertiesComponent.getInstance(previewPanel.project);
 
         editorMouseListener = new PreviewEditorMouseListener(this);
+
+     //   errorConsole.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        errorConsole.setBackground(JBColor.background().darker());
+        errorConsole.setForeground(JBColor.RED.darker());
     }
 
 
@@ -393,6 +397,7 @@ public class InputPanel {
         ((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
         EditorSettings settings = editor.getSettings();
         settings.setWhitespacesShown(true);
+        settings.setLeadingWhitespaceShown(true);
         settings.setLineNumbersShown(true);
         settings.setLineMarkerAreaShown(true);
         installListeners(editor);
@@ -430,14 +435,17 @@ public class InputPanel {
 
     public void setEditorComponent(JComponent editor) {
         BorderLayout layout = (BorderLayout) outerMostPanel.getLayout();
-        String EDITOR_SPOT_COMPONENT = BorderLayout.CENTER;
+
         // atomically remove old
         synchronized (swapEditorComponentLock) {
+            String EDITOR_SPOT_COMPONENT = BorderLayout.CENTER;
             Component editorSpotComp = layout.getLayoutComponent(EDITOR_SPOT_COMPONENT);
             if (editorSpotComp != null) {
                 editorSpotComp.setVisible(false);
                 outerMostPanel.remove(editorSpotComp); // remove old editor if it's there
             }
+
+          //  editor.setBorder(new BevelBorder(BevelBorder.LOWERED));
             outerMostPanel.add(editor, EDITOR_SPOT_COMPONENT);
         }
     }
@@ -453,7 +461,8 @@ public class InputPanel {
         Editor editor = previewState.getInputEditor();
         if (editor == null) {
             createManualInputPreviewEditor(previewState); // ensure we always have an input window
-            editor = previewState.getInputEditor();
+            return previewState.getInputEditor();
+
         }
 
         return editor;
@@ -499,7 +508,7 @@ public class InputPanel {
         startRuleLabel.setForeground(JBColor.BLACK);
         final Font oldFont = startRuleLabel.getFont();
         startRuleLabel.setFont(oldFont.deriveFont(Font.BOLD));
-        startRuleLabel.setIcon(Icons.FILE);
+        startRuleLabel.setIcon(ANTLRv4Icons.FILE);
     }
 
 
@@ -510,7 +519,7 @@ public class InputPanel {
         }
         startRuleLabel.setText(String.format(missingStartRuleLabelText, grammarName));
         startRuleLabel.setForeground(JBColor.RED);
-        startRuleLabel.setIcon(Icons.FILE);
+        startRuleLabel.setIcon(ANTLRv4Icons.FILE);
     }
 
 

@@ -1,7 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.ui.components.JBScrollPane;
-import org.antlr.intellij.plugin.Icons;
+import org.antlr.intellij.plugin.ANTLRv4Icons;
 import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -56,9 +56,9 @@ class HierarchyViewer extends JPanel implements TreeSelectionListener {
         setTree(tree);
 
         DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
-        renderer.setOpenIcon(Icons.PARSER_RULE);
-        renderer.setClosedIcon(Icons.PARSER_RULE);
-        renderer.setLeafIcon(Icons.LEXER_RULE);
+        renderer.setOpenIcon(ANTLRv4Icons.PARSER_RULE);
+        renderer.setClosedIcon(ANTLRv4Icons.PARSER_RULE);
+        renderer.setLeafIcon(ANTLRv4Icons.LEXER_RULE);
         myTree.setCellRenderer(renderer);
         myTree.addTreeSelectionListener(this);
     }
