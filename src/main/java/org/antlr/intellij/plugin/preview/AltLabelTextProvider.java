@@ -18,11 +18,21 @@ import java.util.Map;
  * Provides formatted text of a given Tree-Node.
  */
 public class AltLabelTextProvider implements TreeTextProvider {
-    public static final String EOF_LABEL = "*EOF*";
+    // text displayed for EOF node
+    public static final String EOF_LABEL = "<EOF>";
+
+    // maximum length of a nodes label before shortened with '...'
+    public static final int MAX_TOKEN_LENGTH = 7;
+
+    // use compact labels
+    private boolean compact = false;
+
+
     private final Parser parser;
     private final Grammar g;
-    private boolean compact = true;
 
+
+    /* --------------------------------------------------------------------- */
 
     /**
      * Constructs a text-provider.
@@ -95,7 +105,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
             }
         }
 
-        return text;//Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
+        return text;
     }
 
 
@@ -109,10 +119,14 @@ public class AltLabelTextProvider implements TreeTextProvider {
         String text = token.getText();
         String symName = parser.getVocabulary().getSymbolicName(token.getType());
 
+        // prevent node label getting to long
+        if (text.length() > MAX_TOKEN_LENGTH)
+            text = text.substring(0, MAX_TOKEN_LENGTH) + "...";
+
         if (text.equals("<EOF>")) return EOF_LABEL;
         if (symName == null) return text;
 
-        if (compact) return symName + '(' + text + ')';
+        if (compact) return text;
 
         return symName + ": " + text;
     }
