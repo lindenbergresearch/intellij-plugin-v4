@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview.ui.treenodes;
 
+import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.preview.ui.StyleProperties;
 import org.antlr.intellij.plugin.preview.ui.StyledElement;
 import org.antlr.intellij.plugin.preview.ui.StyledShape;
@@ -9,7 +10,7 @@ import org.antlr.v4.runtime.tree.Tree;
 import java.awt.geom.Rectangle2D;
 
 /**
- *
+ * Abstract tree-node with style attributes.
  */
 public abstract class StyledTreeNode extends StyledElement {
     protected StyledText label;
@@ -39,6 +40,16 @@ public abstract class StyledTreeNode extends StyledElement {
 
     public String getText() {
         return label.text;
+    }
+
+
+    public void setOutlineColor(JBColor color) {
+        shape.setOutlineColor(color);
+    }
+
+
+    public JBColor getOutlineColor() {
+        return shape.getOutlineColor();
     }
 
 
