@@ -24,15 +24,14 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         String s = viewer.getText(tree);
 
         double w = fontMetrics.stringWidth(s) +
-            viewer.nodeWidthPadding *
-                (viewer.isRoot(tree) ? 3. : 2.);
+            viewer.nodeWidthPadding * 2;
 
         // Do not use min size for terminals.
         if (tree instanceof TerminalNode) {
-            return w * 1.13; //150% margin
+            return 1.125;
         }
 
-        return Math.max(w, viewer.minCellWidth);
+        return Math.max(w, Math.min(viewer.minCellWidth, viewer.getMaximumTextWith()));
     }
 
 
@@ -41,8 +40,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         FontMetrics fontMetrics = viewer.getFontMetrics(viewer.font);
 
         double h = fontMetrics.getHeight() +
-            viewer.nodeHeightPadding *
-                (viewer.isRoot(tree) ? 3. : 2.);
+            viewer.nodeHeightPadding * 2;
 
         String s = viewer.getText(tree);
         String[] lines = s.split("\n");
