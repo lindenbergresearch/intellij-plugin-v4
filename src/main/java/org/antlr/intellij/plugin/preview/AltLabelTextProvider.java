@@ -23,6 +23,8 @@ public class AltLabelTextProvider implements TreeTextProvider {
 
     // maximum length of a nodes label before shortened with '...'
     public static final int MAX_TOKEN_LENGTH = 7;
+    public static final String ALT_LABEL_TEXT = " ⁕";
+    public static final String SHORTEN_LABEL_TEXT = "…";
 
     // use compact labels
     private boolean compact = false;
@@ -33,6 +35,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
 
 
     /* --------------------------------------------------------------------- */
+
 
     /**
      * Constructs a text-provider.
@@ -101,7 +104,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
             }
 
             if (rule.getOriginalNumberOfAlts() > 1 && !compact) {
-                text += " *" + outerAltNum;
+                text += ALT_LABEL_TEXT + outerAltNum;
             }
         }
 
@@ -121,7 +124,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
 
         // prevent node label getting to long
         if (text.length() > MAX_TOKEN_LENGTH)
-            text = text.substring(0, MAX_TOKEN_LENGTH) + "...";
+            text = text.substring(0, MAX_TOKEN_LENGTH) + SHORTEN_LABEL_TEXT;
 
         if (text.equals("<EOF>")) return EOF_LABEL;
         if (symName == null) return text;
