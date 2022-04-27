@@ -3,15 +3,16 @@ package org.antlr.intellij.plugin.preview.ui;
 import java.awt.geom.Rectangle2D;
 
 /**
- *
+ * Styled label element.
  */
 public class StyledLabel extends StyledText {
 
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
-    public StyledLabel() {
+    public StyledLabel(StyledElement parent) {
         super("");
+        this.parent = parent;
     }
 
 
