@@ -7,7 +7,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 /**
- *
+ * Basic styled tree-node element.
  */
 public class BasicStyledTreeNode extends StyledTreeNode {
 
@@ -38,12 +38,10 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     @Override
     public void setup() {
-        shape = new StyledRoundRect(DefaultStyles.ROUND_RECT_WIDTH, DefaultStyles.ROUND_RECT_HEIGHT);
-        shape.setParent(this);
+        shape = new StyledRoundRect(this, DefaultStyles.ROUND_RECT_WIDTH, DefaultStyles.ROUND_RECT_HEIGHT);
         add(shape);
 
-        label = new StyledLabel();
-        label.setParent(this);
+        label = new StyledLabel(this);
         add(label);
     }
 
