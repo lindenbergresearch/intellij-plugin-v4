@@ -1,12 +1,18 @@
 package org.antlr.intellij.plugin.preview.ui;
 
+import com.intellij.ui.JBColor;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Round rect shape with styling attributes.
+ */
 public class StyledRoundRect extends StyledShape {
 
     protected int arcWidth;
     protected int arcHeight;
+    boolean filled = true;
 
     /* ----- CONSTRUCTOR -----------------------------------------------------------------------------*/
 
@@ -14,8 +20,9 @@ public class StyledRoundRect extends StyledShape {
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
-    public StyledRoundRect(int arcWidth, int arcHeight) {
+    public StyledRoundRect(StyledElement parent, int arcWidth, int arcHeight) {
         super();
+        this.parent = parent;
         this.arcWidth = arcWidth;
         this.arcHeight = arcHeight;
     }
@@ -52,9 +59,16 @@ public class StyledRoundRect extends StyledShape {
      */
     @Override
     public void draw(Graphics2D graphics2D) {
-        graphics2D.setColor(getBackground());
-        graphics2D.fillRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
+        if (hasOutlineColor()) {
+            setForeground(getOutlineColor());
+        } else {
+            setForeground((JBColor) getBackground().darker());
+        }
 
+        if (filled) {
+            graphics2D.setColor(getBackground());
+            graphics2D.fillRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
+        }
 
         graphics2D.setColor(getForeground());
         graphics2D.drawRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
@@ -80,5 +94,15 @@ public class StyledRoundRect extends StyledShape {
 
     public void setArcHeight(int arcHeight) {
         this.arcHeight = arcHeight;
+    }
+
+
+    public boolean isFilled() {
+        return filled;
+    }
+
+
+    public void setFilled(boolean filled) {
+        this.filled = filled;
     }
 }
