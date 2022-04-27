@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 /**
- *
+ * Staled rectangle element.
  */
 public class StyledRectangle extends StyledShape {
 
@@ -15,8 +15,9 @@ public class StyledRectangle extends StyledShape {
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
-    public StyledRectangle() {
+    public StyledRectangle(StyledElement parent) {
         super();
+        this.parent = parent;
     }
 
 
