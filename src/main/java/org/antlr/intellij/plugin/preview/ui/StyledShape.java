@@ -1,12 +1,18 @@
 package org.antlr.intellij.plugin.preview.ui;
 
 
+import com.intellij.ui.JBColor;
+
 import java.awt.geom.Rectangle2D;
 
 /**
- *
+ * Abstract shape with styled elements.
  */
 public abstract class StyledShape extends StyledElement {
+    // separate outline color
+    private JBColor outlineColor;
+
+
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
@@ -24,5 +30,20 @@ public abstract class StyledShape extends StyledElement {
      */
     public StyledShape(StyledElement parent, Rectangle2D viewport, StyleProperties styles) {
         super(parent, viewport, styles);
+    }
+
+
+    public boolean hasOutlineColor() {
+        return outlineColor != null;
+    }
+
+
+    public JBColor getOutlineColor() {
+        return outlineColor;
+    }
+
+
+    public void setOutlineColor(JBColor outlineColor) {
+        this.outlineColor = outlineColor;
     }
 }
