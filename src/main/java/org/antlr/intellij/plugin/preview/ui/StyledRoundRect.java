@@ -97,6 +97,12 @@ public class StyledRoundRect extends StyledShape {
     }
 
 
+    public void setArc(Dimension pair) {
+        setArcWidth(pair.width);
+        setArcHeight(pair.height);
+    }
+
+
     public boolean isFilled() {
         return filled;
     }
