@@ -216,6 +216,45 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
 
 
     /**
+     * Set viewport by scalar values.
+     *
+     * @param x      Location X
+     * @param y      Location Y
+     * @param width  Width
+     * @param height Height
+     */
+    public void setViewport(float x, float y, float width, float height) {
+        setViewport(new Rectangle2D.Float(x, y, width, height));
+    }
+
+
+    /**
+     * Moves the viewport relative by a given point.
+     *
+     * @param offset Offset as Point.
+     */
+    public void shiftViewport(Point2D offset) {
+        setViewport(
+            (float) (getViewport().getX() + offset.getX()),
+            (float) (getViewport().getY() + offset.getY()),
+            (float) (getViewport().getWidth() - offset.getX()),
+            (float) (getViewport().getHeight() - offset.getY())
+        );
+    }
+
+
+    /**
+     * Moves the viewport relative by a gives pair of X, Y coordinates.
+     *
+     * @param x
+     * @param y
+     */
+    public void shiftViewport(float x, float y) {
+        shiftViewport(new Point2D.Float(x, y));
+    }
+
+
+    /**
      * Returns the actual width taking care of margin.
      *
      * @return
