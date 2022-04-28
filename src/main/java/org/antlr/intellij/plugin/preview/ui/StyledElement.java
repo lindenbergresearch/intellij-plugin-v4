@@ -237,8 +237,8 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
         setViewport(
             (float) (getViewport().getX() + offset.getX()),
             (float) (getViewport().getY() + offset.getY()),
-            (float) (getViewport().getWidth() - offset.getX()),
-            (float) (getViewport().getHeight() - offset.getY())
+            (float) (getViewport().getWidth()),
+            (float) (getViewport().getHeight())
         );
     }
 
