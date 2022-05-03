@@ -4,27 +4,16 @@ package org.antlr.intellij.plugin.preview.ui;
  *
  */
 public class StyledElementMargin {
-
+    
     private double left, top, right, bottom;
-
-
-    /**
-     * Default margin constant.
-     */
-    public static final StyledElementMargin
-        DEFAULT = new StyledElementMargin(0, 0, 0, 0);
-
-    public static final StyledElementMargin
-        BIG = new StyledElementMargin(5, 5, 5, 5);
-
-
+    
+    
     /**
      * Constructs a margin with all values set to zero.
      */
-    public StyledElementMargin() {
-    }
-
-
+    public StyledElementMargin() {}
+    
+    
     /**
      * Constructs a margin with the given values.
      *
@@ -39,8 +28,8 @@ public class StyledElementMargin {
         this.right = right;
         this.bottom = bottom;
     }
-
-
+    
+    
     /**
      * Constructs a margin via a given universal value.
      *
@@ -52,43 +41,53 @@ public class StyledElementMargin {
         right = margin;
         bottom = margin;
     }
-
-
+    
+    
+    public double getVertical() {
+        return top + bottom;
+    }
+    
+    
+    public double getHorizonal() {
+        return left + right;
+    }
+    
+    
     public double getLeft() {
         return left;
     }
-
-
+    
+    
     public void setLeft(double left) {
         this.left = left;
     }
-
-
+    
+    
     public double getTop() {
         return top;
     }
-
-
+    
+    
     public void setTop(double top) {
         this.top = top;
     }
-
-
+    
+    
     public double getRight() {
         return right;
     }
-
-
+    
+    
     public void setRight(double right) {
         this.right = right;
     }
-
-
+    
+    
     public double getBottom() {
         return bottom;
     }
-
-
+    
+    
     public void setBottom(double bottom) {
         this.bottom = bottom;
     }
