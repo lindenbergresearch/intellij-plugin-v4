@@ -10,8 +10,8 @@ import java.awt.geom.Rectangle2D;
  * Basic styled tree-node element.
  */
 public class BasicStyledTreeNode extends StyledTreeNode {
-
-
+    
+    
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
@@ -19,8 +19,8 @@ public class BasicStyledTreeNode extends StyledTreeNode {
         super();
         styleProperties = DefaultStyles.DEFAULT_STYLE;
     }
-
-
+    
+    
     /**
      * Constructs a new StyledElement with its basic setup.
      *
@@ -31,8 +31,8 @@ public class BasicStyledTreeNode extends StyledTreeNode {
     public BasicStyledTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties styles) {
         super(parent, viewport, styles);
     }
-
-
+    
+    
     /**
      * Should be called to reset/init styles of the component.
      */
@@ -40,12 +40,16 @@ public class BasicStyledTreeNode extends StyledTreeNode {
     public void setup() {
         shape = new StyledRoundRect(this, DefaultStyles.ROUND_RECT_WIDTH, DefaultStyles.ROUND_RECT_HEIGHT);
         add(shape);
-
+        
         label = new StyledLabel(this);
         add(label);
+        
+        footer = new StyledLabel(this);
+        add(footer);
+        footer.setFontScale(0.8f);
     }
-
-
+    
+    
     /**
      * This is the actual place where the user-code
      * for drawing the styled element can be put.
@@ -54,6 +58,5 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     @Override
     public void draw(Graphics2D graphics2D) {
-
     }
 }
