@@ -145,6 +145,7 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     public void add(StyledElement styledElement) {
         if (styledElement != null) {
             styledElement.setParent(this);
+            styledElement.setStyleProperties(styleProperties.clone());
             elements.add(styledElement);
         }
     }
