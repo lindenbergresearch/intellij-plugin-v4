@@ -29,7 +29,10 @@ public class DefaultStyles {
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_MARGIN = new StyledElementMargin(-3, -3, -3, -3);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(5, 5, 5, 5);
+    
+    public static final StyledElementMargin
+        DEFAULT_MARGIN = new StyledElementMargin(0, 0, 0, 0);
     
     public static final StyledElementMargin
         BIG_MARGIN = new StyledElementMargin(5, 5, 5, 5);
@@ -41,8 +44,8 @@ public class DefaultStyles {
     /* ----- FONT FACES --------------------------------------*/
     
     public static final Font REGULAR_FONT =
-//        JBFont.regular().deriveFont(BASIC_FONT_SIZE);
-        new Font("Times New Romen", Font.PLAIN, (int) BASIC_FONT_SIZE);
+        JBFont.regular().deriveFont(BASIC_FONT_SIZE);
+    //   new Font("Times New Romen", Font.PLAIN, (int) BASIC_FONT_SIZE);
     
     public static final Font SMALL_TERMINAL_FONT =
         JBFont.regular().deriveFont(BASIC_FONT_SIZE - 1f);
@@ -64,10 +67,11 @@ public class DefaultStyles {
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
     public final static JBColor JB_COLOR_BLUE = JBColor.BLUE;
     public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(134, 72, 72));
-    public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(88, 204, 88), new Color(74, 145, 99));
+    public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(100, 197, 100), new Color(58, 110, 56));
     public final static JBColor JB_COLOR_YELLOW = new JBColor(new Color(182, 182, 61), new Color(175, 175, 92));
     public final static JBColor JB_COLOR_PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
-    public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 192, 192), new Color(63, 132, 141));
+    public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 167, 192), new Color(63, 109, 141));
+    public final static JBColor JB_COLOR_BROWN = new JBColor(new Color(245, 176, 106), new Color(208, 155, 82));
     
     public final static JBColor EDGE_COLOR_DEFAULT = JB_COLOR_GRAY;
     public final static JBColor EDGE_COLOR_SELECTED = JB_COLOR_DARK;
@@ -143,17 +147,28 @@ public class DefaultStyles {
         new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_BRIGHT,
-            JB_COLOR_CYAN,
+            JB_COLOR_DARK,
             JB_COLOR_BRIGHT,
             THICK_STROKE,
             BOLD_FONT
         );
     
+    public static final StyleProperties EOF_NODE_STYLE =
+        new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_DARK,
+            JB_COLOR_BRIGHT,
+            JB_COLOR_DARK,
+            THICK_STROKE,
+            BOLD_FONT
+        );
+    
+    
     public static final StyleProperties TERMINAL_NODE_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_BRIGHT,
-            JB_COLOR_GREEN,
+            JB_COLOR_BROWN,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
             TERMINAL_FONT
