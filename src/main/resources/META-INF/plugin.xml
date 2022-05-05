@@ -149,6 +149,8 @@ For really big files and slow grammars, there is an appreciable delay when displ
       <lang.foldingBuilder language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.folding.ANTLRv4FoldingBuilder"/>
       <iconProvider implementation="org.antlr.intellij.plugin.ANTLRv4IconProvider"/>
 
+      <lang.formatter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.formatter.SimpleFormattingModelBuilder"/>
+
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
       <lang.findUsagesProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
 
