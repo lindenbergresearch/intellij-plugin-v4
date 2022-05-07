@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview.ui.treenodes;
 
 
+import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.preview.ui.*;
 
 import java.awt.*;
@@ -28,8 +29,10 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      * @param viewport The elements' area to draw to.
      * @param styles   The style-properties of the element.
      */
-    public BasicStyledTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties styles) {
+    public BasicStyledTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties styles, boolean selected) {
         super(parent, viewport, styles);
+        
+        if (selected) setSelected();
     }
     
     
@@ -47,6 +50,15 @@ public class BasicStyledTreeNode extends StyledTreeNode {
         footer = new StyledLabel(this);
         add(footer);
         footer.setFontScale(0.8f);
+    }
+    
+    
+    /**
+     *
+     */
+    protected void setSelected() {
+        shape.setStroke(DefaultStyles.THICK_STROKE);
+        shape.setBackground((JBColor) shape.getBackground().brighter());
     }
     
     

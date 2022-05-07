@@ -14,7 +14,7 @@ public class SelectedTreeNode extends BasicStyledTreeNode {
 
 
     public SelectedTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties base) {
-        super(parent, viewport, DefaultStyles.SELECTED_NODE_STYLE);
+        super(parent, viewport, DefaultStyles.SELECTED_NODE_STYLE, true);
         this.setStyleProperties(base);
 
         styleProperties.setStroke(DefaultStyles.THICK_STROKE);

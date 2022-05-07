@@ -6,10 +6,10 @@ import org.antlr.intellij.plugin.preview.ui.StyledElement;
 
 import java.awt.geom.Rectangle2D;
 
-public class RootTreeNode extends BasicStyledTreeNode {
+public class EOFTreeNode extends BasicStyledTreeNode {
     
-    public RootTreeNode(StyledElement parent, Rectangle2D viewport, boolean selected) {
-        super(parent, viewport, DefaultStyles.ROOT_NODE_STYLE, selected);
+    public EOFTreeNode(StyledElement parent, Rectangle2D viewport, boolean selected) {
+        super(parent, viewport, DefaultStyles.EOF_NODE_STYLE, selected);
         setOutlineColor((JBColor) getBackground().darker());
     }
 }
