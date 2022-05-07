@@ -9,14 +9,14 @@ import java.awt.geom.Rectangle2D;
  * Round rect shape with styling attributes.
  */
 public class StyledRoundRect extends StyledShape {
-
+    
     protected int arcWidth;
     protected int arcHeight;
-    boolean filled = true;
-
+    
+    
     /* ----- CONSTRUCTOR -----------------------------------------------------------------------------*/
-
-
+    
+    
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
@@ -26,8 +26,8 @@ public class StyledRoundRect extends StyledShape {
         this.arcWidth = arcWidth;
         this.arcHeight = arcHeight;
     }
-
-
+    
+    
     /**
      * Constructs a new StyledElement with its basic setup.
      *
@@ -40,17 +40,17 @@ public class StyledRoundRect extends StyledShape {
         this.arcWidth = arcWidth;
         this.arcHeight = arcHeight;
     }
-
+    
     /* ----- RENDERING / EVENTS ----------------------------------------------------------------------*/
-
-
+    
+    
     /**
      * Should be called to reset/init styles of the component.
      */
     @Override
     public void setup() {}
-
-
+    
+    
     /**
      * This is the actual place where the user-code
      * for drawing the styled element can be put.
@@ -64,51 +64,63 @@ public class StyledRoundRect extends StyledShape {
         } else {
             setForeground((JBColor) getBackground().darker());
         }
-
-        if (filled) {
-            graphics2D.setColor(getBackground());
+        
+        if (isFilled()) {
+            graphics2D.setColor(debug() ? getBackground().darker() : getBackground());
             graphics2D.fillRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
         }
-
-        graphics2D.setColor(getForeground());
+        
+        graphics2D.setColor(debug() ? getForeground().darker() : getForeground());
         graphics2D.drawRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
+        
+        
+        if (debug()) {
+            graphics2D.setStroke(new BasicStroke(0.77f));
+            graphics2D.setColor(JBColor.YELLOW.brighter());
+            
+            graphics2D.drawLine(
+                (int) 0.0,
+                (int) getCenter().y,
+                (int) getWidth(),
+                (int) getCenter().y
+            );
+            
+            graphics2D.drawLine(
+                (int) getCenter().x,
+                (int) 0.0,
+                (int) getCenter().x,
+                (int) getHeight()
+            );
+        }
     }
-
+    
     /* ----- STANDARD GETTER / SETTER ----------------------------------------------------------------*/
-
-
+    
+    
     public int getArcWidth() {
         return arcWidth;
     }
-
-
+    
+    
     public void setArcWidth(int arcWidth) {
         this.arcWidth = arcWidth;
     }
-
-
+    
+    
     public int getArcHeight() {
         return arcHeight;
     }
-
-
+    
+    
     public void setArcHeight(int arcHeight) {
         this.arcHeight = arcHeight;
     }
-
-
+    
+    
     public void setArc(Dimension pair) {
         setArcWidth(pair.width);
         setArcHeight(pair.height);
     }
-
-
-    public boolean isFilled() {
-        return filled;
-    }
-
-
-    public void setFilled(boolean filled) {
-        this.filled = filled;
-    }
+    
+    
 }
