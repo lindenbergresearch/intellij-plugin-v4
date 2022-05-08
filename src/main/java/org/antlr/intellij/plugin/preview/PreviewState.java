@@ -93,6 +93,17 @@ public class PreviewState {
     
     
     /**
+     * Returns the grammar name as valid identifier.
+     *
+     * @return Grammar name as String.
+     */
+    public String getGrammarName() {
+        String g = getMainGrammar().name.trim();
+        return g.replace(' ', '_');
+    }
+    
+    
+    /**
      * Check if rule exists in current grammar.
      *
      * @param name The name of the rune.
