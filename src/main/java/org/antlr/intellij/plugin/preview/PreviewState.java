@@ -1,5 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
@@ -25,6 +27,9 @@ import org.antlr.v4.tool.Rule;
  * for example.
  */
 public class PreviewState {
+    private static final Logger LOG =
+        Logger.getInstance("ANTLR InputPanel");
+    
     public Project project;
     public VirtualFile grammarFile;
     
@@ -36,6 +41,8 @@ public class PreviewState {
     
     public VirtualFile inputFile; // save input file when switching grammars
     public ParsingResult parsingResult;
+    
+    private final PropertiesComponent propertiesComponent;
     
     /**
      * The current input editor (inputEditor or fileEditor) for this grammar
@@ -55,6 +62,65 @@ public class PreviewState {
     public PreviewState(Project project, VirtualFile grammarFile) {
         this.project = project;
         this.grammarFile = grammarFile;
+        
+        LOG.info("create preview-state with project: " + project.getName().trim() + " grammar: " + grammarFile.getName());
+        
+        propertiesComponent = PropertiesComponent.getInstance(project);
+        recoverPreviewData();
+    }
+    
+    
+    /**
+     * Saves the input text for testing grammars and the assigned start-rule
+     * for later recovery.
+     */
+    public void persistPreviewData() {
+        if (getMainGrammar() == null || startRuleName == null || startRuleName.isEmpty())
+            return;
+        
+        // build grammar dependent config keys
+        String inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
+        String startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
+        
+        LOG.info("!! persist preview-data, input-text key is: " + inputTextPropertiesKey);
+        LOG.info("!! persist preview-data, start-rule key is: " + startRulePropertiesKey);
+        
+        propertiesComponent.setValue(
+            inputTextPropertiesKey,
+            manualInputText.toString()
+        );
+        
+        propertiesComponent.setValue(
+            startRulePropertiesKey,
+            startRuleName
+        );
+        
+        LOG.info("save start-rule for session recover: '" + startRuleName + '\'');
+    }
+    
+    
+    /**
+     * Recovers the input text for testing grammars and the assigned start-rule.
+     */
+    public void recoverPreviewData() {
+        // build grammar dependent config keys
+        String inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
+        String startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
+        
+        LOG.info("recover preview-data, input-text key is: " + inputTextPropertiesKey);
+        LOG.info("recover preview-data, start-rule key is: " + startRulePropertiesKey);
+        
+        manualInputText =
+            propertiesComponent.getValue(inputTextPropertiesKey);
+        
+        startRuleName = PropertiesComponent.getInstance(project).getValue(
+            startRulePropertiesKey
+        );
+        
+        if (!existsStartRule(startRuleName)) {
+            startRuleName = "";
+        }
+        
     }
     
     
@@ -98,8 +164,11 @@ public class PreviewState {
      * @return Grammar name as String.
      */
     public String getGrammarName() {
-        String g = getMainGrammar().name.trim();
-        return g.replace(' ', '_');
+        String g = getMainGrammar() == null ?
+            grammarFile.getName().replace(".g4", "") :
+            getMainGrammar().name;
+        
+        return g.trim().replace(' ', '_');
     }
     
     
@@ -116,6 +185,36 @@ public class PreviewState {
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Safely returns the current set start-rule name.
+     *
+     * @return The start-rule name.
+     */
+    public String getStartRuleName() {
+        return startRuleName == null ? "" : startRuleName;
+    }
+    
+    
+    /**
+     * Returns the manual input text for testing grammars.
+     *
+     * @return Input text.
+     */
+    public CharSequence getManualInputText() {
+        return manualInputText == null ? "" : manualInputText;
+    }
+    
+    
+    /**
+     * Update the manual input text for testing grammars.
+     *
+     * @param text Input text.
+     */
+    public void setManualInputText(CharSequence text) {
+        manualInputText = text != null ? text : "";
     }
     
     
