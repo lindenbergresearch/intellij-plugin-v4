@@ -173,6 +173,16 @@ public class PreviewState {
     
     
     /**
+     * Test for valid grammar setup.
+     *
+     * @return True if valid grammar has been set.
+     */
+    public boolean hasValidGrammar() {
+        return !(grammar == null || lexerGrammar == null);
+    }
+    
+    
+    /**
      * Check if rule exists in current grammar.
      *
      * @param name The name of the rune.
