@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview.ui;
 
 
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 import org.antlr.intellij.plugin.preview.ui.StyledText.HorizontalLayout;
@@ -46,9 +47,11 @@ public class DefaultStyles {
     public static final Font REGULAR_FONT =
         JBFont.regular().deriveFont(BASIC_FONT_SIZE);
     //   new Font("Times New Romen", Font.PLAIN, (int) BASIC_FONT_SIZE);
+    public static final Font MONOSPACE_FONT =
+        new Font("Monospaced", Font.PLAIN, (int) BASIC_FONT_SIZE);
     
     public static final Font SMALL_TERMINAL_FONT =
-        JBFont.regular().deriveFont(BASIC_FONT_SIZE - 1f);
+        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE - 2);
     
     public static final Font BOLD_FONT =
         REGULAR_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE);
@@ -60,15 +63,17 @@ public class DefaultStyles {
         REGULAR_FONT.deriveFont(BASIC_FONT_SIZE);
     
     
+    
+    
     /* ----- COLORS ------------------------------------------*/
     
     public final static JBColor JB_COLOR_BRIGHT = new JBColor(new Color(232, 232, 233), new Color(1, 2, 3));
-    public final static JBColor JB_COLOR_GRAY = new JBColor(new Color(132, 132, 133), new Color(100, 102, 103));
+    public final static JBColor JB_COLOR_GRAY = new JBColor(Gray._122, new Color(100, 102, 103));
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
     public final static JBColor JB_COLOR_BLUE = JBColor.BLUE;
     public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(134, 72, 72));
     public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(100, 197, 100), new Color(58, 110, 56));
-    public final static JBColor JB_COLOR_YELLOW = new JBColor(new Color(182, 182, 61), new Color(175, 175, 92));
+    public final static JBColor JB_COLOR_YELLOW = new JBColor(new Color(255, 242, 97), new Color(248, 248, 105));
     public final static JBColor JB_COLOR_PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
     public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 167, 192), new Color(63, 109, 141));
     public final static JBColor JB_COLOR_BROWN = new JBColor(new Color(245, 176, 106), new Color(208, 155, 82));
@@ -76,6 +81,17 @@ public class DefaultStyles {
     public final static JBColor EDGE_COLOR_DEFAULT = JB_COLOR_GRAY;
     public final static JBColor EDGE_COLOR_SELECTED = JB_COLOR_DARK;
     
+    
+    /**
+     * @return
+     */
+    public static JBColor getConsoleBackground() {
+        if (JBColor.isBright()) {
+            return new JBColor(JBColor.background(), JBColor.background());
+        }
+        
+        return new JBColor(JBColor.background(), JBColor.background().darker().darker());
+    }
     
     /* ----- STROKES -----------------------------------------*/
     
@@ -149,7 +165,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_DARK,
             JB_COLOR_BRIGHT,
-            THICK_STROKE,
+            DEFAULT_STROKE,
             BOLD_FONT
         );
     
@@ -160,18 +176,18 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_DARK,
             THICK_STROKE,
-            BOLD_FONT
+            SMALL_TERMINAL_FONT
         );
     
     
     public static final StyleProperties TERMINAL_NODE_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
+            JB_COLOR_DARK,
             JB_COLOR_BRIGHT,
-            JB_COLOR_BROWN,
-            JB_COLOR_BRIGHT,
+            JB_COLOR_DARK,
             DEFAULT_STROKE,
-            TERMINAL_FONT
+            SMALL_TERMINAL_FONT
         );
     
     public static final StyleProperties SELECTED_NODE_STYLE =
