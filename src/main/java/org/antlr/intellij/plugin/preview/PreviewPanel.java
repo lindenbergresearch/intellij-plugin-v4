@@ -1,7 +1,8 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.icons.AllIcons.Hierarchy;
+import com.intellij.icons.AllIcons.Toolwindows;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -22,14 +23,12 @@ import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
-import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.tool.Rule;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.intellij.icons.AllIcons.Actions.*;
-import static com.intellij.icons.AllIcons.General.Error;
 import static com.intellij.icons.AllIcons.General.*;
 import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
 
@@ -54,8 +52,11 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
  * each grammar file it gets notified about.
  */
 public class PreviewPanel extends JPanel implements ParsingResultSelectionListener {
-    //com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
-    //perhaps in a few more years they will get around to backporting whatever it was they fixed.
+    public static final Logger LOG =
+        Logger.getInstance("ANTLR PreviewPanel");
+    
+    // com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
+    // perhaps in a few more years they will get around to backport whatever it was they fixed.
     // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
     private static final boolean isTrackpadZoomSupported =
         SystemInfo.isMac &&
@@ -64,27 +65,28 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             SystemInfo.JAVA_VERSION.startsWith("1.9")
         );
     
-    public static final Logger LOG = Logger.getInstance("ANTLR PreviewPanel");
-    
     public Project project;
     public InputPanel inputPanel;
     private UberTreeViewer treeViewer;
     public HierarchyViewer hierarchyViewer;
     public ProfilerPanel profilerPanel;
+    private PropertiesPanel propertiesPanel;
     private TokenStreamViewer tokenStreamViewer;
     private JPanel leftPanel;
+    private ErrorConsolePanel errorConsolePanel;
     
     /**
      * Indicates if the preview should be automatically refreshed after grammar changes.
      */
     private boolean autoRefresh = true;
-    
     private boolean scrollFromSource = false;
     private boolean highlightSource = false;
     
     private ActionToolbar buttonBar;
     private ActionToolbar buttonBarGraph;
     private final CancelParserAction cancelParserAction = new CancelParserAction();
+    
+    private String currentEditorText = "";
     
     
     public PreviewPanel(Project project) {
@@ -93,9 +95,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
     
     
-    /**
-     *
-     */
     private void createGUI() {
         this.setLayout(new BorderLayout());
         
@@ -106,19 +105,24 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         Splitter splitPaneLeft = new Splitter();
         splitPaneLeft.setShowDividerIcon(true);
-        splitPaneLeft.setDividerWidth(2);
+        splitPaneLeft.setDividerWidth(1);
         splitPaneLeft.setProportion(0.8f);
         splitPaneLeft.setOrientation(true);
         
         leftPanel = new JPanel();
-        leftPanel.setLayout(new BorderLayout(15, 15));
+        leftPanel.setLayout(new BorderLayout(5, 5));
         leftPanel.setBorder(
             BorderFactory.createEtchedBorder(1)
         );
         
+        errorConsolePanel = new ErrorConsolePanel(
+            new BorderLayout(5, 5),
+            BorderFactory.createEmptyBorder(0, 5, 6, 5)
+        );
+        
         
         inputPanel = getEditorPanel();
-        inputPanel.getComponent().setBorder(BorderFactory.createEmptyBorder(18, 1, 1, 1));
+        inputPanel.getComponent().setBorder(BorderFactory.createEmptyBorder(18, 1, 0, 1));
         inputPanel.addCaretListener(new CaretListener() {
             @Override
             public void caretPositionChanged(@NotNull CaretEvent event) {
@@ -131,16 +135,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         });
         
-        
-        JTabbedPane tabbedEditorPanel = new JBTabbedPane(JTabbedPane.TOP);
-        tabbedEditorPanel.setBorder(BorderFactory.createEmptyBorder(1, 7, 4, 8));
-        
         inputPanel.removeErrorConsole();
-        tabbedEditorPanel.addTab("Console", Error, inputPanel.getErrorPane());
-        inputPanel.getComponent().add(tabbedEditorPanel);
         
         splitPaneLeft.setFirstComponent(inputPanel.getComponent());
-        splitPaneLeft.setSecondComponent(tabbedEditorPanel);
+        splitPaneLeft.setSecondComponent(errorConsolePanel);
         // splitPaneLeft.getDivider().setBorder(BorderFactory.createLineBorder(JBColor.background().darker(), 1));
         leftPanel.add(splitPaneLeft);
         
@@ -177,7 +175,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 @Override
                 public void setSelected(@NotNull AnActionEvent e, boolean state) {
                     treeViewer.autoscaling = state;
-                    treeViewer.repaint();
+                    treeViewer.setTreeUpdated(true);
+                    
                 }
             };
         
@@ -194,7 +193,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setScaleLevel(1.0);
-                treeViewer.updatePreferredSize();
+                treeViewer.setTreeUpdated(true);
             }
         };
         
@@ -211,7 +210,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setRelativeScaling(-UberTreeViewer.SCALING_INCREMENT);
-                treeViewer.updatePreferredSize();
+                treeViewer.setTreeUpdated(true);
             }
         };
         
@@ -228,7 +227,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setRelativeScaling(UberTreeViewer.SCALING_INCREMENT);
-                treeViewer.updatePreferredSize();
+                treeViewer.setTreeUpdated(true);
+                
             }
         };
         
@@ -243,7 +243,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.doAutoScale();
-                treeViewer.updatePreferredSize();
+                treeViewer.setTreeUpdated(true);
             }
         };
         
@@ -251,7 +251,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.focusSelectedNode();
-                treeViewer.updatePreferredSize();
+                treeViewer.setTreeUpdated(true);
             }
         };
         
@@ -360,8 +360,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private InputPanel getEditorPanel() {
-        LOG.info("createEditorPanel" + " " + project.getName());
         return new InputPanel(this);
+    }
+    
+    
+    public ErrorConsolePanel getErrorConsolePanel() {
+        return errorConsolePanel;
     }
     
     
@@ -371,21 +375,39 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private JTabbedPane createParseTreeAndProfileTabbedPanel() {
-        JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        Splitter splitter = new Splitter();
+        splitter.setShowDividerIcon(true);
+        splitter.setDividerWidth(2);
+        splitter.setProportion(0.8f);
+        splitter.setOrientation(false);
         
-        LOG.info("createParseTreePanel" + " " + project.getName());
+        propertiesPanel =
+            new PropertiesPanel(
+                new BorderLayout(5, 0),
+                //  BorderFactory.createEmptyBorder(2, 2, 2, 2)
+                BorderFactory.createEtchedBorder(1)
+            );
+        
+        JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
         Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
         treeViewer = pair.a;
         setupContextMenu(treeViewer);
-        tabbedPane.addTab("Parse tree", AllIcons.Hierarchy.Subtypes, pair.b);
+        
+        pair.b.setBorder(BorderFactory.createEmptyBorder(6, 9, 7, 5));
+        splitter.setFirstComponent(pair.b);
+        splitter.setSecondComponent(propertiesPanel);
+        
+        tabbedPane.addTab("Parse tree", Hierarchy.Subtypes, splitter);
+        pair.a.previewPanel = this;
         
         hierarchyViewer = new HierarchyViewer(null);
         hierarchyViewer.addParsingResultSelectionListener(this);
         tabbedPane.addTab("Hierarchy", ShowAsTree, hierarchyViewer);
         
         profilerPanel = new ProfilerPanel(project, this);
-        tabbedPane.addTab("Profiler", AllIcons.Toolwindows.ToolWindowProfiler, profilerPanel.getComponent());
+        tabbedPane.addTab("Profiler", Toolwindows.ToolWindowProfiler, profilerPanel.getComponent());
         
         tokenStreamViewer = new TokenStreamViewer();
         tokenStreamViewer.addParsingResultSelectionListener(this);
@@ -413,8 +435,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         final UberTreeViewer viewer =
             isTrackpadZoomSupported ?
-                new TrackpadZoomingTreeView(null, null) :
-                new UberTreeViewer(null, null);
+                new TrackpadZoomingTreeView(this) :
+                new UberTreeViewer(this);
         
         
         viewer.setDoubleBuffered(true);
@@ -448,7 +470,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      */
     public void grammarFileSaved(VirtualFile grammarFile) {
         String grammarFileName = grammarFile.getPath();
-        LOG.info("grammarFileSaved " + grammarFileName + " " + project.getName());
         ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
         PreviewState previewState = controller.getPreviewState(grammarFile);
         
@@ -457,7 +478,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         // if the saved grammar is not a pure lexer and there is a start rule, reparse
         // means that switching grammars must refresh preview
-        if (previewState.g != null && previewState.startRuleName != null) {
+        if (previewState.grammar != null && previewState.startRuleName != null) {
             updateParseTreeFromDoc(previewState.grammarFile);
         } else {
             clearTabs(null); // blank tree
@@ -470,10 +491,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     private void ensureStartRuleExists(VirtualFile grammarFile) {
         PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
         // if start rule no longer exists, reset display/state.
-        if (previewState.g != null &&
-            previewState.g != ParsingUtils.BAD_PARSER_GRAMMAR &&
+        if (previewState.grammar != null &&
+            previewState.grammar != ParsingUtils.BAD_PARSER_GRAMMAR &&
             previewState.startRuleName != null) {
-            Rule rule = previewState.g.getRule(previewState.startRuleName);
+            Rule rule = previewState.grammar.getRule(previewState.startRuleName);
             if (rule == null) {
                 previewState.startRuleName = null;
                 inputPanel.resetStartRuleLabel();
@@ -495,28 +516,24 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      */
     private void switchToGrammar(VirtualFile grammarFile) {
         String grammarFileName = grammarFile.getPath();
-        LOG.info("switchToGrammar " + grammarFileName + " " + project.getName());
         ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+        
+        // should not happen
+        if (controller == null)
+            return;
+        
         PreviewState previewState = controller.getPreviewState(grammarFile);
         
-        // recover last start rule
-        String startRule = PropertiesComponent.getInstance(project).getValue("org.antlr.intellij.plugin.preview.startRule");
-        
-        if (startRule != null) {
-            previewState.startRuleName = startRule;
-            LOG.info("recover start-rule from saved session: '" + startRule + "'");
-        }
+        errorConsolePanel.clear();
         
         inputPanel.switchToGrammar(previewState, grammarFile);
         profilerPanel.switchToGrammar(previewState, grammarFile);
         
-        if (previewState.startRuleName != null) {
-            updateParseTreeFromDoc(grammarFile); // regens tree and profile data
-        } else {
+        if (previewState.startRuleName == null) {
             clearTabs(null); // blank tree
         }
         
-        setEnabled(previewState.g != null || previewState.lg == null);
+        setEnabled(previewState.hasValidGrammar());
     }
     
     
@@ -539,7 +556,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     public void closeGrammar(VirtualFile grammarFile) {
         String grammarFileName = grammarFile.getPath();
-        LOG.info("closeGrammar " + grammarFileName + " " + project.getName());
+        LOG.info("closeGrammar " + grammarFileName + ' ' + project.getName());
         
         inputPanel.resetStartRuleLabel();
         inputPanel.clearErrorConsole();
@@ -565,16 +582,16 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
         ApplicationManager.getApplication().invokeLater(() -> {
             if (result.parser instanceof PreviewParser) {
-                AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
+                AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.grammar);
                 treeViewer.setTreeTextProvider(provider);
                 treeViewer.setTree(result.tree);
                 hierarchyViewer.setTreeTextProvider(provider);
                 hierarchyViewer.setTree(result.tree);
                 tokenStreamViewer.setParsingResult(result.parser);
             } else {
-                treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+                treeViewer.setRuleNames(Arrays.asList(preview.grammar.getRuleNames()));
                 treeViewer.setTree(result.tree);
-                hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+                hierarchyViewer.setRuleNames(Arrays.asList(preview.grammar.getRuleNames()));
                 hierarchyViewer.setTree(result.tree);
             }
         });
@@ -583,6 +600,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     void clearParseTree() {
         clearTabs(null);
+        errorConsolePanel.clear();
     }
     
     
@@ -592,8 +610,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private void showError(String message) {
-        
-        clearTabs(new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE, message)));
+        clearTabs(null);
+        errorConsolePanel.add(message);
     }
     
     
@@ -603,22 +621,35 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     public void updateParseTreeFromDoc(VirtualFile grammarFile) {
-        ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-        if (controller == null) return;
+        ANTLRv4PluginController controller =
+            ANTLRv4PluginController.getInstance(project);
         
-        PreviewState previewState = controller.getPreviewState(grammarFile);
+        if (controller == null)
+            return;
         
-        LOG.info("updateParseTreeFromDoc " + grammarFile + " rule " + previewState.startRuleName);
+        PreviewState previewState =
+            controller.getPreviewState(grammarFile);
         
-        if (previewState.g == null || previewState.lg == null) {
+        
+        if (!previewState.hasValidGrammar()) {
             // likely error in grammar prevents it from loading properly into previewState; bail
             indicateInvalidGrammarInParseTreePane();
             return;
         }
         
         Editor editor = inputPanel.getInputEditor();
-        if (editor == null) return;
+        
+        if (editor == null)
+            return;
+        
         final String inputText = editor.getDocument().getText();
+        
+        // nothing changed
+        if (inputText.equals(currentEditorText)) {
+            return;
+        }
+        
+        currentEditorText = inputText;
         
         // The controller will call us back when it's done parsing
         controller.parseText(grammarFile, inputText);
@@ -651,15 +682,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             updateTreeViewer(previewState, previewState.parsingResult);
             profilerPanel.setProfilerData(previewState, duration);
             inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
-        } else if (previewState.startRuleName == null) {
-            indicateNoStartRuleInParseTreePane();
-        } else {
-            indicateInvalidGrammarInParseTreePane();
+            return;
         }
+        
+        if (previewState.startRuleName == null) {
+            indicateNoStartRuleInParseTreePane();
+            return;
+        }
+        
+        indicateInvalidGrammarInParseTreePane();
     }
     
     
-    public void notifySlowParsing() {
+    public void notifySlowParsing(double time) {
+        showError("WARNING: Slow parsing" + time + "ms detected; check grammar and input!");
         cancelParserAction.setEnabled(true);
         buttonBar.updateActionsImmediately();
     }
@@ -668,7 +704,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     public void onParsingCancelled() {
         cancelParserAction.setEnabled(false);
         buttonBar.updateActionsImmediately();
-        showError("Parsing was aborted");
+        //showError("Parsing was aborted");
+    }
+    
+    
+    public PropertiesPanel getPropertiesPanel() {
+        return propertiesPanel;
     }
     
     
