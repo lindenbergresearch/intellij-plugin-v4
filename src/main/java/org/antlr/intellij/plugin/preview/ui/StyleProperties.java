@@ -104,7 +104,14 @@ public class StyleProperties implements Cloneable {
     
     
     public static StyleProperties deriveFrom(StyleProperties styles) {
-        return new StyleProperties(styles.margin, styles.foreground, styles.background, styles.textColor, styles.stroke, styles.font);
+        return new StyleProperties(
+            styles.margin,
+            styles.foreground,
+            styles.background,
+            styles.textColor,
+            styles.stroke,
+            styles.font
+        );
     }
     
     
