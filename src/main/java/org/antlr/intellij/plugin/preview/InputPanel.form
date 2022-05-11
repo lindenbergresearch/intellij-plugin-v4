@@ -50,6 +50,12 @@
               <text value="Label"/>
             </properties>
           </component>
+          <component id="e1a4f" class="javax.swing.JLabel" binding="startRuleLabel2">
+            <constraints/>
+            <properties>
+              <text value="Label"/>
+            </properties>
+          </component>
         </children>
       </grid>
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
