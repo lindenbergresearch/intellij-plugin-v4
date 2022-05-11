@@ -14,10 +14,12 @@ public class TerminalTreeNode extends BasicStyledTreeNode {
         super(parent, viewport, DefaultStyles.TERMINAL_NODE_STYLE, selected);
         shiftViewport(0, OFFSET);
         shape.setFilled(selected);
+        shape.setEnabled(selected);
         
         if (selected) {
             shape.setOutlineColor(JBColor.BLUE);
-            shape.setTextColor(DefaultStyles.JB_COLOR_YELLOW);
+            label.setTextColor(DefaultStyles.JB_COLOR_YELLOW);
+            footer.setTextColor(DefaultStyles.JB_COLOR_YELLOW);
         }
         
     }
