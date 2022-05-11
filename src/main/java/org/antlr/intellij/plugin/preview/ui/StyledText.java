@@ -1,5 +1,7 @@
 package org.antlr.intellij.plugin.preview.ui;
 
+import com.intellij.ui.JBColor;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
@@ -8,32 +10,32 @@ import java.awt.geom.Rectangle2D;
  * Styled text element.
  */
 public abstract class StyledText extends StyledElement {
-
+    
     /* ----- LAYOUT CONSTANTS ------------------------------------------------------------------------*/
-
-
+    
+    
     /**
      * Horizontal text-layout regime.
      */
     enum HorizontalLayout {
         LEFT, CENTER, RIGHT
     }
-
-
+    
+    
     /**
      * Vertical text-layout regime.
      */
     enum VerticalLayout {
         TOP, MIDDLE, BOTTOM
     }
-
-
+    
+    
     /* ----- CONFIG ATTRIBUTES -----------------------------------------------------------------------*/
     protected VerticalLayout verticalTextLayout;
     protected HorizontalLayout horizontalTextLayout;
-    public String text;
-
-
+    protected String text;
+    
+    
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
@@ -41,8 +43,40 @@ public abstract class StyledText extends StyledElement {
         super();
         this.text = text;
     }
-
-
+    
+    
+    public String getText() {
+        return text;
+    }
+    
+    
+    public void setText(String text) {
+        this.text = text;
+    }
+    
+    
+    public void setBold() {
+        setFont(getFont().deriveFont(Font.BOLD));
+    }
+    
+    
+    public void setItalic() {
+        setFont(getFont().deriveFont(Font.ITALIC));
+    }
+    
+    
+    /**
+     * Quick scaling for font size.
+     *
+     * @param factor Factor of the current size.
+     */
+    public void setFontScale(float factor) {
+        float size = ((float) getFont().getSize()) * factor;
+        Font scaled = getFont().deriveFont(size);
+        setFont(scaled);
+    }
+    
+    
     /**
      * Constructs a new StyledElement with its basic setup.
      *
@@ -54,8 +88,8 @@ public abstract class StyledText extends StyledElement {
         super(parent, viewport, styles);
         this.text = text;
     }
-
-
+    
+    
     /**
      * This is the actual place where the user-code
      * for drawing the styled element can be put.
@@ -65,10 +99,10 @@ public abstract class StyledText extends StyledElement {
     @Override
     public void draw(Graphics2D graphics2D) {
         if (text == null) text = "null";
-
+        
         Dimension bounds =
-            UIHelper.getFullStringBounds(graphics2D, text);
-
+            UIHelper.getFullStringBounds(graphics2D, text, getFont());
+        
         double x;
         switch (horizontalTextLayout) {
             case CENTER:
@@ -81,7 +115,7 @@ public abstract class StyledText extends StyledElement {
             default:
                 x = 0;
         }
-
+        
         double y;
         switch (verticalTextLayout) {
             case TOP:
@@ -96,30 +130,57 @@ public abstract class StyledText extends StyledElement {
             default:
                 y = 0;
         }
-
+        
+        
+        if (debug()) {
+            graphics2D.setStroke(new BasicStroke(0.55f));
+            graphics2D.setColor(JBColor.ORANGE.brighter());
+            graphics2D.drawLine((int) x, (int) y, (int) (x + bounds.getWidth()), (int) y);
+            
+            Stroke dashed = new BasicStroke(
+                0.5f,
+                BasicStroke.CAP_BUTT,
+                BasicStroke.JOIN_BEVEL,
+                0,
+                new float[]{2},
+                0
+            );
+            
+            graphics2D.setStroke(dashed);
+            graphics2D.setColor(JBColor.RED);
+            graphics2D.drawRect(
+                (int) (getCenter().x - bounds.getWidth() * 0.5),
+                (int) (getCenter().y - bounds.getHeight() * 0.5),
+                (int) bounds.getWidth(),
+                (int) bounds.getHeight()
+            );
+            
+            graphics2D.setStroke(new BasicStroke(0.5f));
+            graphics2D.setColor(JBColor.MAGENTA.brighter());
+            
+            graphics2D.drawLine(
+                (int) 0.0,
+                (int) getCenter().y,
+                (int) getWidth(),
+                (int) getCenter().y
+            );
+            
+            graphics2D.drawLine(
+                (int) getCenter().x,
+                (int) 0.0,
+                (int) getCenter().x,
+                (int) getHeight()
+            );
+        }
+        
         graphics2D.setColor(getTextColor());
         graphics2D.drawString(text, (float) x, (float) y);
-
-//
-//        graphics2D.setStroke(new BasicStroke(0.55f));
-//        graphics2D.setColor(JBColor.MAGENTA);
-//        graphics2D.drawLine((int) x, (int) y, (int) (x + bounds.getWidth()), (int) y);
-//
-//
-//        graphics2D.setStroke(new BasicStroke(0.55f));
-//        graphics2D.setColor(JBColor.RED);
-//        graphics2D.drawRect(
-//            (int) (getCenter().x - bounds.getWidth() * 0.5),
-//            (int) (getCenter().y - bounds.getHeight() * 0.5),
-//            (int) bounds.getWidth(),
-//            (int) bounds.getHeight()
-//        );
     }
-
-
-
-
+    
+    
+    
+    
     /* ----- STANDARD GETTER / SETTER ----------------------------------------------------------------*/
-
-
+    
+    
 }
