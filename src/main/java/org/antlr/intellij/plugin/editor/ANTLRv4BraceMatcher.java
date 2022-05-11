@@ -14,7 +14,7 @@ public class ANTLRv4BraceMatcher implements PairedBraceMatcher {
 
     @NotNull
     @Override
-    public BracePair[] getPairs() {
+    public BracePair @NotNull [] getPairs() {
         return new BracePair[]{
             new BracePair(getTokenElementType(LPAREN), getTokenElementType(RPAREN), false),
             new BracePair(getTokenElementType(OPTIONS), getTokenElementType(RBRACE), true),
