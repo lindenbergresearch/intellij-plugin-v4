@@ -82,9 +82,6 @@ public class PreviewState {
         String inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
         String startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
         
-        LOG.info("!! persist preview-data, input-text key is: " + inputTextPropertiesKey);
-        LOG.info("!! persist preview-data, start-rule key is: " + startRulePropertiesKey);
-        
         propertiesComponent.setValue(
             inputTextPropertiesKey,
             manualInputText.toString()
@@ -107,9 +104,6 @@ public class PreviewState {
         String inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
         String startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
         
-        LOG.info("recover preview-data, input-text key is: " + inputTextPropertiesKey);
-        LOG.info("recover preview-data, start-rule key is: " + startRulePropertiesKey);
-        
         manualInputText =
             propertiesComponent.getValue(inputTextPropertiesKey);
         
@@ -120,6 +114,7 @@ public class PreviewState {
         if (!existsStartRule(startRuleName)) {
             startRuleName = "";
         }
+        LOG.info("recover start-rule: '" + startRuleName + '\'');
         
     }
     
