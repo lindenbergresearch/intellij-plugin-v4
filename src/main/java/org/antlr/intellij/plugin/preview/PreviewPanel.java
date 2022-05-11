@@ -147,7 +147,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         splitPane.setFirstComponent(leftPanel);
         splitPane.setSecondComponent(tabbedPanel);
         splitPane.setProportion(0.4f);
-        //  splitPane.getDivider().setBorder(BorderFactory.createLineBorder(JBColor.background().darker(), 2));
+        
+        // keep track of panel size changes
+        splitPane.addPropertyChangeListener(propertyChangeEvent -> treeViewer.setTreeUpdated(true));
         
         this.buttonBar = createButtonBar();
         this.add(buttonBar.getComponent(), BorderLayout.WEST);
@@ -388,6 +390,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 BorderFactory.createEtchedBorder(1)
             );
         
+        
         JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
         //  tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
@@ -398,6 +401,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         pair.b.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         splitter.setFirstComponent(pair.b);
         splitter.setSecondComponent(propertiesPanel);
+        
+        // keep track of panel size changes
+        splitter.addPropertyChangeListener(propertyChangeEvent -> treeViewer.setTreeUpdated(true));
         
         tabbedPane.addTab("Parse tree", Hierarchy.Subtypes, splitter);
         pair.a.previewPanel = this;
