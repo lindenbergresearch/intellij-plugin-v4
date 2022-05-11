@@ -8,7 +8,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.event.CaretListener;
-import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -18,11 +17,10 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithBrowseButton;
+import com.intellij.openapi.ui.ComponentWithBrowseButton.BrowseFolderActionListener;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.JBColor;
@@ -46,7 +44,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -55,17 +52,21 @@ import java.util.Collections;
 import java.util.List;
 
 // Not a view itself but delegates to one.
-
-
 public class InputPanel {
+    private static final Logger LOG =
+        Logger.getInstance("ANTLR InputPanel");
+    
     private static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
     private static final int MAX_STACK_DISPLAY = 30;
     private static final int MAX_HINT_WIDTH = 110;
-    private static final Logger LOG = Logger.getInstance("ANTLR InputPanel");
+    
     private static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
     private static final int ERROR_LAYER = HighlighterLayer.ERROR;
-    private static final String missingStartRuleLabelText = "%s start rule: <select from navigator or grammar>";
-    private static final String startRuleLabelText = "%s start rule: %s";
+    
+    private static final String missingStartRuleLabelText = "\u00AB No rule selected. \u00BB";
+    private static final String grammarFileLabelText = " %s ";
+    private static final String startRuleLabelText = "\u00AB %s \u00BB";
+    
     /**
      * switchToGrammar() was seeing an empty slot instead of a previous
      * editor or placeHolder. Figured it was an order of operations thing
@@ -75,6 +76,7 @@ public class InputPanel {
     private final PreviewPanel previewPanel;
     private final PreviewEditorMouseListener editorMouseListener;
     private final List<CaretListener> caretListeners = new ArrayList<>();
+    
     /**
      * state for grammar in current editor, not editor where user is typing preview input!
      */
@@ -88,12 +90,16 @@ public class InputPanel {
     private JPanel startRuleAndInputPanel;
     private TextFieldWithBrowseButton fileChooser;
     private JPanel outerMostPanel;
+    private JPanel jPanel;
+    private JLabel startRuleLabel2;
     private JScrollPane errorScrollPane;
+    ErrorConsolePanel errorConsolePanel;
     private final PropertiesComponent propertiesComponent;
     
     
     private void createUIComponents() {
         outerMostPanel = new JPanel(new BorderLayout(5, 5));
+        jPanel = new JPanel(new BorderLayout(5, 5));
         errorConsole = new JTextArea();
         
         
@@ -106,11 +112,9 @@ public class InputPanel {
         
         errorScrollPane.setWheelScrollingEnabled(true);
         
-    }
-    
-    
-    public JScrollPane getErrorPane() {
-        return errorScrollPane;
+        jPanel.add(errorScrollPane);
+        jPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 6, 5));
+        
     }
     
     
@@ -119,39 +123,16 @@ public class InputPanel {
     }
     
     
-    private class BrowseActionListener extends ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> {
-        public BrowseActionListener(
-            @Nullable @NlsContexts.DialogTitle String title, @Nullable @NlsContexts.Label String description,
-            @Nullable ComponentWithBrowseButton<JTextField> textField, @Nullable Project project,
-            FileChooserDescriptor fileChooserDescriptor, TextComponentAccessor<? super JTextField> accessor
-        ) {
-            super(title, description, textField, project, fileChooserDescriptor, accessor);
-        }
-        
-        
-        protected void onFileChosen(@NotNull VirtualFile chosenFile) {
-            // this next line is the code taken from super; pasted in
-            // to avoid compile error on super.onFileCho[o]sen
-            TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(
-                fileChooser.getChildComponent(),
-                chosenFileToResultingText(chosenFile)
-            );
-            
-            InputPanel.this.onFileChosen(chosenFile);
-        }
-        
-    }
-    
-    
     public InputPanel(final PreviewPanel previewPanel) {
         WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
         layout.setAlignment(FlowLayout.LEFT);
         this.startRuleAndInputPanel.setLayout(layout);
         this.previewPanel = previewPanel;
+        errorConsolePanel = previewPanel.getErrorConsolePanel();
         
         FileChooserDescriptor singleFileDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-        ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> browseActionListener =
-            new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
+        BrowseFolderActionListener<JTextField> browseActionListener =
+            new BrowseFolderActionListener<JTextField>(
                 "Select Input File", null,
                 fileChooser,
                 previewPanel.project,
@@ -176,7 +157,8 @@ public class InputPanel {
         });
         
         fileChooser.addActionListener(browseActionListener);
-        fileChooser.getButton().addActionListener(e -> fileRadioButton.setSelected(true));
+        fileChooser.addActionListener(e -> fileRadioButton.setSelected(true));
+        
         fileChooser.setTextFieldPreferredWidth(40);
         
         inputRadioButton.addActionListener(e -> selectInputEvent());
@@ -184,16 +166,7 @@ public class InputPanel {
         
         resetStartRuleLabel();
         propertiesComponent = PropertiesComponent.getInstance(previewPanel.project);
-        
         editorMouseListener = new PreviewEditorMouseListener(this);
-        
-        errorConsole.setBackground(JBColor.background().darker());
-        errorConsole.setForeground(JBColor.RED.darker());
-    }
-    
-    
-    public PropertiesComponent getPropertiesComponent() {
-        return propertiesComponent;
     }
     
     
@@ -253,7 +226,7 @@ public class InputPanel {
                                                                         evalInfo.semctx, evalInfo.predictedAlt,
                                                                         evalInfo.evalResult
                     );
-                    msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
+                    msg += (!evalInfo.fullCtx ? " (DFA)" : "");
                 } else {
                     msg = "Unknown decision event: " + eventInfo;
                 }
@@ -317,7 +290,7 @@ public class InputPanel {
     
     
     public static String getErrorDisplayString(SyntaxError e) {
-        return "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
+        return "line " + e.getLine() + ':' + e.getCharPositionInLine() + ' ' + e.getMessage();
     }
     
     
@@ -351,28 +324,24 @@ public class InputPanel {
         final EditorFactory factory = EditorFactory.getInstance();
         Document doc = factory.createDocument("");
         
-        String text = propertiesComponent.getValue("org.antlr.intellij.plugin.preview.input");
-        previewState.manualInputText = text;
-        
-        doc.addDocumentListener(
-            new DocumentAdapter() {
-                @Override
-                public void documentChanged(DocumentEvent e) {
-                    previewState.manualInputText = e.getDocument().getCharsSequence();
-                    
-                    propertiesComponent.setValue("org.antlr.intellij.plugin.preview.input", previewState.manualInputText.toString());
-                    propertiesComponent.setValue("org.antlr.intellij.plugin.preview.startRule", previewState.startRuleName);
-                    LOG.info("save start-rule for session recover: '" + previewState.startRuleName + "'");
-                }
-            }
-        );
-        
         Editor editor = createPreviewEditor(previewState.grammarFile, doc, false);
         setEditorComponent(editor.getComponent()); // do before setting state
         previewState.setInputEditor(editor);
         
         // Set text last to trigger change events
-        ApplicationManager.getApplication().runWriteAction(() -> doc.setText(previewState.manualInputText));
+        ApplicationManager.getApplication().runWriteAction(
+            () -> doc.setText(previewState.getManualInputText())
+        );
+        
+        doc.addDocumentListener(
+            new DocumentListener() {
+                @Override
+                public void documentChanged(DocumentEvent e) {
+                    previewState.setManualInputText(e.getDocument().getCharsSequence());
+                    previewState.persistPreviewData();
+                }
+            }
+        );
     }
     
     
@@ -385,14 +354,14 @@ public class InputPanel {
         
         VirtualFile inputFile = previewState.inputFile;
         if (inputFile == null) {
-            errorConsole.setText("Invalid input file!");
+            errorConsolePanel.add("Invalid input file!");
             return;
         }
         
         Document inputDocument = FileDocumentManager.getInstance().getDocument(inputFile);
         
         if (inputDocument == null) {
-            errorConsole.setText("Input file does not exist or cannot be loaded: " + inputFile.getPath());
+            errorConsolePanel.add("Input file does not exist or cannot be loaded: " + inputFile.getPath());
             return;
         }
         
@@ -411,7 +380,6 @@ public class InputPanel {
     
     
     public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc, boolean readOnly) {
-        LOG.info("createEditor: create new editor for " + grammarFile.getPath() + ' ' + previewPanel.project.getName());
         final EditorFactory factory = EditorFactory.getInstance();
         
         doc.addDocumentListener(
@@ -451,8 +419,6 @@ public class InputPanel {
     
     
     public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
-        String grammarFileName = grammarFile.getPath();
-        LOG.info("switchToGrammar " + grammarFileName + " " + previewPanel.project.getName());
         this.previewState = previewState;
         
         if (previewState.inputFile != null) {
@@ -494,7 +460,7 @@ public class InputPanel {
     public Editor getInputEditor() {
         if (previewState == null) {
             // seems there are some out of sequence issues with InputPanels
-            // being created but before we get a switchToGrammar event, which
+            // being created, but before we get a switchToGrammar event, which
             // creates the previewState.
             return null;
         }
@@ -502,7 +468,6 @@ public class InputPanel {
         if (editor == null) {
             createManualInputPreviewEditor(previewState); // ensure we always have an input window
             return previewState.getInputEditor();
-            
         }
         
         return editor;
@@ -544,34 +509,57 @@ public class InputPanel {
     
     
     public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
-        startRuleLabel.setText(String.format(startRuleLabelText, grammarFile.getName(), startRuleName));
-        startRuleLabel.setForeground(JBColor.BLACK);
-        final Font oldFont = startRuleLabel.getFont();
-        startRuleLabel.setFont(oldFont.deriveFont(Font.BOLD));
+        final Font bold = startRuleLabel.getFont().deriveFont(Font.BOLD);
+        
+        final String labelGrammar = String.format(
+            grammarFileLabelText,
+            grammarFile.getName()
+        );
+        
+        final String labelStartRule = String.format(
+            startRuleLabelText,
+            startRuleName
+        );
+        
+        
+        startRuleLabel.setForeground(JBColor.foreground());
+        startRuleLabel.setFont(bold);
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
+        startRuleLabel.setText(labelGrammar);
+        
+        startRuleLabel2.setForeground(JBColor.BLUE);
+        startRuleLabel2.setFont(bold.deriveFont(bold.getSize() + 1.f));
+        startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
+        startRuleLabel2.setText(labelStartRule);
     }
     
     
     public void resetStartRuleLabel() {
         String grammarName = "?.g4";
+        
         if (previewState != null) {
             grammarName = previewState.grammarFile.getName();
         }
-        startRuleLabel.setText(String.format(missingStartRuleLabelText, grammarName));
+        
+        startRuleLabel.setText(String.format(grammarName));
         startRuleLabel.setForeground(JBColor.RED);
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
+        
+        startRuleLabel2.setText(String.format(missingStartRuleLabelText));
+        startRuleLabel2.setForeground(JBColor.RED);
+        startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
     }
     
     
     public void clearErrorConsole() {
-        errorConsole.setText("");
+        errorConsolePanel.clear();
     }
     
     
     public void displayErrorInParseErrorConsole(SyntaxError e) {
         String msg = getErrorDisplayString(e);
         // errorScrollPane.setVisible(true);
-        errorConsole.insert(msg + '\n', errorConsole.getText().length());
+        errorConsolePanel.add(msg);
     }
     
     
@@ -616,6 +604,16 @@ public class InputPanel {
     
     
     /**
+     * Display error messages to the console.
+     *
+     * @param error Error text message.
+     */
+    public void logErrorToConsole(String error) {
+        errorConsolePanel.add("ERROR: " + error + '\n');
+    }
+    
+    
+    /**
      * Show token information if the ctrl-key is down and mouse movement occurs
      */
     public void showTokenInfoUponCtrlKey(Editor editor, PreviewState previewState, int offset) {
@@ -644,7 +642,7 @@ public class InputPanel {
             String.format(
                 "#%d Type %s, Line %d:%d%s",
                 tokenUnderCursor.getTokenIndex(),
-                previewState.g.getTokenDisplayName(tokenUnderCursor.getType()),
+                previewState.grammar.getTokenDisplayName(tokenUnderCursor.getType()),
                 tokenUnderCursor.getLine(),
                 tokenUnderCursor.getCharPositionInLine(),
                 channelInfo
@@ -766,9 +764,9 @@ public class InputPanel {
             return;
         }
         
-        Interval region = previewState.g.getStateToGrammarRegion(atnState);
+        Interval region = previewState.grammar.getStateToGrammarRegion(atnState);
         CommonToken token =
-            (CommonToken) previewState.g.tokenStream.get(region.a);
+            (CommonToken) previewState.grammar.tokenStream.get(region.a);
         jumpToGrammarPosition(project, token.getStartIndex());
     }
     
@@ -789,7 +787,7 @@ public class InputPanel {
         
         ParserRuleContext parent = (ParserRuleContext) nodeWithToken.getParent();
         int ruleIndex = parent.getRuleIndex();
-        Rule rule = previewState.g.getRule(ruleIndex);
+        Rule rule = previewState.grammar.getRule(ruleIndex);
         GrammarAST ruleNameNode = (GrammarAST) rule.ast.getChild(0);
         int start = ((CommonToken) ruleNameNode.getToken()).getStartIndex();
         
