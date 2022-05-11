@@ -1,10 +1,14 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import org.abego.treelayout.TreeForTreeLayout;
 import org.abego.treelayout.TreeLayout;
 import org.abego.treelayout.util.DefaultConfiguration;
-import org.antlr.intellij.plugin.preview.ui.*;
+import org.antlr.intellij.plugin.preview.ui.BasicStyledElement;
+import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
+import org.antlr.intellij.plugin.preview.ui.StyledElement;
+import org.antlr.intellij.plugin.preview.ui.UIHelper;
 import org.antlr.intellij.plugin.preview.ui.treenodes.*;
 import org.antlr.v4.gui.TreeLayoutAdaptor;
 import org.antlr.v4.gui.TreeTextProvider;
@@ -27,6 +31,7 @@ import java.util.List;
 
 import static java.awt.RenderingHints.*;
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 
 /**
@@ -34,8 +39,11 @@ import static java.lang.Math.max;
  * Enhanced version based on: {@code TreeViewer}
  */
 public class UberTreeViewer extends JComponent implements MouseListener, MouseMotionListener {
+    private static final Logger LOG =
+        Logger.getInstance("ANTLR UberTreeViewer");
+    
     /*---- CONSTANTS ----------------------------------------------------------------------------*/
-    public final static double MAX_SCALE_FACTOR = 4.0;
+    public final static double MAX_SCALE_FACTOR = 2.0;
     public final static double MIN_SCALE_FACTOR = 0.1;
     public final static double SCALING_INCREMENT = 0.15;
     public final static double NODE_FOCUS_MARGIN = 140;
@@ -52,7 +60,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected JBColor edgesColor;
     
     /*---- MOUSE --------------------------------------------------------------------------------*/
-    private boolean mouseDown;
     private Point2D lastMousePos, currentMousePos, deltaMousePos;
     
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
@@ -62,9 +69,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected int minCellWidth;
     protected float edgesStrokeWidth;
     protected boolean autoscaling;
+    protected double scale;
+    protected double renderTime;
     protected boolean compactLabels;
+    protected boolean treeUpdated;
     protected Point2D offset;
-    private long count;
     protected Tree selectedTreeNode;
     protected BasicStyledElement styledRootNode;
     
@@ -74,11 +83,12 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected double gapBetweenLevels;
     protected double gapBetweenNodes;
     
-    protected double scale;
     
     protected TreeLayout<Tree> treeLayout;
     protected Tree root;
     protected TreeTextProvider treeTextProvider;
+    
+    public PreviewPanel previewPanel;
     
     
     /**
@@ -103,10 +113,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     /**
      * Creates the UberTreeViewer component based on the given tree node.
      *
-     * @param ruleNames A list of rule names.
-     * @param tree      The root tree node of the diagram.
+     * @param previewPanel Reference to the PreviewPanel.
      */
-    public UberTreeViewer(List<String> ruleNames, Tree tree) {
+    public UberTreeViewer(PreviewPanel previewPanel) {
+        this.previewPanel = previewPanel;
+        
         /* draw offset for diagram - needed to draw centered */
         offset = new Point2D.Double(0, 0);
         
@@ -114,13 +125,13 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         font = DefaultStyles.BOLD_FONT;
         
         /* edges setup */
-        useCurvedEdges = true;
+        useCurvedEdges = false;
         edgesColor = JBColor.BLACK;
-        edgesStrokeWidth = 1.96f;
+        edgesStrokeWidth = 1.5f;
         
-        minCellWidth = 70;
-        gapBetweenLevels = 25;
-        gapBetweenNodes = 25;
+        minCellWidth = 50;
+        gapBetweenLevels = 35;
+        gapBetweenNodes = 35;
         
         scale = 1.f;
         autoscaling = true;
@@ -131,18 +142,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         addMouseListener(this);
         addMouseMotionListener(this);
         
-        mouseDown = false;
         lastMousePos = new Point(0, 0);
         currentMousePos = new Point(0, 0);
         deltaMousePos = new Point(0, 0);
         
         setAutoscrolls(true);
-        
-        setRuleNames(ruleNames);
-        
-        if (tree != null) {
-            setTree(tree);
-        }
     }
     
     
@@ -329,16 +333,17 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         }
         
         // clamp scale factor
-        scale = Math.min(scale, MAX_SCALE_FACTOR);
+        scale = min(scale, MAX_SCALE_FACTOR);
         scale = max(scale, MIN_SCALE_FACTOR);
         
-        
-        // update offset to center content
-        updateOffset();
-        
         // update just in case of changes to avoid performance issues
-        if (scale != old)
+        if (scale != old) {
+            // update offset to center content
+            updateOffset();
+            
+            // update component
             updatePreferredSize();
+        }
     }
     
     
@@ -346,9 +351,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * Compute the horizontal offset for centered alignment.
      */
     private void updateOffset() {
-        if (!hasTree()) return;
+        if (!hasTree())
+            return;
         
-        Rectangle viewport = scrollPane.getViewportBorderBounds();
+        Rectangle viewport =
+            scrollPane.getViewportBorderBounds();
         
         // no offset if the size of the layout tree is bigger then the actual viewport
         if (viewport.getWidth() <= getScaledTreeSize().width) {
@@ -356,10 +363,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             return;
         }
         
-        
-        double offs;
-        offs = viewport.getWidth() / 2. - getScaledTreeSize().width / 2.;
-        offs = offs * (1. / scale);
+        double offs = viewport.getWidth() / 2. - getScaledTreeSize().width / 2.;
+        offs *= (1. / scale);
         offset.setLocation(offs, VIEWER_HORIZONTAL_MARGIN / 2.);
     }
     
@@ -372,44 +377,20 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      */
     @Override
     public void paint(Graphics g) {
+        // capture timestamp
         long time = System.nanoTime();
         
-        ArrayList<String> buff = new ArrayList<>();
-        
-        buff.add("PARAMETER:\n");
-        buff.add("**********\n\n");
-        buff.add("parent        : " + getParent().getWidth() + 'x' + getParent().getHeight());
-        
-        
-        if (treeLayout != null) {
-            updateScaling();
-            super.paint(g);
-        } else {
-            super.paint(g);
-            return;
+        if (treeUpdated) {
+            doTreeLayout();
         }
         
-        buff.add("scale, offset : " + String.format("%.3f", scale) + " | " + String.format("%.3f", offset.getX()));
-        buff.add("component     : " + getWidth() + 'x' + getHeight());
-        buff.add("max text-width: " + getRecursiveMaxTextWidth(getTree().getRoot(), 0) + "px");
-        buff.add("tree size     : " + treeLayout.getBounds().getWidth() + 'x' + treeLayout.getBounds().getHeight());
-        buff.add("tree scaled   : " + String.format("%.3f", treeLayout.getBounds().getWidth() * scale) + 'x' + String.format("%.3f", treeLayout.getBounds().getHeight() * scale));
+        super.paint(g);
         
+        if (treeLayout == null ||
+            root == null ||
+            styledRootNode == null
+        ) return;
         
-        Point2D offsetText = new Point(0, 0);
-        if (scrollPane != null) {
-            offsetText.setLocation(scrollPane.getHorizontalScrollBar().getValue() / scale, scrollPane.getVerticalScrollBar().getValue() / scale);
-            buff.add("scrollbars    : " + scrollPane.getHorizontalScrollBar().getValue() + " : " + scrollPane.getVerticalScrollBar().getValue());
-            buff.add("scrollbars    : " + offsetText.getX() + " : " + offsetText.getY());
-            buff.add("scroll val    : " + String.format("%.3f", scrollPane.getHorizontalScrollBar().getMaximum() / scale) + " - " + String.format("%.3f", scrollPane.getVerticalScrollBar().getMaximum() / scale));
-            buff.add("mouse         : " + (mouseDown ? "DOWN" : " UP "));
-            buff.add("mouse pos     : " + currentMousePos.toString().substring(14));
-            buff.add("mouse last    : " + lastMousePos.toString().substring(14));
-            buff.add("mouse delta   : " + deltaMousePos.toString().substring(14));
-            buff.add("viewport      : " + scrollPane.getViewportBorderBounds().toString().substring(18).replace("width", "w").replace("height", "h"));
-        }
-        
-        buff.add("\n");
         
         Graphics2D g2 = (Graphics2D) g;
         
@@ -418,7 +399,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         //  g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
         
         // this has to be turned on to proper render all text positions
-        // if set to 'on' labels will not be layouted corrc
+        // if set to 'on' labels will not be proper layouted.
         g2.setRenderingHint(KEY_FRACTIONALMETRICS, VALUE_FRACTIONALMETRICS_OFF);
         
         // Anti-alias the text
@@ -432,25 +413,9 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             styledRootNode.render(g2);
         }
         
-        
-        double delta = ((double) System.nanoTime() - time) / 1_000_000.;
-        
-        Font saved = g2.getFont();
-        Font menlo = new Font("Menlo", Font.PLAIN, 10);
-        
-        g2.setFont(menlo.deriveFont((float) (13. * (1. / scale))).deriveFont(Font.BOLD));
-        g2.setColor(JBColor.background().brighter());
-        
-        buff.add("render no     : #" + count++ + " redraws");
-        buff.add("r-time        : " + String.format("%.3f", delta) + "ms");
-        
-        double y = 10. + offsetText.getY();
-        for (String s : buff) {
-            g2.drawString(s, (float) (10. + offsetText.getX()), (float) y);
-            y += 18 * (1. / scale);
-        }
-        
-        g2.setFont(saved);
+        // compute time delta and store average value
+        double duration = ((double) System.nanoTime() - time) / 1_000_000.;
+        renderTime = (renderTime + duration) / 2.;
     }
     
     
@@ -477,7 +442,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             altLabelTextProvider.setCompact(compactLabels);
         }
         
-        doTreeLayout();
+        setTreeUpdated(true);
     }
     
     
@@ -546,8 +511,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         if (getParent() != null)
             getParent().revalidate();
-        
-        repaint();
     }
     
     
@@ -584,12 +547,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public void setTreeTextProvider(TreeTextProvider treeTextProvider) {
         this.treeTextProvider = treeTextProvider;
         
-        
-        if (treeTextProvider != null && treeTextProvider instanceof AltLabelTextProvider) {
+        if (treeTextProvider instanceof AltLabelTextProvider) {
             AltLabelTextProvider altLabelTextProvider = (AltLabelTextProvider) treeTextProvider;
             altLabelTextProvider.setCompact(compactLabels);
         }
-        
     }
     
     
@@ -616,15 +577,20 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         extentProvider = new VariableExtentProvider(this);
         
+        double vgap = isCompactLabels() ? gapBetweenLevels * 0.4 : gapBetweenLevels;
+        double hgap = isCompactLabels() ? gapBetweenNodes * 0.4 : gapBetweenNodes;
+        
         treeLayout = new TreeLayout<>(
             getTreeLayoutAdaptor(root),
             extentProvider,
-            new DefaultConfiguration<>(gapBetweenLevels, gapBetweenNodes),
+            new DefaultConfiguration<>(vgap, hgap),
             true
         );
         
+        updateScaling();
         updateStyledTreeNodes();
         updatePreferredSize();
+        treeUpdated = false;
     }
     
     
@@ -634,14 +600,46 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * @param root The root node of the tree.
      */
     public void setTree(Tree root) {
+        if (root == null) {
+            this.root = null;
+            return;
+        }
+        
         this.root = root;
-        doTreeLayout();
+        setTreeUpdated(true);
     }
     
     
+    /**
+     * Test for updated tree flag.
+     *
+     * @return True if tree has been touched.
+     */
+    public boolean isTreeUpdated() {
+        return treeUpdated;
+    }
+    
+    
+    /**
+     * Set tree updated flag.
+     *
+     * @param treeUpdated Flag to set.
+     */
+    public void setTreeUpdated(boolean treeUpdated) {
+        this.treeUpdated = treeUpdated;
+        repaint();
+    }
+    
+    
+    /**
+     * Set rule names.
+     *
+     * @param ruleNames List of rule-names as string.
+     */
     public void setRuleNames(List<String> ruleNames) {
-        
-        setTreeTextProvider(new DefaultTreeTextProvider(ruleNames));
+        setTreeTextProvider(
+            new DefaultTreeTextProvider(ruleNames)
+        );
     }
     
     
@@ -672,11 +670,14 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // root node
         styledRootNode.setViewport(viewport);
         
+        int k = 0;
+        
         // paint the boxes
         for (Tree tree : treeLayout.getNodeBounds().keySet()) {
             styledRootNode.add(
                 treeNodeToStyledElement(tree)
             );
+            k++;
         }
     }
     
@@ -688,43 +689,54 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * @return The corresponding StyledElement.
      */
     public StyledElement treeNodeToStyledElement(Tree tree) {
+        Rectangle2D.Double bounds = getBoundsOfNode(tree);
+        
         StyledTreeNode node =
             new BasicStyledTreeNode(
                 styledRootNode,
-                getBoundsOfNode(tree),
-                DefaultStyles.DEFAULT_STYLE
+                bounds,
+                DefaultStyles.DEFAULT_STYLE,
+                isSelectedTreeNode(tree)
             );
         
-        boolean ruleFailedAndMatchedNothing = false;
-        
+        boolean ruleFailed = false;
         if (tree instanceof ParserRuleContext) {
             ParserRuleContext ctx = (ParserRuleContext) tree;
-            ruleFailedAndMatchedNothing =
+            ruleFailed =
                 ctx.exception != null &&
                 ctx.stop != null &&
                 ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
         }
         
-        if (tree instanceof ErrorNode || ruleFailedAndMatchedNothing)
-            node = new ErrorTreeNode(styledRootNode, getBoundsOfNode(tree));
+        /* --------------------------------------------------------------------- */
         
+        if (tree instanceof ErrorNode || ruleFailed)
+            node = new ErrorTreeNode(
+                styledRootNode,
+                bounds,
+                isSelectedTreeNode(tree)
+            );
         
         if (tree instanceof TerminalNode)
-            node = new TerminalTreeNode(styledRootNode, getBoundsOfNode(tree));
+            node = new TerminalTreeNode(
+                styledRootNode,
+                bounds,
+                isSelectedTreeNode(tree)
+            );
         
         if (isEOFNode(tree)) {
-            node = new EOFTreeNode(styledRootNode, getBoundsOfNode(tree));
-            
+            node = new EOFTreeNode(
+                styledRootNode,
+                bounds,
+                isSelectedTreeNode(tree)
+            );
         }
         
         if (isRootNode(tree))
-            node = new RootTreeNode(styledRootNode, getBoundsOfNode(tree));
-        
-        if (isSelectedTreeNode(tree) && !isRootNode(tree))
-            node = new SelectedTreeNode(
+            node = new RootTreeNode(
                 styledRootNode,
-                node.getViewport(),
-                StyleProperties.deriveFrom(node.getStyleProperties())
+                bounds,
+                isSelectedTreeNode(tree)
             );
         
         // add node text
@@ -847,11 +859,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         for (Tree tree : treeLayout.getNodeBounds().keySet()) {
             Rectangle2D.Double box = getBoundsOfNode(tree);
-            
             if (box.contains(p.getX() / scale, p.getY() / scale)) {
                 return tree;
             }
         }
+        
         return null;
     }
     
@@ -908,6 +920,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         return treeLayout;
     }
     
+    /* --------------------------------------------------------------------- */
+    
     
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {}
@@ -916,7 +930,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
         if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
-            mouseDown = true;
             lastMousePos = mouseEvent.getPoint();
             testForNodeSelection(mouseEvent.getPoint());
         }
@@ -927,7 +940,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public void mouseReleased(MouseEvent mouseEvent) {
         if (treeLayout == null) return;
         
-        mouseDown = false;
         deltaMousePos.setLocation(0, 0);
         
         // reset cursor
@@ -953,7 +965,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             return;
         
         setCursor(DRAG_CURSOR);
-        deltaMousePos.setLocation(lastMousePos.getX() - mouseEvent.getX(), lastMousePos.getY() - mouseEvent.getY());
+        deltaMousePos.setLocation(
+            lastMousePos.getX() - mouseEvent.getX(),
+            lastMousePos.getY() - mouseEvent.getY()
+        );
         
         if (treeExceedsViewport()) {
             int hval = scrollPane.getHorizontalScrollBar().getValue();
@@ -977,7 +992,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         if (locationHitsNode(currentMousePos)) {
             Tree tree = getNodeFromLocation(currentMousePos);
             setCursor(SELECT_CURSOR);
-            setToolTipText(getTreeTextProvider().getText(tree));//TODO: add node info
+            setToolTipText(getTreeTextProvider().getText(tree));
         } else {
             setCursor(DEFAULT_CURSOR);
         }
