@@ -22,8 +22,8 @@ public class AltLabelTextProvider implements TreeTextProvider {
     public static final String EOF_LABEL = "<EOF>";
     
     // maximum length of a nodes label before shortened with '...'
-    public static final int MAX_TOKEN_LENGTH = 5;
-    public static final String ALT_LABEL_TEXT = " ⇉";
+    public static final int MAX_TOKEN_LENGTH = 6;
+    public static final String ALT_LABEL_TEXT = " *";
     public static final String SHORTEN_LABEL_TEXT = "\u2026";
     
     public static final String NL = System.lineSeparator();
@@ -86,11 +86,9 @@ public class AltLabelTextProvider implements TreeTextProvider {
      */
     @Override
     public String getText(Tree node) {
-        
-        
+        // terminal node
         if (node instanceof TerminalNode) {
             return getLabelForToken(((TerminalNode) node).getSymbol());
-            //Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
         }
         
         String text = "?";
@@ -103,11 +101,11 @@ public class AltLabelTextProvider implements TreeTextProvider {
             if (altLabels != null) {
                 if (outerAltNum >= 0 && (outerAltNum < altLabels.length)) {
                     if (compact) text = '#' + altLabels[outerAltNum];
-                    else text += NL + '#' + altLabels[outerAltNum];
+                    else text += NL + altLabels[outerAltNum];
                 }
             }
             
-            if (rule.getOriginalNumberOfAlts() > 1 && !compact) {
+            if (rule.getOriginalNumberOfAlts() > 1) {
                 text += ALT_LABEL_TEXT + outerAltNum;
             }
         }
@@ -135,7 +133,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
         
         if (compact) return text;
         
-        return symName + NL + text;
+        return symName + NL + '\'' + text + '\'';
     }
     
     
