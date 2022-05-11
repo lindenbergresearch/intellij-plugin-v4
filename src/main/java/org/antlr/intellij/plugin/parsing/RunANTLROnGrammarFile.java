@@ -184,8 +184,8 @@ public class RunANTLROnGrammarFile extends Task.Modal {
             final PreviewState previewState = controller.getPreviewState(grammarFile);
             // is lexer file? gen .tokens file no matter what as tokens might have changed;
             // a parser that feeds off of that file will need to see the changes.
-            if (previewState.g == null && previewState.lg != null) {
-                Grammar g = previewState.lg;
+            if (previewState.grammar == null && previewState.lexerGrammar != null) {
+                Grammar g = previewState.lexerGrammar;
                 String language = g.getOptionString(ANTLRv4GrammarProperties.PROP_LANGUAGE);
                 Tool tool = ParsingUtils.createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
                 CodeGenerator gen = CodeGenerator.create(tool, g, language);
