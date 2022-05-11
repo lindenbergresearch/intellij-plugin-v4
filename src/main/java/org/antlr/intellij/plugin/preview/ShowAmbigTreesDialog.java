@@ -27,29 +27,29 @@ import java.util.List;
 
 public class ShowAmbigTreesDialog extends JDialog {
     private static final int MAX_PHRASE_WIDTH = 25;
-
+    
     private JPanel contentPane;
     private JButton buttonOK;
     private JScrollPane treeScrollPane;
     private JSlider treeSizeSlider;
     private JLabel ambigPhraseLabel;
     private UberTreeViewer[] treeViewers;
-
-
+    
+    
     public ShowAmbigTreesDialog() {
         setContentPane(contentPane);
         setModal(false);
         getRootPane().setDefaultButton(buttonOK);
-
+        
         buttonOK.addActionListener(e -> dispose());
-
+        
         treeSizeSlider.addChangeListener(e -> {
             int v = ((JSlider) e.getSource()).getValue();
             setScale(v / 1000.0 + 1.0);
         });
     }
-
-
+    
+    
     public static JBPopup createAmbigTreesPopup(
         final PreviewState previewState,
         final AmbiguityInfo ambigInfo
@@ -61,8 +61,8 @@ public class ShowAmbigTreesDialog extends JDialog {
         builder.setItemChoosenCallback(() -> popupAmbigTreesDialog(previewState, ambigInfo));
         return builder.createPopup();
     }
-
-
+    
+    
     public static void popupAmbigTreesDialog(PreviewState previewState, AmbiguityInfo ambigInfo) {
         // pop up subtrees for ambig intrepretation
         ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
@@ -71,14 +71,16 @@ public class ShowAmbigTreesDialog extends JDialog {
         List<ParserRuleContext> ambiguousParseTrees = null;
         try {
             ambiguousParseTrees =
-                GrammarParserInterpreter.getAllPossibleParseTrees(previewState.g,
+                GrammarParserInterpreter.getAllPossibleParseTrees(
+                    previewState.grammar,
                     parser,
                     parser.getTokenStream(),
                     ambigInfo.decision,
                     ambigInfo.ambigAlts,
                     ambigInfo.startIndex,
                     ambigInfo.stopIndex,
-                    startRuleIndex);
+                    startRuleIndex
+                );
         } catch (ParseCancellationException pce) {
             // should be no errors for ambiguities, unless original
             // input itself has errors. Just display error in this case.
@@ -86,7 +88,7 @@ public class ShowAmbigTreesDialog extends JDialog {
             errPanel.add(new JBLabel("Cannot display ambiguous trees while there are syntax errors in your input."));
             dialog.treeScrollPane.setViewportView(errPanel);
         }
-
+        
         if (ambiguousParseTrees != null) {
             TokenStream tokens = previewState.parsingResult.parser.getInputStream();
             String phrase = tokens.getText(Interval.of(ambigInfo.startIndex, ambigInfo.stopIndex));
@@ -94,17 +96,17 @@ public class ShowAmbigTreesDialog extends JDialog {
                 phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
             }
             String title = ambiguousParseTrees.size() +
-                " Interpretations of Ambiguous Input Phrase: " +
-                phrase;
+                           " Interpretations of Ambiguous Input Phrase: " +
+                           phrase;
             dialog.ambigPhraseLabel.setText(title);
             dialog.setTrees(previewState, ambiguousParseTrees, title, 0, true);
         }
-
+        
         dialog.pack();
         dialog.setVisible(true);
     }
-
-
+    
+    
     public static JBPopup createLookaheadTreesPopup(
         final PreviewState previewState,
         final LookaheadEventInfo lookaheadInfo
@@ -114,24 +116,26 @@ public class ShowAmbigTreesDialog extends JDialog {
         JBPopupFactory factory = JBPopupFactory.getInstance();
         PopupChooserBuilder builder = factory.createListPopupBuilder(list);
         builder.setItemChoosenCallback(() -> popupLookaheadTreesDialog(previewState, lookaheadInfo));
-
+        
         return builder.createPopup();
     }
-
-
+    
+    
     public static void popupLookaheadTreesDialog(PreviewState previewState, LookaheadEventInfo lookaheadInfo) {
         // pop up subtrees for lookahead
         ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
         ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
         int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
         List<ParserRuleContext> lookaheadParseTrees =
-            GrammarParserInterpreter.getLookaheadParseTrees(previewState.g,
+            GrammarParserInterpreter.getLookaheadParseTrees(
+                previewState.grammar,
                 parser,
                 parser.getTokenStream(),
                 startRuleIndex,
                 lookaheadInfo.decision,
                 lookaheadInfo.startIndex,
-                lookaheadInfo.stopIndex);
+                lookaheadInfo.stopIndex
+            );
         if (parser.getNumberOfSyntaxErrors() > 0) {
             // should be no errors for ambiguities, unless original
             // input itself has errors. Just display error in this case.
@@ -147,16 +151,16 @@ public class ShowAmbigTreesDialog extends JDialog {
                 phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
             }
             String title = lookaheadParseTrees.size() +
-                " Interpretations of Lookahead Phrase: " +
-                phrase;
+                           " Interpretations of Lookahead Phrase: " +
+                           phrase;
             dialog.ambigPhraseLabel.setText(title);
             dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1, false);
         }
         dialog.pack();
         dialog.setVisible(true);
     }
-
-
+    
+    
     /**
      * Given two trees, t and u, compare them starting from the leaves and the decision root
      * Tree t is considered the "truth" and we are comparing u to it. That
@@ -169,15 +173,15 @@ public class ShowAmbigTreesDialog extends JDialog {
     ) {
         // First mark from roots down
         markFromRoots(t, u);
-
+        
         // Get leaves so we can do a difference between the trees starting at the bottom and top
         List<TerminalNode> tleaves = ParsingUtils.getAllLeaves(t);
         List<TerminalNode> uleaves = ParsingUtils.getAllLeaves(u);
-
+        
         int firstTleafTokenIndex = tleaves.isEmpty() ? -1 : tleaves.get(0).getSymbol().getTokenIndex();
         int firstUleafTokenIndex = uleaves.isEmpty() ? -1 : uleaves.get(0).getSymbol().getTokenIndex();
         final int first = Math.max(firstTleafTokenIndex, firstUleafTokenIndex);
-
+        
         // filter so we start in same place
         tleaves = Utils.filter(tleaves, tree -> ((Token) tree.getPayload()).getTokenIndex() >= first);
         uleaves = Utils.filter(uleaves, tree -> ((Token) tree.getPayload()).getTokenIndex() >= first);
@@ -202,8 +206,8 @@ public class ShowAmbigTreesDialog extends JDialog {
             }
         }
     }
-
-
+    
+    
     public static void markFromRoots(final PreviewInterpreterRuleContext t, final PreviewInterpreterRuleContext u) {
         if (t == null || u == null) return;
         if (!t.equals(u)) return;
@@ -218,15 +222,17 @@ public class ShowAmbigTreesDialog extends JDialog {
             }
             if (tchild instanceof PreviewInterpreterRuleContext &&
                 uchild instanceof PreviewInterpreterRuleContext) {
-                markFromRoots((PreviewInterpreterRuleContext) tchild,
-                    (PreviewInterpreterRuleContext) uchild);
+                markFromRoots(
+                    (PreviewInterpreterRuleContext) tchild,
+                    (PreviewInterpreterRuleContext) uchild
+                );
             } else {
                 return; // mismatched kids. should be caught above but...®
             }
         }
     }
-
-
+    
+    
     public void setScale(double scale) {
         if (treeViewers == null) return;
         for (UberTreeViewer viewer : treeViewers) {
@@ -234,8 +240,8 @@ public class ShowAmbigTreesDialog extends JDialog {
         }
         treeScrollPane.revalidate();
     }
-
-
+    
+    
     public void setTrees(
         PreviewState previewState,
         List<? extends RuleContext> ambiguousParseTrees,
@@ -246,19 +252,21 @@ public class ShowAmbigTreesDialog extends JDialog {
         if (ambiguousParseTrees != null) {
             int numTrees = ambiguousParseTrees.size();
             setTitle(title);
+            
             treeViewers = new UberTreeViewer[numTrees];
             JBPanel panelOfTrees = new JBPanel();
             PreviewInterpreterRuleContext chosenTree =
                 (PreviewInterpreterRuleContext) ambiguousParseTrees.get(highlightTreeIndex);
             panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
+            
             for (int i = 0; i < numTrees; i++) {
                 if (i > 0) {
                     panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
                 }
                 PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext) ambiguousParseTrees.get(i);
-                treeViewers[i] = new TrackpadZoomingTreeView(null, null); // && ctx != chosenTree);
+                treeViewers[i] = new TrackpadZoomingTreeView(null); // && ctx != chosenTree);
                 AltLabelTextProvider treeText =
-                    new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
+                    new AltLabelTextProvider(previewState.parsingResult.parser, previewState.grammar);
                 treeViewers[i].setTreeTextProvider(treeText);
                 treeViewers[i].setTree(ctx);
                 //  treeViewers[i].setHighlightedBoxColor(new JBColor(JBColor.lightGray, JBColor.GREEN));
@@ -277,10 +285,10 @@ public class ShowAmbigTreesDialog extends JDialog {
                 wrapper.add(treeViewers[i], BorderLayout.CENTER);
                 panelOfTrees.add(wrapper);
             }
-
+            
             // Wrap tree viewer components in scroll pane
             treeScrollPane.setViewportView(panelOfTrees);
         }
     }
-
+    
 }
