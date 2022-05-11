@@ -65,7 +65,8 @@ public class InputPanel {
     
     private static final String missingStartRuleLabelText = "\u00AB No rule selected. \u00BB";
     private static final String grammarFileLabelText = " %s ";
-    private static final String startRuleLabelText = "\u00AB %s \u00BB";
+//    private static final String startRuleLabelText = "\u00AB %s \u00BB";
+    private static final String startRuleLabelText = "=> %s";
     
     /**
      * switchToGrammar() was seeing an empty slot instead of a previous
@@ -98,8 +99,8 @@ public class InputPanel {
     
     
     private void createUIComponents() {
-        outerMostPanel = new JPanel(new BorderLayout(5, 5));
-        jPanel = new JPanel(new BorderLayout(5, 5));
+        outerMostPanel = new JPanel(new BorderLayout(0, 0));
+        jPanel = new JPanel(new BorderLayout(0, 0));
         errorConsole = new JTextArea();
         
         
@@ -113,7 +114,7 @@ public class InputPanel {
         errorScrollPane.setWheelScrollingEnabled(true);
         
         jPanel.add(errorScrollPane);
-        jPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 6, 5));
+        jPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
     }
     
@@ -124,7 +125,7 @@ public class InputPanel {
     
     
     public InputPanel(final PreviewPanel previewPanel) {
-        WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
+        WrappedFlowLayout layout = new WrappedFlowLayout(0, 0);
         layout.setAlignment(FlowLayout.LEFT);
         this.startRuleAndInputPanel.setLayout(layout);
         this.previewPanel = previewPanel;
@@ -397,7 +398,7 @@ public class InputPanel {
         
         
         editor.getComponent().setBorder(
-            BorderFactory.createEmptyBorder(7, 7, 7, 7)
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
         
         // force right margin

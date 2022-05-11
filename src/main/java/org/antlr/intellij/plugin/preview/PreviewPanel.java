@@ -105,24 +105,24 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         Splitter splitPaneLeft = new Splitter();
         splitPaneLeft.setShowDividerIcon(true);
-        splitPaneLeft.setDividerWidth(1);
+        splitPaneLeft.setDividerWidth(3);
         splitPaneLeft.setProportion(0.8f);
         splitPaneLeft.setOrientation(true);
         
         leftPanel = new JPanel();
-        leftPanel.setLayout(new BorderLayout(5, 5));
+        leftPanel.setLayout(new BorderLayout(2, 2));
         leftPanel.setBorder(
             BorderFactory.createEtchedBorder(1)
         );
         
         errorConsolePanel = new ErrorConsolePanel(
-            new BorderLayout(5, 5),
-            BorderFactory.createEmptyBorder(0, 5, 6, 5)
+            new BorderLayout(2, 2),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
         
         
         inputPanel = getEditorPanel();
-        inputPanel.getComponent().setBorder(BorderFactory.createEmptyBorder(18, 1, 0, 1));
+        inputPanel.getComponent().setBorder(BorderFactory.createEmptyBorder(14, 0, 0, 0));
         inputPanel.addCaretListener(new CaretListener() {
             @Override
             public void caretPositionChanged(@NotNull CaretEvent event) {
@@ -389,13 +389,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             );
         
         JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        //  tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
         treeViewer = pair.a;
         setupContextMenu(treeViewer);
         
-        pair.b.setBorder(BorderFactory.createEmptyBorder(6, 9, 7, 5));
+        pair.b.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         splitter.setFirstComponent(pair.b);
         splitter.setSecondComponent(propertiesPanel);
         
@@ -431,7 +431,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     private Pair<UberTreeViewer, JPanel> createParseTreePanel() {
         // wrap tree and slider in panel
-        JPanel treePanel = new JPanel(new BorderLayout(10, 10));
+        JPanel treePanel = new JPanel(new BorderLayout(2, 4));
         
         final UberTreeViewer viewer =
             isTrackpadZoomSupported ?
@@ -443,6 +443,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         viewer.addParsingResultSelectionListener(this);
         
         this.buttonBarGraph = createButtonBarGraph();
+        buttonBarGraph.getComponent().setBorder(
+            BorderFactory.createEmptyBorder(5, 0, 0, 0)
+        );
         
         
         // Wrap tree viewer component in scroll pane
