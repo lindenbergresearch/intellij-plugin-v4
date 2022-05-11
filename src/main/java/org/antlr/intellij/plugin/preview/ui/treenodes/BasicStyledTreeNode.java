@@ -57,7 +57,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      *
      */
     protected void setSelected() {
-        shape.setStroke(DefaultStyles.THICK_STROKE);
+        //   shape.setStroke(DefaultStyles.THICK_STROKE);
         shape.setBackground((JBColor) shape.getBackground().brighter());
     }
     
