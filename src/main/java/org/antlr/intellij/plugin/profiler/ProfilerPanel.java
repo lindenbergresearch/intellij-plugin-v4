@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.profiler;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
@@ -34,18 +35,21 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 public class ProfilerPanel {
+    private static final Logger LOG =
+        Logger.getInstance("ANTLR ProfilerPanel");
+    
     public static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
     public static final Color FULLCTX_COLOR = new Color(255, 128, 0);
     public static final Color PREDEVAL_COLOR = new Color(110, 139, 61);
     public static final Color DEEPESTLOOK_COLOR = new Color(0, 128, 128);
-
+    
     public static final Key<DecisionEventInfo> DECISION_EVENT_INFO_KEY = Key.create("DECISION_EVENT_INFO");
     public static final Key<DecisionInfo> DECISION_INFO_KEY = Key.create("DECISION_INFO_KEY");
-
+    
     public Project project;
     public PreviewState previewState;
     public PreviewPanel previewPanel;
-
+    
     protected JPanel outerPanel;
     protected JPanel statsPanel;
     protected JLabel parseTimeField;
@@ -60,14 +64,14 @@ public class ProfilerPanel {
     protected JLabel predEvaluationColorLabel;
     protected JBTable profilerDataTable;
     protected JLabel deepestLookaheadLabel;
-
-
+    
+    
     public ProfilerPanel(Project project, PreviewPanel previewPanel) {
         this.project = project;
         this.previewPanel = previewPanel;
     }
-
-
+    
+    
     public static String getSemanticContextDisplayString(
         PredicateEvalInfo pred,
         PreviewState previewState,
@@ -75,7 +79,7 @@ public class ProfilerPanel {
         int alt,
         boolean result
     ) {
-        Grammar g = previewState.g;
+        Grammar g = previewState.grammar;
         String semanticContextDisplayString = g.getSemanticContextDisplayString(semctx);
         if (semctx instanceof SemanticContext.PrecedencePredicate) {
             int ruleIndex = previewState.parsingResult.parser.getATN().decisionToState.get(pred.decision).ruleIndex;
@@ -87,37 +91,37 @@ public class ProfilerPanel {
         }
         return semanticContextDisplayString + " => alt " + alt + " is " + result;
     }
-
-
+    
+    
     public void grammarFileSaved(PreviewState previewState, VirtualFile grammarFile) {
         // leave model and such alone.
     }
-
-
+    
+    
     public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
         this.previewState = previewState;
         DefaultTableModel model = new DefaultTableModel();
         profilerDataTable.setModel(model);
         profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
     }
-
-
+    
+    
     public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
         // clear grammar highlighters related to decision info
         InputPanel.removeHighlighters(e.getEditor(), ProfilerPanel.DECISION_INFO_KEY);
     }
-
-
+    
+    
     public JPanel getComponent() {
         return outerPanel;
     }
-
-
+    
+    
     public JBTable getProfilerDataTable() {
         return profilerDataTable;
     }
-
-
+    
+    
     public void setProfilerData(PreviewState previewState, long parseTime_ns) {
         this.previewState = previewState;
         Parser parser = previewState.parsingResult.parser;
@@ -144,13 +148,15 @@ public class ProfilerPanel {
                 numLines = secondToLastToken.getLine();
             }
         }
-        inputSizeField.setText(String.format("%d char, %d lines",
+        inputSizeField.setText(String.format(
+            "%d char, %d lines",
             numChar,
-            numLines));
+            numLines
+        ));
         numTokensField.setText(String.valueOf(numTokens));
         double look =
             parseInfo.getTotalSLLLookaheadOps() +
-                parseInfo.getTotalLLLookaheadOps();
+            parseInfo.getTotalLLLookaheadOps();
         lookaheadBurdenField.setText(
             String.format("%d/%d = %3.2f", (long) look, numTokens, look / numTokens)
         );
@@ -159,8 +165,8 @@ public class ProfilerPanel {
             String.format("%d/%d = %3.2f%%", (long) atnLook, (long) look, atnLook * 100.0 / look)
         );
     }
-
-
+    
+    
     public void updateTableModelPerExpertCheckBox(ParseInfo parseInfo, Parser parser) {
         AbstractTableModel model;
         if (expertCheckBox.isSelected()) {
@@ -171,24 +177,24 @@ public class ProfilerPanel {
         profilerDataTable.setModel(model);
         profilerDataTable.setRowSorter(new TableRowSorter<>(model));
     }
-
-
+    
+    
     public void selectDecisionInGrammar(PreviewState previewState, int decision) {
         final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
         if (controller == null) return;
         final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
         if (grammarEditor == null) return;
-
-        DecisionState decisionState = previewState.g.atn.getDecisionState(decision);
-        Interval region = previewState.g.getStateToGrammarRegion(decisionState.stateNumber);
+        
+        DecisionState decisionState = previewState.grammar.atn.getDecisionState(decision);
+        Interval region = previewState.grammar.getStateToGrammarRegion(decisionState.stateNumber);
         if (region == null) {
-            System.err.println("decision " + decision + " has state " + decisionState.stateNumber + " but no region");
+            LOG.error("decision " + decision + " has state " + decisionState.stateNumber + " but no region");
             return;
         }
-
+        
         InputPanel.removeHighlighters(grammarEditor, ProfilerPanel.DECISION_INFO_KEY);
-
-        org.antlr.runtime.TokenStream tokens = previewState.g.tokenStream;
+        
+        org.antlr.runtime.TokenStream tokens = previewState.grammar.tokenStream;
         if (region.a >= tokens.size() || region.b >= tokens.size()) {
             return;
         }
@@ -205,10 +211,11 @@ public class ProfilerPanel {
         if (decisionInfo.ambiguities.size() > 0) {
             effectColor = new JBColor(AMBIGUITY_COLOR, AMBIGUITY_COLOR);
         }
-
+        
         TextAttributes attr =
             new TextAttributes(JBColor.BLACK, JBColor.WHITE, effectColor,
-                EffectType.ROUNDED_BOX, Font.PLAIN);
+                               EffectType.ROUNDED_BOX, Font.PLAIN
+            );
         MarkupModel markupModel = grammarEditor.getMarkupModel();
         final RangeHighlighter rangeHighlighter = markupModel.addRangeHighlighter(
             startToken.getStartIndex(),
@@ -218,29 +225,29 @@ public class ProfilerPanel {
             HighlighterTargetArea.EXACT_RANGE
         );
         rangeHighlighter.putUserData(DECISION_INFO_KEY, decisionInfo);
-
+        
         ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
         CaretModel caretModel = grammarEditor.getCaretModel();
         caretModel.moveToOffset(startToken.getStartIndex());
         scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
     }
-
-
+    
+    
     public void highlightInputPhrases(PreviewState previewState, int decision) {
         if (previewState == null || previewState.parsingResult == null) {
             return;
         }
-
+        
         Editor inputEditor = previewState.getInputEditor();
         ScrollingModel scrollingModel = inputEditor.getScrollingModel();
         CaretModel caretModel = inputEditor.getCaretModel();
         MarkupModel markupModel = inputEditor.getMarkupModel();
-
+        
         InputPanel.clearDecisionEventHighlighters(inputEditor);
-
+        
         ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
         DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
-
+        
         Token firstToken = null;
         // deepest lookahead
         long maxLook = Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
@@ -251,36 +258,37 @@ public class ProfilerPanel {
                 maxLookEvent = decisionInfo.LL_MaxLookEvent;
             }
             firstToken = addDecisionEventHighlighter(previewState, markupModel,
-                maxLookEvent,
-                DEEPESTLOOK_COLOR,
-                EffectType.BOLD_DOTTED_LINE);
+                                                     maxLookEvent,
+                                                     DEEPESTLOOK_COLOR,
+                                                     EffectType.BOLD_DOTTED_LINE
+            );
         }
-
+        
         // pred evals
         for (PredicateEvalInfo predEvalInfo : decisionInfo.predicateEvals) {
             Token t = addDecisionEventHighlighter(previewState, markupModel, predEvalInfo, PREDEVAL_COLOR, EffectType.ROUNDED_BOX);
             if (firstToken == null) firstToken = t;
         }
-
+        
         // context-sensitivities
         for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
             Token t = addDecisionEventHighlighter(previewState, markupModel, ctxSensitivityInfo, FULLCTX_COLOR, EffectType.ROUNDED_BOX);
             if (firstToken == null) firstToken = t;
         }
-
+        
         // ambiguities (might overlay context-sensitivities)
         for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
             Token t = addDecisionEventHighlighter(previewState, markupModel, ambiguityInfo, AMBIGUITY_COLOR, EffectType.ROUNDED_BOX);
             if (firstToken == null) firstToken = t;
         }
-
+        
         if (firstToken != null) {
             caretModel.moveToOffset(firstToken.getStartIndex());
             scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
         }
     }
-
-
+    
+    
     public Token addDecisionEventHighlighter(
         PreviewState previewState, MarkupModel markupModel,
         DecisionEventInfo info, Color errorStripeColor,
@@ -291,19 +299,21 @@ public class ProfilerPanel {
         Token stopToken = tokens.get(info.stopIndex);
         TextAttributes textAttributes =
             new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor,
-                effectType, Font.PLAIN);
+                               effectType, Font.PLAIN
+            );
         textAttributes.setErrorStripeColor(errorStripeColor);
         final RangeHighlighter rangeHighlighter =
             markupModel.addRangeHighlighter(
                 startToken.getStartIndex(), stopToken.getStopIndex() + 1,
                 HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
-                HighlighterTargetArea.EXACT_RANGE);
+                HighlighterTargetArea.EXACT_RANGE
+            );
         rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, info);
         rangeHighlighter.setErrorStripeMarkColor(errorStripeColor);
         return startToken;
     }
-
-
+    
+    
     private void createUIComponents() {
         expertCheckBox = new JBCheckBox();
         expertCheckBox.setSelected(false);
@@ -331,8 +341,8 @@ public class ProfilerPanel {
                     }
                 };
             }
-
-
+            
+            
             @Override
             public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
                 return new ProfileTableCellRenderer();
@@ -355,7 +365,7 @@ public class ProfilerPanel {
                         selectedRow = 0;
                     }
                     int decision = profilerDataTable.convertRowIndexToModel(selectedRow);
-                    int numberOfDecisions = previewState.g.atn.getNumberOfDecisions();
+                    int numberOfDecisions = previewState.grammar.atn.getNumberOfDecisions();
                     if (decision <= numberOfDecisions) {
                         selectDecisionInGrammar(previewState, decision);
                         highlightInputPhrases(previewState, decision);
@@ -373,8 +383,8 @@ public class ProfilerPanel {
         deepestLookaheadLabel = new JBLabel("Deepest lookahead");
         deepestLookaheadLabel.setForeground(DEEPESTLOOK_COLOR);
     }
-
-
+    
+    
     class ProfileTableCellRenderer extends DefaultTableCellRenderer {
         public Component getTableCellRendererComponent(
             JTable table, Object value,
@@ -402,5 +412,5 @@ public class ProfilerPanel {
             return c;
         }
     }
-
+    
 }
