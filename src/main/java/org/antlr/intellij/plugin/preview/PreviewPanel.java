@@ -12,10 +12,10 @@ import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -99,15 +99,18 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         this.setLayout(new BorderLayout());
         
         // Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
-        Splitter splitPane = new Splitter();
+        JBSplitter splitPane = new JBSplitter();
         splitPane.setShowDividerIcon(true);
         splitPane.setDividerWidth(2);
+        splitPane.setProportion(0.4f);
+        splitPane.setAndLoadSplitterProportionKey("PreviewPanel.splitPane");
         
-        Splitter splitPaneLeft = new Splitter();
+        JBSplitter splitPaneLeft = new JBSplitter();
         splitPaneLeft.setShowDividerIcon(true);
         splitPaneLeft.setDividerWidth(3);
         splitPaneLeft.setProportion(0.8f);
         splitPaneLeft.setOrientation(true);
+        splitPaneLeft.setAndLoadSplitterProportionKey("PreviewPanel.splitPaneLeft");
         
         leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout(2, 2));
@@ -146,7 +149,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         tabbedPanel.setBorder(BorderFactory.createEtchedBorder(1));
         splitPane.setFirstComponent(leftPanel);
         splitPane.setSecondComponent(tabbedPanel);
-        splitPane.setProportion(0.4f);
+        
         
         // keep track of panel size changes
         splitPane.addPropertyChangeListener(propertyChangeEvent -> treeViewer.setTreeUpdated(true));
@@ -272,6 +275,21 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
+        ToggleAction showObjectExplorer = new ToggleAction("Object Explorer", "Show Object Explorer to show additional properties for tree-nodes.",
+                                                           GroupByPrefix
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return propertiesPanel.isVisible();
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                propertiesPanel.setVisible(state);
+            }
+        };
+        
         
         DefaultActionGroup actionGroup = new DefaultActionGroup(
             autoScaleDiagram,
@@ -290,7 +308,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         actionGroup.addSeparator();
         
         actionGroup.addAll(
-            useCompactLabels
+            useCompactLabels,
+            showObjectExplorer
         );
         
         ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true);
@@ -377,11 +396,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private JTabbedPane createParseTreeAndProfileTabbedPanel() {
-        Splitter splitter = new Splitter();
+        JBSplitter splitter = new JBSplitter();
         splitter.setShowDividerIcon(true);
         splitter.setDividerWidth(2);
         splitter.setProportion(0.8f);
         splitter.setOrientation(false);
+        splitter.setAndLoadSplitterProportionKey("PreviewPanel.parseTreeSplitter");
         
         propertiesPanel =
             new PropertiesPanel(
