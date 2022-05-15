@@ -18,7 +18,8 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     public BasicStyledTreeNode() {
         super();
-        styleProperties = DefaultStyles.DEFAULT_STYLE;
+        styleProperties =
+            DefaultStyles.DEFAULT_STYLE;
     }
     
     
@@ -28,11 +29,17 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      * @param parent   The parent element.
      * @param viewport The elements' area to draw to.
      * @param styles   The style-properties of the element.
+     * @param selected Indicates node selection.
+     * @param compact  Indicates if compact mode is set for this node.
      */
-    public BasicStyledTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties styles, boolean selected) {
+    public BasicStyledTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties styles, boolean selected, boolean compact) {
         super(parent, viewport, styles);
         
-        if (selected) setSelected();
+        if (selected)
+            setSelected();
+        
+        if (compact)
+            setCompact();
     }
     
     
@@ -41,7 +48,12 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     @Override
     public void setup() {
-        shape = new StyledRoundRect(this, DefaultStyles.ROUND_RECT_WIDTH, DefaultStyles.ROUND_RECT_HEIGHT);
+        shape = new StyledRoundRect(
+            this,
+            DefaultStyles.ROUND_RECT_WIDTH,
+            DefaultStyles.ROUND_RECT_HEIGHT
+        );
+        
         add(shape);
         
         label = new StyledLabel(this);
@@ -54,10 +66,19 @@ public class BasicStyledTreeNode extends StyledTreeNode {
     
     
     /**
-     *
+     * Adapt style properties for compact mode.
+     */
+    protected void setCompact() {
+        shape.setEnabled(false);
+        setForeground((JBColor) getBackground().brighter());
+    }
+    
+    
+    /**
+     * Adapt style properties for selected tree-node.
      */
     protected void setSelected() {
-        //   shape.setStroke(DefaultStyles.THICK_STROKE);
+        shape.setStroke(DefaultStyles.THICK_STROKE);
         shape.setBackground((JBColor) shape.getBackground().brighter());
     }
     
@@ -69,6 +90,5 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      * @param graphics2D Graphics context.
      */
     @Override
-    public void draw(Graphics2D graphics2D) {
-    }
+    public void draw(Graphics2D graphics2D) {}
 }
