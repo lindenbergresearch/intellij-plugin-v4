@@ -35,6 +35,9 @@ public class BasicStyledTreeNode extends StyledTreeNode {
     public BasicStyledTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties styles, boolean selected, boolean compact) {
         super(parent, viewport, styles);
         
+        this.selected = selected;
+        this.compact = compact;
+        
         if (selected)
             setSelected();
         
