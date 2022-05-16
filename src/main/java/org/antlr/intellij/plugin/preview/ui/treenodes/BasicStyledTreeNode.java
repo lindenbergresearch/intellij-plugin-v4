@@ -33,7 +33,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      * @param compact  Indicates if compact mode is set for this node.
      */
     public BasicStyledTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties styles, boolean selected, boolean compact) {
-        super(parent, viewport, styles);
+        super(parent, viewport, StyleProperties.deriveFrom(styles));
         
         this.selected = selected;
         this.compact = compact;
@@ -64,7 +64,8 @@ public class BasicStyledTreeNode extends StyledTreeNode {
         
         footer = new StyledLabel(this);
         add(footer);
-        footer.setFontScale(0.8f);
+        footer.setFontScale(0.7f);
+        footer.setFont(footer.getFont().deriveFont(Font.BOLD, footer.getFont().getSize()));
     }
     
     
@@ -73,7 +74,8 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     protected void setCompact() {
         shape.setEnabled(false);
-        setForeground((JBColor) getBackground().brighter());
+        label.setTextColor((JBColor) shape.getBackground().brighter());
+        label.setFont(label.getFont().deriveFont(label.getFont().getSize() - 2));
     }
     
     

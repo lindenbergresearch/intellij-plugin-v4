@@ -19,6 +19,7 @@ public abstract class StyledTreeNode extends StyledElement {
     protected String[] lines;
     protected double spacing = 0.6;
     protected boolean selected = false;
+    protected boolean compact = false;
     
     
     /**
@@ -155,5 +156,15 @@ public abstract class StyledTreeNode extends StyledElement {
     
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+    
+    
+    public boolean isCompact() {
+        return compact;
+    }
+    
+    
+    public void setCompact(boolean compact) {
+        this.compact = compact;
     }
 }

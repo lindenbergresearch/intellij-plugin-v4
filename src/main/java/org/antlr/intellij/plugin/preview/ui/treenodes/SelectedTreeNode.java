@@ -13,8 +13,8 @@ import java.awt.geom.Rectangle2D;
 public class SelectedTreeNode extends BasicStyledTreeNode {
 
 
-    public SelectedTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties base) {
-        super(parent, viewport, DefaultStyles.SELECTED_NODE_STYLE, true);
+    public SelectedTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties base, boolean compact) {
+        super(parent, viewport, DefaultStyles.SELECTED_NODE_STYLE, true,compact);
         this.setStyleProperties(base);
 
         styleProperties.setStroke(DefaultStyles.THICK_STROKE);
