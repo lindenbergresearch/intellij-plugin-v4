@@ -40,6 +40,8 @@ import static java.lang.Math.min;
  * Enhanced version based on: {@code TreeViewer}
  */
 public class UberTreeViewer extends JComponent implements MouseListener, MouseMotionListener {
+    
+    
     private static final Logger LOG =
         Logger.getInstance("ANTLR UberTreeViewer");
     
@@ -49,8 +51,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public final static double SCALING_INCREMENT = 0.15;
     public final static double NODE_FOCUS_MARGIN = 140;
     public final static double NODE_FOCUS_SCALE_FACTOR = 1.25;
-    public final static int VIEWER_HORIZONTAL_MARGIN = 30;
-    public final static int VIEWER_VERTICAL_MARGIN = 30;
+    public final static int VIEWER_HORIZONTAL_MARGIN = 25;
+    public final static int VIEWER_VERTICAL_MARGIN = 25;
     public final static int SCROLL_VIEWPORT_MARGIN = 30;
     public static final double COMPACT_LABELS_FACTOR = 0.7;
     
@@ -68,7 +70,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
     protected JScrollPane scrollPane;
     protected VariableExtentProvider extentProvider;
-    
+    protected Location layoutOrientation;
     protected int minCellWidth, count;
     protected float edgesStrokeWidth;
     protected boolean autoscaling;
@@ -122,6 +124,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public UberTreeViewer(PreviewPanel previewPanel) {
         this.previewPanel = previewPanel;
         this.setBackground(DefaultStyles.getConsoleBackground());
+        this.layoutOrientation = Location.Top;
         
         /* get instance of node bounds provider */
         extentProvider = new VariableExtentProvider(this);
@@ -184,16 +187,56 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         ((Graphics2D) g).setStroke(stroke);
         
-        Rectangle2D.Double parentBounds = getBoundsOfNode(parent);
-        double x1 = parentBounds.getCenterX();
-        double y1 = parentBounds.getMaxY();
+        Rectangle2D.Double parentBounds =
+            getBoundsOfNode(parent);
+        
+        double x1 = 0;
+        double y1 = 0;
+        
+        switch (layoutOrientation) {
+            case Top:
+                x1 = parentBounds.getCenterX();
+                y1 = parentBounds.getMaxY();
+                break;
+            case Left:
+                x1 = parentBounds.getMaxX();
+                y1 = parentBounds.getCenterY();
+                break;
+            case Right:
+                x1 = parentBounds.getX();
+                y1 = parentBounds.getCenterY();
+                break;
+            case Bottom:
+                x1 = parentBounds.getCenterX();
+                y1 = parentBounds.getY();
+        }
         
         for (int i = 0; i < parent.getChildCount(); i++) {
             Tree child = parent.getChild(i);
             
-            Rectangle2D.Double childBounds = getBoundsOfNode(child);
-            double x2 = childBounds.getCenterX();
-            double y2 = childBounds.getMinY();
+            Rectangle2D.Double childBounds =
+                getBoundsOfNode(child);
+            
+            double x2 = 0;
+            double y2 = 0;
+            
+            switch (layoutOrientation) {
+                case Bottom:
+                    x2 = childBounds.getCenterX();
+                    y2 = childBounds.getMaxY();
+                    break;
+                case Right:
+                    x2 = childBounds.getMaxX();
+                    y2 = childBounds.getCenterY();
+                    break;
+                case Left:
+                    x2 = childBounds.getX();
+                    y2 = childBounds.getCenterY();
+                    break;
+                case Top:
+                    x2 = childBounds.getCenterX();
+                    y2 = childBounds.getY();
+            }
             
             if (sel) g.setColor(DefaultStyles.EDGE_COLOR_SELECTED);
             else g.setColor(DefaultStyles.EDGE_COLOR_DEFAULT);
@@ -735,7 +778,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             new DefaultConfiguration<>(
                 verticalGap,
                 horizontalGap,
-                Location.Top,
+                layoutOrientation,
                 AlignmentInLevel.AwayFromRoot
             );
         
