@@ -64,8 +64,8 @@ public class BasicStyledTreeNode extends StyledTreeNode {
         
         footer = new StyledLabel(this);
         add(footer);
-        footer.setFontScale(0.7f);
-        footer.setFont(footer.getFont().deriveFont(Font.BOLD, footer.getFont().getSize()));
+        footer.setFontScale(0.75f);
+        label.setFont(label.getFont().deriveFont(Font.BOLD, label.getFont().getSize()));
     }
     
     
@@ -75,7 +75,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
     protected void setCompact() {
         shape.setEnabled(false);
         label.setTextColor((JBColor) shape.getBackground().brighter());
-        label.setFont(label.getFont().deriveFont(label.getFont().getSize() - 2));
+        label.setFont(label.getFont().deriveFont(label.getFont().getSize() - 3.f));
     }
     
     
