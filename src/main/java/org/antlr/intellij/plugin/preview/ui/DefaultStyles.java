@@ -19,7 +19,7 @@ public class DefaultStyles {
     public static final int ROUND_RECT_HEIGHT = 8;
     
     // standard font size
-    public static final float BASIC_FONT_SIZE = 13.f;
+    public static final float BASIC_FONT_SIZE = JBFont.regular().getSize2D();
     
     // text layout setup
     public static final HorizontalLayout
@@ -45,13 +45,12 @@ public class DefaultStyles {
     /* ----- FONT FACES --------------------------------------*/
     
     public static final Font REGULAR_FONT =
-        JBFont.regular().deriveFont(BASIC_FONT_SIZE);
+        JBFont.regular();
+//        JBFont.regular().deriveFont(BASIC_FONT_SIZE);
     //   new Font("Times New Romen", Font.PLAIN, (int) BASIC_FONT_SIZE);
-    public static final Font MONOSPACE_FONT =
-        new Font("Monospaced", Font.PLAIN, (int) BASIC_FONT_SIZE);
     
-    public static final Font SMALL_TERMINAL_FONT =
-        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE - 2);
+    public static final Font SMALL_FONT =
+        JBFont.small();
     
     public static final Font BOLD_FONT =
         REGULAR_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE);
@@ -59,10 +58,14 @@ public class DefaultStyles {
     public static final Font ITALIC_FONT =
         REGULAR_FONT.deriveFont(Font.ITALIC, BASIC_FONT_SIZE);
     
-    public static final Font TERMINAL_FONT =
-        REGULAR_FONT.deriveFont(BASIC_FONT_SIZE);
+    public static final Font MONOSPACE_FONT =
+        new Font("Monospaced", Font.PLAIN, (int) BASIC_FONT_SIZE);
     
+    public static final Font SMALL_TERMINAL_FONT =
+        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE - 2);
     
+    public static final Font SMALL_ITALIC_TERMINAL_FONT =
+        MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE - 2);
     
     
     /* ----- COLORS ------------------------------------------*/
@@ -71,24 +74,26 @@ public class DefaultStyles {
     public final static JBColor JB_COLOR_GRAY = new JBColor(Gray._122, new Color(100, 102, 103));
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
     public final static JBColor JB_COLOR_BLUE = JBColor.BLUE;
-    public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(134, 72, 72));
+    public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(231, 87, 87));
     public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(100, 197, 100), new Color(58, 110, 56));
     public final static JBColor JB_COLOR_YELLOW = new JBColor(new Color(255, 242, 97), new Color(248, 248, 105));
     public final static JBColor JB_COLOR_PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
-    public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 167, 192), new Color(63, 109, 141));
-    public final static JBColor JB_COLOR_BROWN = new JBColor(new Color(245, 176, 106), new Color(208, 155, 82));
+    public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 167, 192), new Color(90, 199, 170));
+    public final static JBColor JB_COLOR_BROWN = new JBColor(new Color(245, 176, 106), new Color(203, 85, 42));
     
     public final static JBColor EDGE_COLOR_DEFAULT = JB_COLOR_GRAY;
     public final static JBColor EDGE_COLOR_SELECTED = JB_COLOR_DARK;
     
     
     /**
+     * Default console background color.
+     *
      * @return
      */
     public static JBColor getConsoleBackground() {
-        if (JBColor.isBright()) {
-            return new JBColor(JBColor.background(), JBColor.background());
-        }
+//        if (JBColor.isBright()) {
+//            return new JBColor(JBColor.background(), JBColor.background());
+//        }
         
         return new JBColor(JBColor.background(), JBColor.background().darker().darker());
     }
@@ -163,7 +168,7 @@ public class DefaultStyles {
         new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_BRIGHT,
-            JB_COLOR_DARK,
+            JB_COLOR_CYAN,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
             BOLD_FONT
@@ -173,10 +178,10 @@ public class DefaultStyles {
         new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
+            JB_COLOR_BROWN,
             JB_COLOR_BRIGHT,
-            JB_COLOR_DARK,
             THICK_STROKE,
-            SMALL_TERMINAL_FONT
+            SMALL_ITALIC_TERMINAL_FONT
         );
     
     
@@ -184,7 +189,7 @@ public class DefaultStyles {
         new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
-            JB_COLOR_BRIGHT,
+            JB_COLOR_DARK,
             JB_COLOR_DARK,
             DEFAULT_STROKE,
             SMALL_TERMINAL_FONT

@@ -62,7 +62,11 @@ public class StyledRoundRect extends StyledShape {
         if (hasOutlineColor()) {
             setForeground(getOutlineColor());
         } else {
-            setForeground((JBColor) getBackground().darker());
+            setForeground(
+                JBColor.isBright() ?
+                    (JBColor) getBackground().brighter() :
+                    (JBColor) getBackground().darker()
+            );
         }
         
         if (isFilled()) {
@@ -79,7 +83,7 @@ public class StyledRoundRect extends StyledShape {
             graphics2D.setColor(JBColor.YELLOW.brighter());
             
             graphics2D.drawLine(
-                (int) 0.0,
+                0,
                 (int) getCenter().y,
                 (int) getWidth(),
                 (int) getCenter().y
@@ -87,7 +91,7 @@ public class StyledRoundRect extends StyledShape {
             
             graphics2D.drawLine(
                 (int) getCenter().x,
-                (int) 0.0,
+                0,
                 (int) getCenter().x,
                 (int) getHeight()
             );
