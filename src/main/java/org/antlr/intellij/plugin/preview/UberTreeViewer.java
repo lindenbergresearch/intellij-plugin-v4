@@ -117,6 +117,27 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     
     /**
+     * Tests for the given layout orientation.
+     *
+     * @param layoutOrientation Layout orientation.
+     * @return True if matches.
+     */
+    public boolean hasLayoutOrientation(Location layoutOrientation) {
+        return this.layoutOrientation == layoutOrientation;
+    }
+    
+    
+    /**
+     * Sets the layout orientation.
+     *
+     * @param layoutOrientation Layout orientation.
+     */
+    public void setLayoutOrientation(Location layoutOrientation) {
+        this.layoutOrientation = layoutOrientation;
+    }
+    
+    
+    /**
      * Creates the UberTreeViewer component based on the given tree node.
      *
      * @param previewPanel Reference to the PreviewPanel.
