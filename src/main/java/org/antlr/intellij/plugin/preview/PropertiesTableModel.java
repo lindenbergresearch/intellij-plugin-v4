@@ -1,18 +1,22 @@
 package org.antlr.intellij.plugin.preview;
 
+import org.antlr.v4.runtime.misc.Pair;
 import org.jetbrains.annotations.Nls;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Table model for displaying 2 column mode properties.
  */
 class PropertiesTableModelModel implements TableModel {
+    public static int PROPERTIES_NAME_COLUMN = 0;
+    public static int PROPERTIES_VALUE_COLUMN = 1;
     
-    private final Map<String, Object> properties;
+    
+    private final List<Pair<String, Object>> properties;
     private final String[] columnNames;
     
     
@@ -23,7 +27,7 @@ class PropertiesTableModelModel implements TableModel {
      */
     public PropertiesTableModelModel(String... columnNames) {
         this.columnNames = columnNames;
-        properties = new HashMap<String, Object>();
+        properties = new ArrayList<>();
     }
     
     
@@ -63,11 +67,16 @@ class PropertiesTableModelModel implements TableModel {
     @Override
     public Object getValueAt(int row, int col) {
         if (row >= 0 && col < getColumnCount()) {
-            String key = (String) properties.keySet().toArray()[row];
-            // return key if first column in properties table
-            if (col == 0) return key;
-            // else return the associated value
-            return properties.get(key);
+            Pair<String, Object> entry =
+                properties.get(row);
+            
+            if (col == PROPERTIES_NAME_COLUMN) {
+                return entry.a;
+            }
+            
+            if (col == PROPERTIES_VALUE_COLUMN) {
+                return entry.b;
+            }
         }
         
         return null;
@@ -91,7 +100,7 @@ class PropertiesTableModelModel implements TableModel {
     }
     
     
-    public Map<String, Object> getProperties() {
+    public List<Pair<String, Object>> getProperties() {
         return properties;
     }
     
