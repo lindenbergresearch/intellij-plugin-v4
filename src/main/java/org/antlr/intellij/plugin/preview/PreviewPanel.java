@@ -1,7 +1,9 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.icons.AllIcons.Chooser;
 import com.intellij.icons.AllIcons.Hierarchy;
+import com.intellij.icons.AllIcons.Json;
 import com.intellij.icons.AllIcons.Toolwindows;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -18,6 +20,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import org.abego.treelayout.Configuration.Location;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -152,7 +155,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         
         // keep track of panel size changes
-        splitPane.addPropertyChangeListener(propertyChangeEvent -> treeViewer.setTreeUpdated(true));
+        //  splitPane.addPropertyChangeListener(propertyChangeEvent -> treeViewer.setTreeUpdated(true));
         
         this.buttonBar = createButtonBar();
         this.add(buttonBar.getComponent(), BorderLayout.WEST);
@@ -164,28 +167,30 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      * @return
      */
     private ActionToolbar createButtonBarGraph() {
-        ToggleAction autoScaleDiagram =
-            new ToggleAction(
-                "Auto-Scale",
-                "Set proper zoom-level upon live-testing grammars.",
-                Replace
-            ) {
+        ToggleAction toggleAutoscaling = new ToggleAction(
+            "Auto-Scale",
+            "Set proper zoom-level upon live-testing grammars.",
+            Replace
+        ) {
+            
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.autoscaling;
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.autoscaling = state;
+                treeViewer.setTreeInvalidated(true);
                 
-                @Override
-                public boolean isSelected(@NotNull AnActionEvent e) {
-                    return treeViewer.autoscaling;
-                }
-                
-                
-                @Override
-                public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                    treeViewer.autoscaling = state;
-                    treeViewer.setTreeUpdated(true);
-                    
-                }
-            };
+            }
+        };
         
-        AnAction zoomActualSize = new AnAction("Actual Size", "Set zoom-level to 1:1.", ActualZoom) {
+        AnAction zoomActualSize = new AnAction(
+            "Actual Size", "Set zoom-level to 1:1.",
+            ActualZoom
+        ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 super.update(e);
@@ -198,11 +203,17 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setScaleLevel(1.0);
-                treeViewer.setTreeUpdated(true);
+                treeViewer.setTreeInvalidated(true);
             }
         };
         
-        AnAction zoomOut = new AnAction("Zoom Out", null, ZoomOut) {
+        /* --------------------------------------------------------------------- */
+        
+        AnAction zoomOut = new AnAction(
+            "Zoom Out",
+            null,
+            ZoomOut
+        ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 super.update(e);
@@ -215,11 +226,15 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setRelativeScaling(-UberTreeViewer.SCALING_INCREMENT);
-                treeViewer.setTreeUpdated(true);
+                treeViewer.setTreeInvalidated(true);
             }
         };
         
-        AnAction zoomIn = new AnAction("Zoom In", null, ZoomIn) {
+        AnAction zoomIn = new AnAction(
+            "Zoom In",
+            null,
+            ZoomIn
+        ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 super.update(e);
@@ -232,12 +247,16 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setRelativeScaling(UberTreeViewer.SCALING_INCREMENT);
-                treeViewer.setTreeUpdated(true);
+                treeViewer.setTreeInvalidated(true);
                 
             }
         };
         
-        AnAction fitScreen = new AnAction("Fit Screen", "Fit content to screen.", FitContent) {
+        AnAction fitScreen = new AnAction(
+            "Fit Screen",
+            "Fit content to screen.",
+            FitContent
+        ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 super.update(e);
@@ -248,21 +267,29 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.doAutoScale();
-                treeViewer.setTreeUpdated(true);
+                treeViewer.setTreeInvalidated(true);
             }
         };
         
-        AnAction fitSelected = new AnAction("Fit Selected Node", "Zoom to selected tree node.", ShortcutFilter) {
+        AnAction fitSelected = new AnAction(
+            "Fit Selected Node",
+            "Zoom to selected tree node.",
+            ShortcutFilter
+        ) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.focusSelectedNode();
-                treeViewer.setTreeUpdated(true);
+                treeViewer.setTreeInvalidated(true);
             }
         };
         
         /* --------------------------------------------------------------------- */
         
-        ToggleAction useCompactLabels = new ToggleAction("Compact Labels", "Use compact labeling for tree-nodes.", AllIcons.Json.Array) {
+        ToggleAction toggleCompactLabels = new ToggleAction(
+            "Compact Labels",
+            "Use compact labeling for tree-nodes.",
+            Json.Array
+        ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return treeViewer.isCompactLabels();
@@ -275,8 +302,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
-        ToggleAction showObjectExplorer = new ToggleAction("Object Explorer", "Show Object Explorer to show additional properties for tree-nodes.",
-                                                           GroupByPrefix
+        ToggleAction toggleObjectExplorer = new ToggleAction(
+            "Object Explorer",
+            "Show Object Explorer to show additional properties for tree-nodes.",
+            GroupByPrefix
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -287,12 +316,90 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 propertiesPanel.setVisible(state);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        /* --------------------------------------------------------------------- */
+        
+        ToggleAction toggleTopLayout = new ToggleAction(
+            "Top-Down Layout",
+            "Layout orientation from top to bottom.",
+            Chooser.Bottom
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.hasLayoutOrientation(Location.Top);
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setLayoutOrientation(Location.Top);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        ToggleAction toggleBottomLayout = new ToggleAction(
+            "Bottom-Up Layout",
+            "Layout orientation from bottom to top.",
+            Chooser.Top
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.hasLayoutOrientation(Location.Bottom);
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setLayoutOrientation(Location.Bottom);
+                treeViewer.setTreeInvalidated(true);
             }
         };
         
         
+        ToggleAction toggleLeftLayout = new ToggleAction(
+            "Left-Right Layout",
+            "Layout orientation from left to right.",
+            Chooser.Right
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.hasLayoutOrientation(Location.Left);
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setLayoutOrientation(Location.Left);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        ToggleAction toggleRightLayout = new ToggleAction(
+            "Right-Left Layout",
+            "Layout orientation from right to left.",
+            Chooser.Left
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.hasLayoutOrientation(Location.Right);
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setLayoutOrientation(Location.Right);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        
+        /* --------------------------------------------------------------------- */
+        
         DefaultActionGroup actionGroup = new DefaultActionGroup(
-            autoScaleDiagram,
+            toggleAutoscaling,
             fitScreen,
             fitSelected
         );
@@ -308,8 +415,17 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         actionGroup.addSeparator();
         
         actionGroup.addAll(
-            useCompactLabels,
-            showObjectExplorer
+            toggleCompactLabels,
+            toggleObjectExplorer
+        );
+        
+        actionGroup.addSeparator();
+        
+        actionGroup.addAll(
+            toggleTopLayout,
+            toggleBottomLayout,
+            toggleLeftLayout,
+            toggleRightLayout
         );
         
         ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true);
@@ -423,7 +539,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         splitter.setSecondComponent(propertiesPanel);
         
         // keep track of panel size changes
-        splitter.addPropertyChangeListener(propertyChangeEvent -> treeViewer.setTreeUpdated(true));
+        //   splitter.addPropertyChangeListener(propertyChangeEvent -> treeViewer.setTreeUpdated(true));
         
         tabbedPane.addTab("Parse tree", Hierarchy.Subtypes, splitter);
         pair.a.previewPanel = this;
@@ -459,14 +575,14 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         // wrap tree and slider in panel
         JPanel treePanel = new JPanel(new BorderLayout(2, 4));
         
-        final UberTreeViewer viewer =
+        final UberTreeViewer uberTreeViewer =
             isTrackpadZoomSupported ?
                 new TrackpadZoomingTreeView(this) :
                 new UberTreeViewer(this);
         
         
-        viewer.setDoubleBuffered(true);
-        viewer.addParsingResultSelectionListener(this);
+        uberTreeViewer.setDoubleBuffered(true);
+        uberTreeViewer.addParsingResultSelectionListener(this);
         
         this.buttonBarGraph = createButtonBarGraph();
         buttonBarGraph.getComponent().setBorder(
@@ -474,9 +590,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         );
         
         
-        // Wrap tree viewer component in scroll pane
+        // Wrap tree uberTreeViewer component in scroll pane
         JScrollPane scrollPane = new JBScrollPane(
-            viewer,
+            uberTreeViewer,
             JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
             JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
         );
@@ -487,10 +603,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         treePanel.add(buttonBarGraph.getComponent(), BorderLayout.NORTH);
         treePanel.add(scrollPane, BorderLayout.CENTER);
         
-        viewer.scrollPane = scrollPane;
-        viewer.setBackground(JBColor.background().darker().darker());
+        uberTreeViewer.scrollPane = scrollPane;
         
-        return new Pair<>(viewer, treePanel);
+        return new Pair<>(uberTreeViewer, treePanel);
     }
     
     
