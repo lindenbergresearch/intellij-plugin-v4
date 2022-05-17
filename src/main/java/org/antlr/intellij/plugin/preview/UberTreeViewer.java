@@ -897,9 +897,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             );
             k++;
         }
-        
-        if (selectedTreeNode != null)
-            previewPanel.getPropertiesPanel().setTreeNode((ParseTree) selectedTreeNode);
     }
     
     
@@ -1026,6 +1023,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         if (node != null) {
             // set selected node
             setSelectedTreeNode(node);
+            
+            // update object explorer
+            previewPanel.getPropertiesPanel().setTreeNode((ParseTree) node);
+            previewPanel.repaint();
             
             Rectangle2D nodeBounds = getBoundsOfNode(node);
             Rectangle marginBox = new Rectangle(
