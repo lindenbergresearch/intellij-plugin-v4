@@ -64,7 +64,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
         
         footer = new StyledLabel(this);
         add(footer);
-        footer.setFontScale(0.75f);
+        footer.setFontScale(0.833f);
         label.setFont(label.getFont().deriveFont(Font.BOLD, label.getFont().getSize()));
     }
     

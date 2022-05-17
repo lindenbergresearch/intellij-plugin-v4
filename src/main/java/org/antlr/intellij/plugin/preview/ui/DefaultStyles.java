@@ -103,7 +103,7 @@ public class DefaultStyles {
     // default stroke setup
     public static final Stroke DEFAULT_STROKE =
         new BasicStroke(
-            1.f,
+            1.0f,
             BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND
         );

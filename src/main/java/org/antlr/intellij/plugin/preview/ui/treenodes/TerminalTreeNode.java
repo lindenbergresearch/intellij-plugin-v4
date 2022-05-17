@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.preview.ui.treenodes;
 
-import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.antlr.intellij.plugin.preview.ui.StyledElement;
 
@@ -13,12 +12,14 @@ public class TerminalTreeNode extends BasicStyledTreeNode {
     public TerminalTreeNode(StyledElement parent, Rectangle2D viewport, boolean selected, boolean compact) {
         super(parent, viewport, DefaultStyles.TERMINAL_NODE_STYLE, selected, compact);
         shiftViewport(0, OFFSET);
-        shape.setFilled(selected);
-        shape.setEnabled(selected);
+        shape.setFilled(false);
         
         if (selected) {
-            shape.setOutlineColor(JBColor.BLUE);
-            shape.setFilled(false);
+            shape.setOutlineColor(DefaultStyles.JB_COLOR_BLUE);
+            shape.setStroke(DefaultStyles.THICK_STROKE);
+        } else {
+            shape.setOutlineColor(DefaultStyles.JB_COLOR_GRAY);
+            shape.setStroke(DefaultStyles.THIN_STROKE);
         }
         
     }
