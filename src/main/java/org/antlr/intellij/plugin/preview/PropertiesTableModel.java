@@ -12,9 +12,8 @@ import java.util.Map;
  */
 class PropertiesTableModelModel implements TableModel {
     
-    Map<String, Object> properties;
-    
-    String[] columnNames;
+    private final Map<String, Object> properties;
+    private final String[] columnNames;
     
     
     /**
@@ -63,11 +62,7 @@ class PropertiesTableModelModel implements TableModel {
     
     @Override
     public Object getValueAt(int row, int col) {
-        if (row == 0) {
-            return getColumnName(col);
-        }
-        
-        if (row > 0 && col < getColumnCount()) {
+        if (row >= 0 && col < getColumnCount()) {
             String key = (String) properties.keySet().toArray()[row];
             // return key if first column in properties table
             if (col == 0) return key;
@@ -103,5 +98,10 @@ class PropertiesTableModelModel implements TableModel {
     
     public String[] getColumnNames() {
         return columnNames;
+    }
+    
+    
+    public void clear() {
+        properties.clear();
     }
 }
