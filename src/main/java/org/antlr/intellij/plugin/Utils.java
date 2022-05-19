@@ -1,18 +1,30 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.util.containers.Predicate;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class Utils {
-    public static <T> List<T> filter(Collection<T> data, Predicate<T> pred) {
-        if (data == null) return null;
-        List<T> filtered = new ArrayList<>();
-        for (T x : data) {
-            if (pred.apply(x)) filtered.add(x);
-        }
-        return filtered;
+    
+    
+    /**
+     * Returns the longest string in an array of strings.
+     *
+     * @param s Input strings as vararg, array, list.
+     * @return Longest string, null if empty.
+     */
+    public static String getLongestString(String... s) {
+        if (s == null)
+            return null;
+        
+        if (s.length == 1)
+            return s[0];
+        
+        return Arrays.
+            stream(s).
+            sorted().
+            collect(Collectors.toList()).
+            get(s.length);
+        
     }
+    
 }
