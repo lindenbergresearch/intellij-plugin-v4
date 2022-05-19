@@ -23,7 +23,7 @@ public class Utils {
             stream(s).
             sorted().
             collect(Collectors.toList()).
-            get(s.length);
+            get(s.length - 1);
         
     }
     
