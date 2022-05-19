@@ -1,8 +1,5 @@
 package org.antlr.intellij.plugin;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 public class Utils {
     
     
@@ -19,12 +16,14 @@ public class Utils {
         if (s.length == 1)
             return s[0];
         
-        return Arrays.
-            stream(s).
-            sorted().
-            collect(Collectors.toList()).
-            get(s.length - 1);
+        String longest = s[0];
         
+        for (String str : s) {
+            if (str.length() > longest.length())
+                longest = str;
+        }
+        
+        return longest;
     }
     
 }
