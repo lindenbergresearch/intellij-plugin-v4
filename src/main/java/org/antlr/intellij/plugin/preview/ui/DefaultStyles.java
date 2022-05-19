@@ -52,6 +52,9 @@ public class DefaultStyles {
     public static final Font SMALL_FONT =
         JBFont.small();
     
+    public static final Font VERY_SMALL_FONT =
+        JBFont.regular().deriveFont(BASIC_FONT_SIZE - 3);
+    
     public static final Font BOLD_FONT =
         REGULAR_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE);
     
@@ -67,6 +70,18 @@ public class DefaultStyles {
     public static final Font SMALL_ITALIC_TERMINAL_FONT =
         MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE - 2);
     
+    
+    /**
+     * Scales a font by the given factor.
+     *
+     * @param font   Font to scale.
+     * @param factor Scaling factor.
+     * @return Derived font scaled by factor.
+     */
+    public static Font getScaledFont(Font font, float factor) {
+        float size = ((float) font.getSize()) * factor;
+        return font.deriveFont(size);
+    }
     
     /* ----- COLORS ------------------------------------------*/
     
@@ -88,14 +103,13 @@ public class DefaultStyles {
     /**
      * Default console background color.
      *
-     * @return
+     * @return Background color as JBColor.
      */
     public static JBColor getConsoleBackground() {
-//        if (JBColor.isBright()) {
-//            return new JBColor(JBColor.background(), JBColor.background());
-//        }
-        
-        return new JBColor(JBColor.background(), JBColor.background().darker().darker());
+        return new JBColor(
+            JBColor.background(),
+            JBColor.background().darker().darker()
+        );
     }
     
     /* ----- STROKES -----------------------------------------*/
@@ -180,7 +194,7 @@ public class DefaultStyles {
             JB_COLOR_DARK,
             JB_COLOR_BROWN,
             JB_COLOR_BRIGHT,
-            THICK_STROKE,
+            THIN_STROKE,
             SMALL_ITALIC_TERMINAL_FONT
         );
     
