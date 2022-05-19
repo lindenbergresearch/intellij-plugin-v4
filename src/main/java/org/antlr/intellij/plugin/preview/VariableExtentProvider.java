@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import org.abego.treelayout.NodeExtentProvider;
+import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.antlr.intellij.plugin.preview.ui.UIHelper;
 import org.antlr.v4.runtime.tree.Tree;
@@ -14,8 +15,9 @@ import static java.lang.Math.max;
  * later rendering.
  */
 public class VariableExtentProvider implements NodeExtentProvider<Tree> {
-    // bigger bounds for root-node and EOF
-    public static double EXTENDED_BOUNDS = 1.3;
+    // bigger bounds for root-node
+    public static double EXTENDED_BOUNDS_WIDTH = 1.15;
+    public static double EXTENDED_BOUNDS_HEIGHT = 1.75;
     
     /**
      * Reference to tree-viewer component.
@@ -41,11 +43,11 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
      */
     @Override
     public double getWidth(Tree tree) {
-        String[] s = viewer.getText(tree).split("\n");
+        String[] s = viewer.getText(tree).split(System.lineSeparator());
         
         Dimension bounds = UIHelper.getFullStringBounds(
             (Graphics2D) viewer.getGraphics(),
-            s[s.length > 1 && s[1].length() > s[0].length() ? 1 : 0],
+            Utils.getLongestString(s),
             DefaultStyles.REGULAR_FONT
         );
         
@@ -53,12 +55,11 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
             bounds.getWidth() +
             DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizonal();
         
-        // Do not use min size for terminals.
-        if (viewer.isRootNode(tree) || viewer.isEOFNode(tree)) {
-            return w * EXTENDED_BOUNDS;
+        if (viewer.isRootNode(tree)) {
+            return w * EXTENDED_BOUNDS_WIDTH;
         }
-
-//        return max(w, min(viewer.minCellWidth, viewer.getMaximumTextWith()));
+        
+        //return max(w, min(viewer.minCellWidth, viewer.getMaximumTextWith()));
         return max(w, viewer.minCellWidth);
     }
     
@@ -82,8 +83,8 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         double h = bounds.getHeight() +
                    DefaultStyles.DEFAULT_TEXT_MARGIN.getVertical();
         
-        if (viewer.isRootNode(tree) || viewer.isEOFNode(tree)) {
-            return h * EXTENDED_BOUNDS;
+        if (viewer.isRootNode(tree)) {
+            return h * EXTENDED_BOUNDS_HEIGHT;
         }
         
         return h + (lines.length - 1) * bounds.getHeight();
