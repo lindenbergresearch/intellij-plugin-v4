@@ -10,17 +10,23 @@ import java.awt.*;
 import static java.lang.Math.max;
 
 /**
- * Provides the dimension of a styled tree-node based on the text properties.
+ * Provides the bounds of a specific tree-node type for layout and
+ * later rendering.
  */
 public class VariableExtentProvider implements NodeExtentProvider<Tree> {
+    // bigger bounds for root-node and EOF
+    public static double EXTENDED_BOUNDS = 1.3;
+    
     /**
-     * Reference to tree-viewer.
+     * Reference to tree-viewer component.
      */
     private final UberTreeViewer viewer;
     
     
     /**
-     * @param viewer
+     * Creates a new VariableExtentProvider.
+     *
+     * @param viewer UberTreeViewer component.
      */
     public VariableExtentProvider(UberTreeViewer viewer) {
         this.viewer = viewer;
@@ -28,8 +34,10 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     
     
     /**
-     * @param tree &nbsp;
-     * @return
+     * Provides the width of a specific tree-node type.
+     *
+     * @param tree Tree node to examine.
+     * @return Width in pixel.
      */
     @Override
     public double getWidth(Tree tree) {
@@ -46,9 +54,9 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
             DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizonal();
         
         // Do not use min size for terminals.
-//        if (tree instanceof TerminalNode) {
-//            return w * 1;
-//        }
+        if (viewer.isRootNode(tree) || viewer.isEOFNode(tree)) {
+            return w * EXTENDED_BOUNDS;
+        }
 
 //        return max(w, min(viewer.minCellWidth, viewer.getMaximumTextWith()));
         return max(w, viewer.minCellWidth);
@@ -56,8 +64,10 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     
     
     /**
-     * @param tree &nbsp;
-     * @return
+     * Provides the height of a specific tree-node type.
+     *
+     * @param tree Tree node to examine.
+     * @return Height in pixels.
      */
     @Override
     public double getHeight(Tree tree) {
@@ -71,6 +81,10 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         
         double h = bounds.getHeight() +
                    DefaultStyles.DEFAULT_TEXT_MARGIN.getVertical();
+        
+        if (viewer.isRootNode(tree) || viewer.isEOFNode(tree)) {
+            return h * EXTENDED_BOUNDS;
+        }
         
         return h + (lines.length - 1) * bounds.getHeight();
     }
