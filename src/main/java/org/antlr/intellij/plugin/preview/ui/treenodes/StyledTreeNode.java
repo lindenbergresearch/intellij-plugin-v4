@@ -58,7 +58,7 @@ public abstract class StyledTreeNode extends StyledElement {
     
     
     public void setText(String text) {
-        lines = text.split("\n");
+        lines = text.split(System.lineSeparator());
         
         if (lines.length > 1) {
             label.setText(lines[0]);
