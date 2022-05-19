@@ -9,7 +9,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.UIUtil;
-import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.runtime.*;
@@ -24,6 +23,7 @@ import org.antlr.v4.tool.GrammarParserInterpreter;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ShowAmbigTreesDialog extends JDialog {
     private static final int MAX_PHRASE_WIDTH = 25;
@@ -174,7 +174,7 @@ public class ShowAmbigTreesDialog extends JDialog {
         // First mark from roots down
         markFromRoots(t, u);
         
-        // Get leaves so we can do a difference between the trees starting at the bottom and top
+        // Get leaves, so we can do a difference between the trees starting at the bottom and top
         List<TerminalNode> tleaves = ParsingUtils.getAllLeaves(t);
         List<TerminalNode> uleaves = ParsingUtils.getAllLeaves(u);
         
@@ -183,8 +183,18 @@ public class ShowAmbigTreesDialog extends JDialog {
         final int first = Math.max(firstTleafTokenIndex, firstUleafTokenIndex);
         
         // filter so we start in same place
-        tleaves = Utils.filter(tleaves, tree -> ((Token) tree.getPayload()).getTokenIndex() >= first);
-        uleaves = Utils.filter(uleaves, tree -> ((Token) tree.getPayload()).getTokenIndex() >= first);
+//        tleaves = Utils.filter(tleaves, tree -> ((Token) tree.getPayload()).getTokenIndex() >= first);
+//        uleaves = Utils.filter(uleaves, tree -> ((Token) tree.getPayload()).getTokenIndex() >= first);
+        
+        tleaves = tleaves.stream().filter(
+            tree -> ((Token) tree.getPayload()).getTokenIndex() >= first
+        ).collect(Collectors.toList());
+        
+        uleaves = uleaves.stream().filter(
+            tree -> ((Token) tree.getPayload()).getTokenIndex() >= first
+        ).collect(Collectors.toList());
+        
+        
         int n = Math.min(tleaves.size(), uleaves.size());
         for (int i = 0; i < n; i++) { // for each leaf in t and u
             Tree tleaf = tleaves.get(i);
