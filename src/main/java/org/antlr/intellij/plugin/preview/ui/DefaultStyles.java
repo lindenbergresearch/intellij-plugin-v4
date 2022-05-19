@@ -21,6 +21,10 @@ public class DefaultStyles {
     // standard font size
     public static final float BASIC_FONT_SIZE = JBFont.regular().getSize2D();
     
+    // scale factor for footer in labels
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.85f;
+    
+    
     // text layout setup
     public static final HorizontalLayout
         HORIZONTAL_TEXT_LAYOUT = HorizontalLayout.CENTER;
