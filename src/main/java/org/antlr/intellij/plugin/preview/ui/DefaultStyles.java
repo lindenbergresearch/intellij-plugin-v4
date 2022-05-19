@@ -76,6 +76,39 @@ public class DefaultStyles {
     
     
     /**
+     * Returns the bold variant of a given font.
+     *
+     * @param font Source font.
+     * @return Resulting font.
+     */
+    public static Font bold(Font font) {
+        return font.deriveFont(Font.BOLD, font.getSize());
+    }
+    
+    
+    /**
+     * Returns the italic variant of a given font.
+     *
+     * @param font Source font.
+     * @return Resulting font.
+     */
+    public static Font italic(Font font) {
+        return font.deriveFont(Font.ITALIC, font.getSize());
+    }
+    
+    
+    /**
+     * Returns the bold and italic variant of a given font.
+     *
+     * @param font Source font.
+     * @return Resulting font.
+     */
+    public static Font boldItalic(Font font) {
+        return bold(italic(font));
+    }
+    
+    
+    /**
      * Scales a font by the given factor.
      *
      * @param font   Font to scale.
