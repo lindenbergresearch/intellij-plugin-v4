@@ -2,10 +2,15 @@ package org.antlr.intellij.plugin.preview.ui.treenodes;
 
 
 import com.intellij.ui.JBColor;
-import org.antlr.intellij.plugin.preview.ui.*;
+import org.antlr.intellij.plugin.preview.ui.StyleProperties;
+import org.antlr.intellij.plugin.preview.ui.StyledElement;
+import org.antlr.intellij.plugin.preview.ui.StyledLabel;
+import org.antlr.intellij.plugin.preview.ui.StyledRoundRect;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+
+import static org.antlr.intellij.plugin.preview.ui.DefaultStyles.*;
 
 /**
  * Basic styled tree-node element.
@@ -18,8 +23,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     public BasicStyledTreeNode() {
         super();
-        styleProperties =
-            DefaultStyles.DEFAULT_STYLE;
+        styleProperties = DEFAULT_STYLE;
     }
     
     
@@ -53,8 +57,8 @@ public class BasicStyledTreeNode extends StyledTreeNode {
     public void setup() {
         shape = new StyledRoundRect(
             this,
-            DefaultStyles.ROUND_RECT_WIDTH,
-            DefaultStyles.ROUND_RECT_HEIGHT
+            ROUND_RECT_WIDTH,
+            ROUND_RECT_HEIGHT
         );
         
         add(shape);
@@ -63,9 +67,16 @@ public class BasicStyledTreeNode extends StyledTreeNode {
         add(label);
         
         footer = new StyledLabel(this);
+        footer.setFont(
+            getScaledFont(
+                footer.getFont(),
+                LABEL_FOOTER_FONT_SCALE
+            )
+        );
+        
+        label.setFont(bold(label.getFont()));
+        
         add(footer);
-        footer.setFontScale(0.833f);
-        label.setFont(label.getFont().deriveFont(Font.BOLD, label.getFont().getSize()));
     }
     
     
@@ -83,7 +94,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      * Adapt style properties for selected tree-node.
      */
     protected void setSelected() {
-        shape.setStroke(DefaultStyles.THICK_STROKE);
+        shape.setStroke(THICK_STROKE);
         shape.setBackground((JBColor) shape.getBackground().brighter());
     }
     
