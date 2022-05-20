@@ -9,6 +9,7 @@ import org.antlr.v4.runtime.tree.Tree;
 import java.awt.*;
 
 import static java.lang.Math.max;
+import static org.antlr.intellij.plugin.preview.ui.DefaultStyles.*;
 
 /**
  * Provides the bounds of a specific tree-node type for layout and
@@ -44,12 +45,35 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     @Override
     public double getWidth(Tree tree) {
         String[] s = viewer.getText(tree).split(System.lineSeparator());
+        Dimension bounds;
         
-        Dimension bounds = UIHelper.getFullStringBounds(
-            (Graphics2D) viewer.getGraphics(),
-            Utils.getLongestString(s),
-            DefaultStyles.REGULAR_FONT
-        );
+        // if string consists of two lines, compute the biggest
+        if (s.length > 1 && s[0].length() > 0 && s[1].length() > 0) {
+            Dimension bounds1 = UIHelper.getFullStringBounds(
+                (Graphics2D) viewer.getGraphics(),
+                s[0],
+                REGULAR_FONT
+            );
+            
+            Dimension bounds2 = UIHelper.getFullStringBounds(
+                (Graphics2D) viewer.getGraphics(),
+                s[1],
+                getScaledFont(REGULAR_FONT, LABEL_FOOTER_FONT_SCALE)
+            );
+            
+            if (bounds1.getWidth() > bounds2.getWidth())
+                bounds = bounds1;
+            else
+                bounds = bounds2;
+        }
+        // if not just compute the bounds of the whole string
+        else {
+            bounds = UIHelper.getFullStringBounds(
+                (Graphics2D) viewer.getGraphics(),
+                Utils.getLongestString(s),
+                REGULAR_FONT
+            );
+        }
         
         double w =
             bounds.getWidth() +
@@ -73,11 +97,11 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     @Override
     public double getHeight(Tree tree) {
         String s = viewer.getText(tree);
-        String[] lines = s.split("\n");
+        String[] lines = s.split(System.lineSeparator());
         Dimension bounds = UIHelper.getFullStringBounds(
             (Graphics2D) viewer.getGraphics(),
             s,
-            DefaultStyles.REGULAR_FONT
+            REGULAR_FONT
         );
         
         double h = bounds.getHeight() +
