@@ -19,13 +19,18 @@ import java.util.Map;
  */
 public class AltLabelTextProvider implements TreeTextProvider {
     // text displayed for EOF node
-    public static final String EOF_LABEL = "<EOF>";
+    public static final String EOF_LABEL = "<EOF>\nend-of-file";
     
-    // maximum length of a nodes label before shortened with '...'
+    // max length of token label before cut shortened
     public static final int MAX_TOKEN_LENGTH = 6;
-    public static final String ALT_LABEL_TEXT = " *";
+    
+    // alt label prefix
+    public static final String ALT_LABEL_TEXT = "\u2022";
+    
+    // ...
     public static final String SHORTEN_LABEL_TEXT = "\u2026";
     
+    // shorthand
     public static final String NL = System.lineSeparator();
     
     
@@ -79,6 +84,29 @@ public class AltLabelTextProvider implements TreeTextProvider {
     
     
     /**
+     * Returns the label of a parse-tree node, if one is set.
+     *
+     * @param node Node to examine.
+     * @return Either the label prefixed with '#' or '-'.
+     */
+    public String getRuleLabel(Tree node) {
+        if (node instanceof PreviewInterpreterRuleContext) {
+            Rule rule = getRule(node);
+            String[] altLabels = getAltLabels(rule);
+            int outerAltNum = getOuterAltNum(node);
+            
+            if (altLabels != null) {
+                if (outerAltNum >= 0 && (outerAltNum < altLabels.length)) {
+                    return '#' + altLabels[outerAltNum];
+                }
+            }
+        }
+        
+        return "-";
+    }
+    
+    
+    /**
      * Returns the formatted text of the given tree-node.
      *
      * @param node Tree-node.
@@ -96,12 +124,12 @@ public class AltLabelTextProvider implements TreeTextProvider {
             Rule rule = getRule(node);
             String[] altLabels = getAltLabels(rule);
             int outerAltNum = getOuterAltNum(node);
-            text = rule.name;
+            text = '[' + rule.name + ']';
             
             if (altLabels != null) {
                 if (outerAltNum >= 0 && (outerAltNum < altLabels.length)) {
                     if (compact) text = '#' + altLabels[outerAltNum];
-                    else text += NL + altLabels[outerAltNum];
+                    else text += NL + '#' + altLabels[outerAltNum];
                 }
             }
             
@@ -115,12 +143,24 @@ public class AltLabelTextProvider implements TreeTextProvider {
     
     
     /**
+     * Returns the symbolic name of a token.
+     *
+     * @param token Token to examine.
+     * @return Name as string.
+     */
+    public String getTokenName(Token token) {
+        String symName = parser.getVocabulary().getSymbolicName(token.getType());
+        return symName == null ? "-" : symName;
+    }
+    
+    
+    /**
      * Returns the formatted label of a given token.
      *
      * @param token Token.
      * @return Label as string.
      */
-    private String getLabelForToken(Token token) {
+    public String getLabelForToken(Token token) {
         String text = token.getText();
         String symName = parser.getVocabulary().getSymbolicName(token.getType());
         
@@ -153,7 +193,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
      * @param node Tree-node.
      * @return The Rule.
      */
-    private Rule getRule(Tree node) {
+    public Rule getRule(Tree node) {
         PreviewInterpreterRuleContext inode = (PreviewInterpreterRuleContext) node;
         return g.getRule(inode.getRuleIndex());
     }
@@ -166,7 +206,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
      * @param node Tree-node to examine.
      * @return Alt num.
      */
-    private int getOuterAltNum(Tree node) {
+    public int getOuterAltNum(Tree node) {
         return ((PreviewInterpreterRuleContext) node).getOuterAltNum();
         
     }
