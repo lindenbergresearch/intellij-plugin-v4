@@ -103,7 +103,6 @@ public class InputPanel {
         jPanel = new JPanel(new BorderLayout(0, 0));
         errorConsole = new JTextArea();
         
-        
         // Wrap tree viewer component in scroll pane
         errorScrollPane = new JBScrollPane(
             errorConsole,
@@ -114,8 +113,14 @@ public class InputPanel {
         errorScrollPane.setWheelScrollingEnabled(true);
         
         jPanel.add(errorScrollPane);
-        jPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        
+        jPanel.setBorder(
+            BorderFactory.createEmptyBorder(
+                0,
+                0,
+                0,
+                0
+            )
+        );
     }
     
     
@@ -524,12 +529,13 @@ public class InputPanel {
         
         
         startRuleLabel.setForeground(JBColor.foreground());
-        startRuleLabel.setFont(bold);
+//        startRuleLabel.setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(14.f));
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
         startRuleLabel.setText(labelGrammar);
         
         startRuleLabel2.setForeground(JBColor.BLUE);
-        startRuleLabel2.setFont(bold.deriveFont(bold.getSize() + 1.f));
+        startRuleLabel2.setFont(bold.deriveFont(bold.getSize()));
+//        startRuleLabel2.setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(14.f));
         startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
         startRuleLabel2.setText(labelStartRule);
         
