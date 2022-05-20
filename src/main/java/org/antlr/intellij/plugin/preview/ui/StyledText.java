@@ -66,18 +66,6 @@ public abstract class StyledText extends StyledElement {
     
     
     /**
-     * Quick scaling for font size.
-     *
-     * @param factor Factor of the current size.
-     */
-    public void setFontScale(float factor) {
-        float size = ((float) getFont().getSize()) * factor;
-        Font scaled = getFont().deriveFont(size);
-        setFont(scaled);
-    }
-    
-    
-    /**
      * Constructs a new StyledElement with its basic setup.
      *
      * @param parent   The parent element.
