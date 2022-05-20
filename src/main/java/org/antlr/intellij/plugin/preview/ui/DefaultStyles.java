@@ -22,7 +22,7 @@ public class DefaultStyles {
     public static final float BASIC_FONT_SIZE = JBFont.regular().getSize2D();
     
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 0.85f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.833f;
     
     
     // text layout setup
@@ -127,7 +127,7 @@ public class DefaultStyles {
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
     public final static JBColor JB_COLOR_BLUE = JBColor.BLUE;
     public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(231, 87, 87));
-    public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(100, 197, 100), new Color(58, 110, 56));
+    public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(54, 126, 54), new Color(101, 255, 94));
     public final static JBColor JB_COLOR_YELLOW = new JBColor(new Color(255, 242, 97), new Color(248, 248, 105));
     public final static JBColor JB_COLOR_PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
     public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 167, 192), new Color(90, 199, 170));
@@ -222,7 +222,7 @@ public class DefaultStyles {
             JB_COLOR_CYAN,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            BOLD_FONT
+            REGULAR_FONT
         );
     
     public static final StyleProperties EOF_NODE_STYLE =
