@@ -80,6 +80,10 @@ public class PropertiesPanel extends JPanel {
             Token token = ctx.getSymbol();
             String text = ctx.getText();
             
+            int length =
+                ctx.getPayload().getStartIndex() < 0 || ctx.getPayload().getStopIndex() < 0 ? -1 :
+                    ctx.getPayload().getStopIndex() - ctx.getPayload().getStartIndex() + 1;
+            
             String parent;
             
             if (ctx.parent != null) {
@@ -88,17 +92,17 @@ public class PropertiesPanel extends JPanel {
             
             addProperty("class", '<' + name + '>');
             addProperty("parent-rule", '[' + parent + ']');
-            addProperty("symbol", altLabelTextProvider.getTokenName(token));
-            addProperty("label", '«' + altLabelTextProvider.getText(tree) + '»');
-            addProperty("token", token);
+            addProperty("symbol", altLabelTextProvider.getSymbolicTokenName(token));
+            addProperty("label", '"' + altLabelTextProvider.getText(tree) + '"');
             addProperty("text", '\'' + text + '\'');
+            addProperty("length", length);
+            addProperty("range", ctx.getSourceInterval());
+            addProperty("token", token);
             
             //  addProperty("terminal", token.getText());
             addProperty("position", "[" + token.getLine() + ':' + token.getCharPositionInLine() + ']');
             addProperty("token id", token.getType());
             addProperty("token channel", token.getChannel());
-            addProperty("start index", token.getStartIndex());
-            addProperty("stop index", token.getStopIndex());
             
             return;
         }
@@ -112,7 +116,7 @@ public class PropertiesPanel extends JPanel {
             String ruleName = altLabelTextProvider.getRule(tree).name;
             String text = ctx.getText();
             String label = altLabelTextProvider.getRuleLabel(tree);
-            String subTree = ctx.toStringTree();
+            String subTree = ctx.toString();
             Token startToken = ctx.getStart();
             Token stopToken = ctx.getStop();
             
@@ -120,6 +124,10 @@ public class PropertiesPanel extends JPanel {
             int altNum = ctx.getAltNumber();
             int outerAltNum = ctx.getOuterAltNum();
             int depth = ctx.depth();
+            
+            int length =
+                ctx.start.getStartIndex() < 0 || ctx.stop.getStopIndex() < 0 ? -1 :
+                    ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
             
             String parent;
             
@@ -143,15 +151,17 @@ public class PropertiesPanel extends JPanel {
             addProperty("parent-rule", '[' + parent + ']');
             addProperty("label", label);
             addProperty("text", '\u00AB' + text + '\u00BB');
+            addProperty("length", length);
             addProperty("child-count", childNum);
             addProperty("alternatives", altNum);
             addProperty("outer-alternatives", outerAltNum);
-            addProperty("depth", depth);
-            addProperty("sub-tree", subTree);
+            addProperty("tree-level", depth);
+            addProperty("toString()", subTree);
             
             addProperty("exception", hasException);
             addProperty("message", exceptionMsg);
             
+            addProperty("range", ctx.getSourceInterval());
             
             addProperty("range start", "line=" + startToken.getLine() + " char=" + startToken.getCharPositionInLine());
             addProperty("range end", "line=" + stopToken.getLine() + " char=" + stopToken.getCharPositionInLine());
