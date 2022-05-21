@@ -192,13 +192,14 @@ public class AltLabelTextProvider implements TreeTextProvider {
         if (text.length() > MAX_TOKEN_LENGTH)
             text = text.substring(0, MAX_TOKEN_LENGTH) + SHORTEN_LABEL_TEXT;
         
-        // not part of the actual match, it is resync
+        // it's not part of the actual match, because it's re-synced
+        // add hint to be more concise
         if (node instanceof ErrorNodeImpl) {
             text = symName == null ?
                 '\'' + text + '\'' :
                 symName + ": " + '\'' + text + '\'';
             
-            return "<resync>" + NL + text;
+            return "<re-sync>" + NL + text;
         }
         
         if (text.equals("<EOF>")) return EOF_LABEL;
