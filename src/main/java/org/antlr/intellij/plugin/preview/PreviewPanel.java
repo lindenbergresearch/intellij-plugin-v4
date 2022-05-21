@@ -677,20 +677,28 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      */
     private void switchToGrammar(VirtualFile grammarFile) {
         String grammarFileName = grammarFile.getPath();
-        ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+        ANTLRv4PluginController controller =
+            ANTLRv4PluginController.getInstance(project);
         
         // should not happen
         if (controller == null)
             return;
         
-        PreviewState previewState = controller.getPreviewState(grammarFile);
+        PreviewState previewState =
+            controller.getPreviewState(grammarFile);
         
         errorConsolePanel.clear();
         
         inputPanel.switchToGrammar(previewState, grammarFile);
         profilerPanel.switchToGrammar(previewState, grammarFile);
         
-        if (previewState.startRuleName == null) {
+        ensureStartRuleExists(grammarFile);
+        inputPanel.grammarFileSaved();
+        
+        // refresh tree viewer
+        if (previewState.grammar != null && previewState.startRuleName != null) {
+            updateParseTreeFromDoc(previewState.grammarFile, true);
+        } else {
             clearTabs(null); // blank tree
         }
         
