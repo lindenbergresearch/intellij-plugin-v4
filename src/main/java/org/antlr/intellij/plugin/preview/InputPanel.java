@@ -63,10 +63,9 @@ public class InputPanel {
     private static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
     private static final int ERROR_LAYER = HighlighterLayer.ERROR;
     
-    private static final String missingStartRuleLabelText = "\u00AB No rule selected. \u00BB";
+    private static final String missingStartRuleLabelText = "No rule selected.";
     private static final String grammarFileLabelText = "%s";
-    //    private static final String startRuleLabelText = "\u00AB %s \u00BB";
-    private static final String startRuleLabelText = "[%s]";
+    private static final String startRuleLabelText = "Rule: [%s]";
     
     /**
      * switchToGrammar() was seeing an empty slot instead of a previous
