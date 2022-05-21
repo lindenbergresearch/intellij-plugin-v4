@@ -5,6 +5,7 @@ import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.tool.Grammar;
@@ -97,8 +98,11 @@ public class AltLabelTextProvider implements TreeTextProvider {
      */
     public String getRuleLabel(Tree node) {
         if (node instanceof PreviewInterpreterRuleContext) {
+            String[] altLabels = getAltLabels(getRule(node));
+            int outerAltNum = getOuterAltNum(node);
+            
             if (hasRuleLabel(node)) {
-                return RULE_LABEL_PREFIX + getRuleLabel(node);
+                return RULE_LABEL_PREFIX + altLabels[outerAltNum];
             }
         }
         
@@ -188,6 +192,15 @@ public class AltLabelTextProvider implements TreeTextProvider {
         if (text.length() > MAX_TOKEN_LENGTH)
             text = text.substring(0, MAX_TOKEN_LENGTH) + SHORTEN_LABEL_TEXT;
         
+        // not part of the actual match, it is resync
+        if (node instanceof ErrorNodeImpl) {
+            String s =
+                symName == null ?
+                    '\'' + text + '\'' :
+                    symName + ": " + '\'' + text + '\'';
+            
+            return "<resync>" + NL + s;
+        }
         
         if (text.equals("<EOF>")) return EOF_LABEL;
         if (symName == null) return text;
