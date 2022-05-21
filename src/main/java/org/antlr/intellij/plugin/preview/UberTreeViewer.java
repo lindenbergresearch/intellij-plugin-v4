@@ -57,7 +57,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public final static int VIEWER_HORIZONTAL_MARGIN = 25;
     public final static int VIEWER_VERTICAL_MARGIN = 25;
     public final static int SCROLL_VIEWPORT_MARGIN = 30;
-    public static final double COMPACT_LABELS_FACTOR = 0.7; // tree layout distance shrink in compact mode
+    public static final double COMPACT_LABELS_FACTOR_HORIZONTAL = 0.5; // hor. tree layout distance shrink in compact mode
+    public static final double COMPACT_LABELS_FACTOR_VERTICAL = 0.3; // vert. tree layout distance shrink in compact mode
     
     /*---- CURSOR -------------------------------------------------------------------------------*/
     public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -756,12 +757,12 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         double verticalGap =
             isCompactLabels() ?
-                gapBetweenLevels * COMPACT_LABELS_FACTOR :
+                gapBetweenLevels * COMPACT_LABELS_FACTOR_VERTICAL :
                 gapBetweenLevels;
         
         double horizontalGap =
             isCompactLabels() ?
-                gapBetweenNodes * COMPACT_LABELS_FACTOR :
+                gapBetweenNodes * COMPACT_LABELS_FACTOR_HORIZONTAL :
                 gapBetweenNodes;
         
         DefaultConfiguration<Tree> configuration =
