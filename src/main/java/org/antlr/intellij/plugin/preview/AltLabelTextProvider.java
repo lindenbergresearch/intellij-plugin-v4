@@ -33,6 +33,12 @@ public class AltLabelTextProvider implements TreeTextProvider {
     // shorthand
     public static final String NL = System.lineSeparator();
     
+    // prefix for rule label
+    public static final char RULE_LABEL_PREFIX = '#';
+    
+    // text used if name, text or symbol is not available
+    public static final String NOT_PRESENT_TEXT = "-";
+    
     
     // use compact labels
     private boolean compact = false;
@@ -91,18 +97,34 @@ public class AltLabelTextProvider implements TreeTextProvider {
      */
     public String getRuleLabel(Tree node) {
         if (node instanceof PreviewInterpreterRuleContext) {
-            Rule rule = getRule(node);
-            String[] altLabels = getAltLabels(rule);
-            int outerAltNum = getOuterAltNum(node);
-            
-            if (altLabels != null) {
-                if (outerAltNum >= 0 && (outerAltNum < altLabels.length)) {
-                    return '#' + altLabels[outerAltNum];
-                }
+            if (hasRuleLabel(node)) {
+                return RULE_LABEL_PREFIX + getRuleLabel(node);
             }
         }
         
-        return "-";
+        return NOT_PRESENT_TEXT;
+    }
+    
+    
+    /**
+     * Checks if a given tree-node is a rule and have a label.
+     *
+     * @param node Tree-node.
+     * @return True if is a rule and has a label.
+     */
+    private boolean hasRuleLabel(Tree node) {
+        if (node instanceof PreviewInterpreterRuleContext) {
+            String[] altLabels = getAltLabels(getRule(node));
+            int outerAltNum = getOuterAltNum(node);
+            
+            if (altLabels != null) {
+                return
+                    outerAltNum >= 0 &&
+                    outerAltNum < altLabels.length;
+            }
+        }
+        
+        return false;
     }
     
     
@@ -116,24 +138,21 @@ public class AltLabelTextProvider implements TreeTextProvider {
     public String getText(Tree node) {
         // terminal node
         if (node instanceof TerminalNode) {
-            return getLabelForToken(((TerminalNode) node).getSymbol());
+            return getTokenLabel(node);
         }
         
-        String text = "?";
+        String text = NOT_PRESENT_TEXT;
         if (node instanceof PreviewInterpreterRuleContext) {
-            Rule rule = getRule(node);
-            String[] altLabels = getAltLabels(rule);
+            int originalAltNums = getRule(node).getOriginalNumberOfAlts();
             int outerAltNum = getOuterAltNum(node);
-            text = '[' + rule.name + ']';
+            text = '[' + getRule(node).name + ']';
             
-            if (altLabels != null) {
-                if (outerAltNum >= 0 && (outerAltNum < altLabels.length)) {
-                    if (compact) text = '#' + altLabels[outerAltNum];
-                    else text += NL + '#' + altLabels[outerAltNum];
-                }
+            if (hasRuleLabel(node)) {
+                if (compact) text = getRuleLabel(node);
+                else text += NL + getRuleLabel(node);
             }
             
-            if (rule.getOriginalNumberOfAlts() > 1) {
+            if (originalAltNums > 1) {
                 text += ALT_LABEL_TEXT + outerAltNum;
             }
         }
@@ -148,25 +167,27 @@ public class AltLabelTextProvider implements TreeTextProvider {
      * @param token Token to examine.
      * @return Name as string.
      */
-    public String getTokenName(Token token) {
+    public String getSymbolicTokenName(Token token) {
         String symName = parser.getVocabulary().getSymbolicName(token.getType());
-        return symName == null ? "-" : symName;
+        return symName == null ? NOT_PRESENT_TEXT : symName;
     }
     
     
     /**
      * Returns the formatted label of a given token.
      *
-     * @param token Token.
+     * @param node tree-node.
      * @return Label as string.
      */
-    public String getLabelForToken(Token token) {
+    public String getTokenLabel(Tree node) {
+        Token token = ((TerminalNode) node).getSymbol();
         String text = token.getText();
         String symName = parser.getVocabulary().getSymbolicName(token.getType());
         
         // prevent node label getting to long
         if (text.length() > MAX_TOKEN_LENGTH)
             text = text.substring(0, MAX_TOKEN_LENGTH) + SHORTEN_LABEL_TEXT;
+        
         
         if (text.equals("<EOF>")) return EOF_LABEL;
         if (symName == null) return text;
@@ -177,16 +198,6 @@ public class AltLabelTextProvider implements TreeTextProvider {
     }
     
     
-    public boolean isCompact() {
-        return compact;
-    }
-    
-    
-    public void setCompact(boolean compact) {
-        this.compact = compact;
-    }
-    
-    
     /**
      * Returns the associated rule of the given tree-node.
      *
@@ -194,7 +205,8 @@ public class AltLabelTextProvider implements TreeTextProvider {
      * @return The Rule.
      */
     public Rule getRule(Tree node) {
-        PreviewInterpreterRuleContext inode = (PreviewInterpreterRuleContext) node;
+        PreviewInterpreterRuleContext inode =
+            (PreviewInterpreterRuleContext) node;
         return g.getRule(inode.getRuleIndex());
     }
     
@@ -208,8 +220,35 @@ public class AltLabelTextProvider implements TreeTextProvider {
      */
     public int getOuterAltNum(Tree node) {
         return ((PreviewInterpreterRuleContext) node).getOuterAltNum();
-        
     }
     
     
+    /**
+     * Check if viewer is in compact mode.
+     *
+     * @return True if in compact mode.
+     */
+    public boolean isCompact() {
+        return compact;
+    }
+    
+    
+    /**
+     * Enable or disable compact mode of the viewer.
+     *
+     * @param compact Enable flag.
+     */
+    public void setCompact(boolean compact) {
+        this.compact = compact;
+    }
+    
+    
+    public Parser getParser() {
+        return parser;
+    }
+    
+    
+    public Grammar getGrammar() {
+        return g;
+    }
 }
