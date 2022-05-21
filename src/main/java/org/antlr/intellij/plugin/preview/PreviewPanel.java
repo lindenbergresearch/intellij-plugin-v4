@@ -1,10 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
-import com.intellij.icons.AllIcons;
-import com.intellij.icons.AllIcons.Chooser;
-import com.intellij.icons.AllIcons.Hierarchy;
-import com.intellij.icons.AllIcons.Json;
-import com.intellij.icons.AllIcons.Toolwindows;
+import com.intellij.icons.AllIcons.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -163,9 +159,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
     
     
-    /**
-     * @return
-     */
     private ActionToolbar createButtonBarGraph() {
         ToggleAction toggleAutoscaling = new ToggleAction(
             "Auto-Scale",
@@ -428,7 +421,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             toggleRightLayout
         );
         
-        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true);
+        ActionToolbar toolbar =
+            ActionManager.getInstance().createActionToolbar(
+                PREVIEW_WINDOW_ID,
+                actionGroup,
+                true
+            );
+        
         toolbar.setTargetComponent(this);
         
         return toolbar;
@@ -436,8 +435,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private ActionToolbar createButtonBar() {
-        final AnAction refreshAction = new ToggleAction("Refresh Preview Automatically",
-                                                        "Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh
+        final AnAction refreshAction = new ToggleAction(
+            "Refresh Preview Automatically",
+            "Refresh preview automatically upon grammar changes",
+            Actions.Refresh
         ) {
             
             @Override
@@ -452,7 +453,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
-        ToggleAction scrollFromSourceBtn = new ToggleAction("Scroll from Source", null, AutoscrollFromSource) {
+        ToggleAction scrollFromSourceBtn = new ToggleAction(
+            "Scroll from Source",
+            "",
+            AutoscrollFromSource
+        ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return scrollFromSource;
@@ -465,7 +470,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
-        ToggleAction scrollToSourceBtn = new ToggleAction("Highlight Source", null, Find) {
+        ToggleAction scrollToSourceBtn = new ToggleAction(
+            "Highlight Source",
+            "",
+            Find
+        ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
                 return highlightSource;
@@ -480,6 +489,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             
         };
         
+        /* --------------------------------------------------------------------- */
         
         DefaultActionGroup actionGroup = new DefaultActionGroup(
             refreshAction,
@@ -488,8 +498,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             scrollToSourceBtn
         );
         
-        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
-        ;
+        ActionToolbar toolbar =
+            ActionManager.getInstance().createActionToolbar(
+                PREVIEW_WINDOW_ID,
+                actionGroup,
+                false
+            );
+        
         toolbar.setTargetComponent(this);
         
         return toolbar;
@@ -522,8 +537,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         propertiesPanel =
             new PropertiesPanel(
                 new BorderLayout(5, 0),
-                //  BorderFactory.createEmptyBorder(2, 2, 2, 2)
-                BorderFactory.createEtchedBorder(1)
+                BorderFactory.createEmptyBorder(2, 2, 2, 2)
+                //  BorderFactory.createEtchedBorder(1)
             );
         
         
@@ -623,7 +638,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         // if the saved grammar is not a pure lexer and there is a start rule, reparse
         // means that switching grammars must refresh preview
         if (previewState.grammar != null && previewState.startRuleName != null) {
-            updateParseTreeFromDoc(previewState.grammarFile);
+            updateParseTreeFromDoc(previewState.grammarFile, true);
         } else {
             clearTabs(null); // blank tree
         }
@@ -634,11 +649,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     private void ensureStartRuleExists(VirtualFile grammarFile) {
         PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
+        
         // if start rule no longer exists, reset display/state.
         if (previewState.grammar != null &&
             previewState.grammar != ParsingUtils.BAD_PARSER_GRAMMAR &&
             previewState.startRuleName != null) {
             Rule rule = previewState.grammar.getRule(previewState.startRuleName);
+            
             if (rule == null) {
                 previewState.startRuleName = null;
                 inputPanel.resetStartRuleLabel();
@@ -764,7 +781,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
     
     
-    public void updateParseTreeFromDoc(VirtualFile grammarFile) {
+    public void updateParseTreeFromDoc(VirtualFile grammarFile, boolean forceUpdate) {
         ANTLRv4PluginController controller =
             ANTLRv4PluginController.getInstance(project);
         
@@ -788,8 +805,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         final String inputText = editor.getDocument().getText();
         
-        // nothing changed
-        if (inputText.equals(currentEditorText)) {
+        // nothing changed and no forced update
+        if (inputText.equals(currentEditorText) && !forceUpdate) {
             return;
         }
         
