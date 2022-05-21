@@ -536,8 +536,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         propertiesPanel =
             new PropertiesPanel(
-                new BorderLayout(5, 0),
-                BorderFactory.createEmptyBorder(2, 2, 2, 2)
+                new BorderLayout(0, 0),
+                BorderFactory.createEmptyBorder(2, 0, 0, 2)
                 //  BorderFactory.createEtchedBorder(1)
             );
         
