@@ -381,7 +381,7 @@ public class InputPanel {
         previewState.setInputEditor(editor);
         clearErrorConsole();
         
-        previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
+        previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile(), false);
     }
     
     
@@ -392,7 +392,7 @@ public class InputPanel {
             new DocumentListener() {
                 @Override
                 public void documentChanged(@NotNull DocumentEvent event) {
-                    previewPanel.updateParseTreeFromDoc(grammarFile);
+                    previewPanel.updateParseTreeFromDoc(grammarFile, false);
                 }
             }
         );
