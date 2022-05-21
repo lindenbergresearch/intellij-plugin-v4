@@ -114,7 +114,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout(2, 2));
         leftPanel.setBorder(
-            BorderFactory.createEtchedBorder(1)
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
         
         errorConsolePanel = new ErrorConsolePanel(
@@ -145,7 +145,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         leftPanel.add(splitPaneLeft);
         
         JTabbedPane tabbedPanel = createParseTreeAndProfileTabbedPanel();
-        tabbedPanel.setBorder(BorderFactory.createEtchedBorder(1));
+        tabbedPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         splitPane.setFirstComponent(leftPanel);
         splitPane.setSecondComponent(tabbedPanel);
         
@@ -612,6 +612,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
         );
         
+        scrollPane.setDoubleBuffered(true);
         scrollPane.setWheelScrollingEnabled(true);
         scrollPane.setBorder(BorderFactory.createEtchedBorder());
         
