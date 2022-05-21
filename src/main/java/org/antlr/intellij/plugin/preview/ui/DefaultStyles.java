@@ -127,6 +127,7 @@ public class DefaultStyles {
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
     public final static JBColor JB_COLOR_BLUE = JBColor.BLUE;
     public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(231, 87, 87));
+    public final static JBColor JB_COLOR_BRIGHT_RED = new JBColor(new Color(173, 35, 35), new Color(255, 35, 35));
     public final static JBColor JB_COLOR_GREEN = new JBColor(new Color(54, 126, 54), new Color(101, 255, 94));
     public final static JBColor JB_COLOR_YELLOW = new JBColor(new Color(255, 242, 97), new Color(248, 248, 105));
     public final static JBColor JB_COLOR_PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
@@ -151,7 +152,6 @@ public class DefaultStyles {
     
     /* ----- STROKES -----------------------------------------*/
     
-    // default stroke setup
     public static final Stroke DEFAULT_STROKE =
         new BasicStroke(
             1.0f,
@@ -159,7 +159,6 @@ public class DefaultStyles {
             BasicStroke.JOIN_ROUND
         );
     
-    // default stroke setup
     public static final Stroke THIN_STROKE =
         new BasicStroke(
             0.6f,
@@ -167,7 +166,6 @@ public class DefaultStyles {
             BasicStroke.JOIN_ROUND
         );
     
-    // default stroke setup
     public static final Stroke THICK_STROKE =
         new BasicStroke(
             2.1f,
@@ -175,7 +173,13 @@ public class DefaultStyles {
             BasicStroke.JOIN_ROUND
         );
     
-    // default stroke setup
+    public static final Stroke HUGE_STROKE =
+        new BasicStroke(
+            3.1f,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_ROUND
+        );
+    
     public static final Stroke EDGE_STROKE_DEFAULT =
         new BasicStroke(
             1.5f,
@@ -183,7 +187,6 @@ public class DefaultStyles {
             BasicStroke.JOIN_ROUND
         );
     
-    // default stroke setup
     public static final Stroke EDGE_STROKE_SELECTED =
         new BasicStroke(
             2.f,
