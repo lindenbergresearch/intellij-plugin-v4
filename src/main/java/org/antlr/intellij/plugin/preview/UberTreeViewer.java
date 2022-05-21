@@ -930,8 +930,14 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             );
         
         if (isReSyncedNode(tree)) {
-            node.setOutlineColor(DefaultStyles.JB_COLOR_BRIGHT_RED);
-            node.getShape().getStyleProperties().setStroke(DefaultStyles.THICK_STROKE);
+            if (isSelectedTreeNode(tree)) {
+                node.setOutlineColor(DefaultStyles.JB_COLOR_BRIGHT_RED);
+                node.getShape().getStyleProperties().setStroke(DefaultStyles.THICK_STROKE);
+            } else {
+                node.setOutlineColor(DefaultStyles.JB_COLOR_RED);
+                //node.getShape().getStyleProperties().setStroke(DefaultStyles.THICK_STROKE);
+            }
+            
         }
         
         // add node text
@@ -1055,7 +1061,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             );
             
             scrollRectToVisible(marginBox);
-            
             repaint();
         }
     }
