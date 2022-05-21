@@ -320,7 +320,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
         previewState.startRuleName = startRuleName;
         if (previewPanel != null) {
             previewPanel.getInputPanel().setStartRuleName(grammarFile, startRuleName); // notify the view
-            previewPanel.updateParseTreeFromDoc(grammarFile);
+            previewPanel.updateParseTreeFromDoc(grammarFile, true);
         } else {
             LOG.error("setStartRuleNameEvent called before preview panel created");
         }
