@@ -29,6 +29,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.awt.RenderingHints.*;
 import static java.lang.Math.max;
@@ -511,7 +512,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         // anti-alias the lines
         g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
+        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
         
         // set fractional metrics ON to improve text rendering quality
         g2.setRenderingHint(KEY_FRACTIONALMETRICS, VALUE_FRACTIONALMETRICS_ON);
@@ -595,6 +596,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected String getText(Tree tree) {
         String s = treeTextProvider.getText(tree);
         //  s = Utils.escapeWhitespace(s.trim(), false);
+        
+        if (isRootNode(tree))
+            s += "\nstart-rule";
+        
         return s.trim();
     }
 
@@ -877,7 +882,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
                 DefaultStyles.DEFAULT_STYLE,
                 isSelectedTreeNode(tree),
                 isCompactLabels()
-            
             );
         
         boolean ruleFailed = false;
@@ -907,7 +911,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
                 isCompactLabels()
             );
         
-        if (isEOFNode(tree)) {
+        // treat only as 'real' EOF node, if not in re-sync mode!
+        if (isEOFNode(tree) && !isReSyncedNode(tree)) {
             node = new EOFTreeNode(
                 styledRootNode,
                 bounds,
@@ -924,6 +929,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
                 isCompactLabels()
             );
         
+        if (isReSyncedNode(tree)) {
+            node.setOutlineColor(DefaultStyles.JB_COLOR_BRIGHT_RED);
+            node.getShape().getStyleProperties().setStroke(DefaultStyles.THICK_STROKE);
+        }
         
         // add node text
         node.setText(getText(tree));
@@ -962,8 +971,19 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public boolean isEOFNode(Tree tree) {
         return (
             tree instanceof TerminalNode &&
-            ((TerminalNode) tree).getText().equals(AltLabelTextProvider.EOF_LABEL)
+            Objects.equals(((TerminalNode) tree).getSymbol().getText(), "<EOF>")
         );
+    }
+    
+    
+    /**
+     * Test if the given node is part of re-sync.
+     *
+     * @param tree Tree.
+     * @return True is part of re-sync.
+     */
+    public boolean isReSyncedNode(Tree tree) {
+        return tree instanceof ErrorNodeImpl;
     }
     
     
