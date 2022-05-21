@@ -1007,7 +1007,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
                 (ParseTree) node,
                 (AltLabelTextProvider) getTreeTextProvider()
             );
-            previewPanel.repaint();
             
             Rectangle2D nodeBounds = getBoundsOfNode(node);
             Rectangle marginBox = new Rectangle(
@@ -1029,6 +1028,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             listener.onParserRuleSelected(node);
         }
         
+        previewPanel.repaint();
         repaint();
     }
     
