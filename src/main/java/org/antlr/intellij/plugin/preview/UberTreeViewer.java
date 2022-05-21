@@ -41,24 +41,36 @@ import static java.lang.Math.min;
  * Enhanced version based on: {@code TreeViewer}
  */
 public class UberTreeViewer extends JComponent implements MouseListener, MouseMotionListener {
-    
-    
     private static final Logger LOG =
         Logger.getInstance("ANTLR UberTreeViewer");
     
     /*---- CONSTANTS ----------------------------------------------------------------------------*/
-    public final static double MAX_SCALE_FACTOR = 2.0; // manual scaling from 10%-200%
+    // manual scaling factor interval
+    public final static double MAX_SCALE_FACTOR = 2.0;
     public final static double MIN_SCALE_FACTOR = 0.1;
-    public final static double MAX_AUTO_SCALE_FACTOR = 1.25; // auto-scale from 30%-125%
+    
+    // auto-scale factor interval
+    public final static double MAX_AUTO_SCALE_FACTOR = 1.25;
     public final static double MIN_AUTO_SCALE_FACTOR = 0.3;
-    public final static double SCALING_INCREMENT = 0.15; // zoom step size factor +/-
-    public final static double NODE_FOCUS_MARGIN = 140;
-    public final static double NODE_FOCUS_SCALE_FACTOR = 1.25; // scaling set when node is focused
+    
+    // scaling increment +/- used by zoom action
+    public final static double SCALING_INCREMENT = 0.15;
+    
+    // margin to be guaranteed around a selected node
+    // scaling factor used by node focus action
+    public final static double NODE_FOCUS_MARGIN = 100;
+    public final static double NODE_FOCUS_SCALE_FACTOR = 1.25;
+    
     public final static int VIEWER_HORIZONTAL_MARGIN = 25;
     public final static int VIEWER_VERTICAL_MARGIN = 25;
+    
+    // margin around a selected tree-node that should
+    // be not covered by the border
     public final static int SCROLL_VIEWPORT_MARGIN = 30;
-    public static final double COMPACT_LABELS_FACTOR_HORIZONTAL = 0.5; // hor. tree layout distance shrink in compact mode
-    public static final double COMPACT_LABELS_FACTOR_VERTICAL = 0.3; // vert. tree layout distance shrink in compact mode
+    
+    // shrink factors for compact mode
+    public static final double COMPACT_LABELS_FACTOR_HORIZONTAL = 0.5;
+    public static final double COMPACT_LABELS_FACTOR_VERTICAL = 0.3;
     
     /*---- CURSOR -------------------------------------------------------------------------------*/
     public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -1016,13 +1028,15 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             );
             
             Rectangle2D nodeBounds = getBoundsOfNode(node);
+            
+            // prevent that selected nodes are partly covered by the border
             Rectangle marginBox = new Rectangle(
                 (int) Math.round(nodeBounds.getX() * scale - SCROLL_VIEWPORT_MARGIN),
                 (int) Math.round(nodeBounds.getY() * scale - SCROLL_VIEWPORT_MARGIN),
                 (int) Math.round(nodeBounds.getWidth() * scale + SCROLL_VIEWPORT_MARGIN * 2),
                 (int) Math.round(nodeBounds.getHeight() * scale + SCROLL_VIEWPORT_MARGIN * 2)
             );
-            
+            // if needed, scroll node to be fully visible
             scrollRectToVisible(marginBox);
         } else {
             // nothing selected
