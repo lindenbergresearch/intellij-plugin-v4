@@ -194,12 +194,11 @@ public class AltLabelTextProvider implements TreeTextProvider {
         
         // not part of the actual match, it is resync
         if (node instanceof ErrorNodeImpl) {
-            String s =
-                symName == null ?
-                    '\'' + text + '\'' :
-                    symName + ": " + '\'' + text + '\'';
+            text = symName == null ?
+                '\'' + text + '\'' :
+                symName + ": " + '\'' + text + '\'';
             
-            return "<resync>" + NL + s;
+            return "<resync>" + NL + text;
         }
         
         if (text.equals("<EOF>")) return EOF_LABEL;
