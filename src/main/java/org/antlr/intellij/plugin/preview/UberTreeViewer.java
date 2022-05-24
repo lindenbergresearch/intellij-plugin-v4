@@ -66,7 +66,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     // margin around a selected tree-node that should
     // be not covered by the border
-    public final static int SCROLL_VIEWPORT_MARGIN = 30;
+    public final static int SCROLL_VIEWPORT_MARGIN = 20;
     
     // shrink factors for compact mode
     public static final double COMPACT_LABELS_FACTOR_HORIZONTAL = 0.5;
@@ -113,6 +113,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected TreeTextProvider treeTextProvider;
     
     public PreviewPanel previewPanel;
+    Rectangle marginBox;
     
     
     /**
@@ -381,6 +382,9 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * autoscaling function.
      */
     protected void doAutoScale() {
+        if (treeLayout == null)
+            return;
+        
         Rectangle2D canvasBounds = getCanvasBounds();
         Rectangle2D treeBounds = treeLayout.getBounds();
         
@@ -491,6 +495,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         if (!hasTreeLayout())
             treeInvalidated = true;
         
+        // trigger relayout if margin-box has been set for scrolling
+        if (marginBox != null)
+            treeInvalidated = true;
+        
         // capture timestamp
         long time = System.nanoTime();
         
@@ -533,8 +541,14 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // anti-alias text, default aa
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_DEFAULT);
         
+        
         // set global canvas scale
         g2.scale(scale, scale);
+        
+        if (marginBox != null) {
+            scrollRectToVisible(marginBox);
+            marginBox = null;
+        }
         
         if (root != null && styledRootNode != null) {
             paintEdges(g, getTree().getRoot(), false);
@@ -1030,7 +1044,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             Rectangle2D nodeBounds = getBoundsOfNode(node);
             
             // prevent that selected nodes are partly covered by the border
-            Rectangle marginBox = new Rectangle(
+            marginBox = new Rectangle(
                 (int) Math.round(nodeBounds.getX() * scale - SCROLL_VIEWPORT_MARGIN),
                 (int) Math.round(nodeBounds.getY() * scale - SCROLL_VIEWPORT_MARGIN),
                 (int) Math.round(nodeBounds.getWidth() * scale + SCROLL_VIEWPORT_MARGIN * 2),
@@ -1043,6 +1057,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             previewPanel.getPropertiesPanel().clear();
             setSelectedTreeNode(null);
         }
+        
         
         // raise event for all selection listeners
         for (ParsingResultSelectionListener listener : selectionListeners) {
@@ -1058,26 +1073,32 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * Set proper viewport and scaling to fit to a specific node.
      */
     protected void focusSelectedNode() {
-        if (!hasTreeLayout()) return;
+        if (!hasTreeLayout() || getSelectedTreeNode() == null)
+            return;
+        
+        setScaleLevel(NODE_FOCUS_SCALE_FACTOR);
         
         Tree node = getSelectedTreeNode();
         
-        if (node != null) {
-            setScaleLevel(NODE_FOCUS_SCALE_FACTOR);
-            updateScaling();
-            updatePreferredSize();
-            
-            Rectangle2D nodeBounds = getBoundsOfNode(node);
-            Rectangle marginBox = new Rectangle(
-                (int) Math.round(nodeBounds.getX() * scale - NODE_FOCUS_MARGIN),
-                (int) Math.round(nodeBounds.getY() * scale - NODE_FOCUS_MARGIN),
-                (int) Math.round(nodeBounds.getWidth() * scale + NODE_FOCUS_MARGIN * 2),
-                (int) Math.round(nodeBounds.getHeight() * scale + NODE_FOCUS_MARGIN * 2)
-            );
-            
-            scrollRectToVisible(marginBox);
-            repaint();
-        }
+        Rectangle2D bounds = scrollPane.getViewportBorderBounds();
+        Rectangle2D nodeBounds = getBoundsOfNode(node);
+        
+        double centerX = nodeBounds.getCenterX();
+        double centerY = nodeBounds.getCenterY();
+        
+        // 90% of the current viewport size
+        double alpha = 0.9;
+        double marginH = bounds.getWidth() / 2. * alpha;
+        double marginV = bounds.getHeight() / 2. * alpha;
+        
+        marginBox = new Rectangle(
+            (int) Math.round(centerX * scale - marginH),
+            (int) Math.round(centerY * scale - marginV),
+            (int) Math.round(2 * marginH),
+            (int) Math.round(2 * marginV)
+        );
+        
+        repaint();
     }
     
     
