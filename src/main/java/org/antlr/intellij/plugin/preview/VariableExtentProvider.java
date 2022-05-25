@@ -52,7 +52,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
             Dimension bounds1 = UIHelper.getFullStringBounds(
                 (Graphics2D) viewer.getGraphics(),
                 s[0],
-                REGULAR_FONT
+                BOLD_FONT
             );
             
             Dimension bounds2 = UIHelper.getFullStringBounds(
