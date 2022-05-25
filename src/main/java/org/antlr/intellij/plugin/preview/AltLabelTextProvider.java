@@ -26,7 +26,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
     public static final int MAX_TOKEN_LENGTH = 6;
     
     // alt label prefix
-    public static final String ALT_LABEL_TEXT = "\u2022";
+    public static final String ALT_LABEL_TEXT = " *";
     
     // ...
     public static final String SHORTEN_LABEL_TEXT = "\u2026";
