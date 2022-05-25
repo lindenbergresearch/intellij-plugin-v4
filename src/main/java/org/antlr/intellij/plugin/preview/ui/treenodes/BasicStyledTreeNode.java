@@ -84,9 +84,14 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      * Adapt style properties for compact mode.
      */
     protected void setCompact() {
-        shape.setEnabled(false);
+        if (selected)
+            shape.setFilled(false);
+        else
+            shape.setEnabled(false);
+        
         label.setTextColor((JBColor) shape.getBackground().brighter());
-        label.setFont(label.getFont().deriveFont(label.getFont().getSize() - 3.f));
+        //  label.setFont(label.getFont().deriveFont(label.getFont().getSize() - 3.f));
+        footer.setTextColor(label.getTextColor());
     }
     
     

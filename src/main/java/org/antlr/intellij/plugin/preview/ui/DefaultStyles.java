@@ -22,7 +22,7 @@ public class DefaultStyles {
     public static final float BASIC_FONT_SIZE = JBFont.regular().getSize2D();
     
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 0.833f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.85f;
     
     
     // text layout setup
