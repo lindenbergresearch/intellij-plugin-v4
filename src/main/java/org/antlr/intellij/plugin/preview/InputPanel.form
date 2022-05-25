@@ -56,6 +56,10 @@
               <text value="Label"/>
             </properties>
           </component>
+          <component id="bbb1e" class="com.intellij.openapi.ui.ComboBox" binding="comboBox" custom-create="true">
+            <constraints/>
+            <properties/>
+          </component>
         </children>
       </grid>
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
