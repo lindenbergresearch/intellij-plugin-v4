@@ -17,6 +17,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComponentWithBrowseButton.BrowseFolderActionListener;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -34,6 +35,7 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.runtime.CommonToken;
+import org.antlr.v4.misc.OrderedHashMap;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.misc.Interval;
@@ -41,12 +43,14 @@ import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,9 +67,9 @@ public class InputPanel {
     private static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
     private static final int ERROR_LAYER = HighlighterLayer.ERROR;
     
-    private static final String missingStartRuleLabelText = "No rule selected.";
+    //  private static final String missingStartRuleLabelText = "No rule selected.";
     private static final String grammarFileLabelText = "%s";
-    private static final String startRuleLabelText = "Rule: [%s]";
+    private static final String startRuleLabelText = "Rule:";
     
     /**
      * switchToGrammar() was seeing an empty slot instead of a previous
@@ -92,6 +96,7 @@ public class InputPanel {
     private JPanel outerMostPanel;
     private JPanel jPanel;
     private JLabel startRuleLabel2;
+    private ComboBox<String> comboBox;
     private JScrollPane errorScrollPane;
     ErrorConsolePanel errorConsolePanel;
     private final PropertiesComponent propertiesComponent;
@@ -101,6 +106,23 @@ public class InputPanel {
         outerMostPanel = new JPanel(new BorderLayout(0, 0));
         jPanel = new JPanel(new BorderLayout(0, 0));
         errorConsole = new JTextArea();
+        comboBox = new ComboBox<>();
+        
+        
+        comboBox.addItemListener(itemEvent -> {
+            if (previewState == null)
+                return;
+            
+            ANTLRv4PluginController controller =
+                ANTLRv4PluginController.getInstance(previewState.project);
+            
+            if (itemEvent.getStateChange() == ItemEvent.SELECTED && controller != null) {
+                controller.setStartRuleNameEvent(
+                    previewState.grammarFile,
+                    itemEvent.getItem().toString()
+                );
+            }
+        });
         
         // Wrap tree viewer component in scroll pane
         errorScrollPane = new JBScrollPane(
@@ -113,12 +135,7 @@ public class InputPanel {
         
         jPanel.add(errorScrollPane);
         jPanel.setBorder(
-            BorderFactory.createEmptyBorder(
-                0,
-                0,
-                0,
-                0
-            )
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
     }
     
@@ -514,17 +531,30 @@ public class InputPanel {
     
     
     public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
-        final Font bold = startRuleLabel.getFont().deriveFont(Font.BOLD);
+        if (previewState == null || previewState.grammar == null)
+            return;
+        
+        Grammar grammar = previewState.grammar;
+        OrderedHashMap<String, Rule> rules = grammar.rules;
+        
+        if (startRuleName.equals(comboBox.getItem()))
+            return;
         
         final String labelGrammar = String.format(
             grammarFileLabelText,
             grammarFile.getName()
         );
         
-        final String labelStartRule = String.format(
-            startRuleLabelText,
-            startRuleName
-        );
+        comboBox.setEnabled(true);
+        comboBox.removeAllItems();
+        
+        
+        for (String s : rules.keySet()) {
+            comboBox.addItem(s);
+            if (startRuleName.equals(s)) {
+                comboBox.setSelectedItem(s);
+            }
+        }
         
         
         startRuleLabel.setForeground(JBColor.foreground());
@@ -532,19 +562,18 @@ public class InputPanel {
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
         startRuleLabel.setText(labelGrammar);
         
-        startRuleLabel2.setForeground(JBColor.BLUE);
-        startRuleLabel2.setFont(bold.deriveFont(bold.getSize()));
+        // startRuleLabel2.setForeground(JBColor.BLUE);
+        // startRuleLabel2.setFont(bold.deriveFont(bold.getSize()));
 //        startRuleLabel2.setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(14.f));
-        startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
-        startRuleLabel2.setText(labelStartRule);
+        //   startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
+        startRuleLabel2.setText(startRuleLabelText);
         
         startRuleLabel.setBorder(
-            BorderFactory.createEmptyBorder(
-                0,
-                15,
-                0,
-                15
-            )
+            BorderFactory.createEmptyBorder(0, 15, 0, 5)
+        );
+        
+        startRuleLabel2.setBorder(
+            BorderFactory.createEmptyBorder(0, 10, 0, 7)
         );
     }
     
@@ -560,9 +589,12 @@ public class InputPanel {
         startRuleLabel.setForeground(JBColor.RED);
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
         
-        startRuleLabel2.setText(String.format(missingStartRuleLabelText));
-        startRuleLabel2.setForeground(JBColor.RED);
-        startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
+        //    startRuleLabel2.setText(String.format(missingStartRuleLabelText));
+        //  startRuleLabel2.setForeground(JBColor.RED);
+        // startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
+        comboBox.removeAllItems();
+        comboBox.addItem("<none>");
+        comboBox.setEnabled(false);
     }
     
     
