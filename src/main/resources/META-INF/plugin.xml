@@ -4,36 +4,22 @@
   <version>will be replaced by gradle</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
-  <description><![CDATA[
-  <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10.1. It works with
-      2021.2 and above. It should work in other JetBrains IDEs.
-     </p>
+    <id>org.antlr.intellij.plugin</id>
+    <name>ANTLR v4</name>
+    <version>will be replaced by gradle</version>
+    <vendor email="lindenberg.research@gmail.com" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project
+    </vendor>
+
+    <description><![CDATA[
+      <p>
+          This plugin is based on the original ANTLR v4 plugin v2.19 using ANTLR 4.10.1.
+          The main difference is a complete redesign of the parse-tree-viewer and some other small
+          enhancements like better syntax coloring etc.
+          It works with 2021.2 and above. It should work in other JetBrains IDEs.
+      </p>
 
      <ul>
-     <li> syntax highlighting
-     <li> syntax error checking
-     <li> semantic error checking
-     <li> navigation window
-     <li> goto-declaration
-     <li> find usages
-     <li> rename tokens
-     <li> rename rules
-     <li> comment grammar rule lines with meta-/ (1.7)
-     <li> save parse trees as svg/jpg/png; right click in parse tree view (1.9)
-     <li> grammar/comment folding (1.7)
-     <li> generates parser code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
-     <li> code completion for tokens, rule names;
-     <li> finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
-     <li> handles separate parsers and lexers like TParser.g4 and TLexer.g4 (1.7)
-     <li> Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
-     <li> has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
-     <li> view parse trees in hierarchy (sideways tree) view. (1.8)
-     <li> can view parse trees for input matched in more than one way (ambiguities) (1.7)
-     <li> can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
-	<li> changes to grammar seen in parse tree upon save of grammar.
-	<li> works with all JetBrains IDEs (1.8)
-	<li> refactoring: extract rule, inline rule (1.8), dup rule to make refs unique
+         <li> syntax highlighting
      </ul>
 
       <p>Generates code in <project-root>/gen/package/YourGrammarRecognizer.java
@@ -69,9 +55,10 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
 <p>
 <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
-      ]]></description>
+      ]]>
+    </description>
 
-  <change-notes><![CDATA[
+    <change-notes><![CDATA[
 	<ul>
 	    <li>Updated to ANTLR 4.10.1</li>
 	    <li>Fixed an exception in IDEA 2022.1 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/533">#533</a>)</li>
@@ -82,7 +69,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
     <!-- requires IntelliJ 2021.2+ due to java 11 issue really but allowing 2019.2 just in case it works for somebody -->
-    <idea-version since-build="212"/>
+    <idea-version since-build="221"/>
 
     <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
          on how to target different products -->
