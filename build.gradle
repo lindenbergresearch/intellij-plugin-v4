@@ -27,7 +27,7 @@ compileJava {
 intellij {
     version = ideaVersion
 
-    pluginName = 'antlr-intellij-plugin-v4'
+    pluginName = 'antlr-intellij-plugin-neo'
     downloadSources = true
     updateSinceUntilBuild = false
 }
