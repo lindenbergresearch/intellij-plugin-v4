@@ -2,19 +2,15 @@
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4</name>
   <version>will be replaced by gradle</version>
-  <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
-
-    <id>org.antlr.intellij.plugin</id>
-    <name>ANTLR v4</name>
-    <version>will be replaced by gradle</version>
-    <vendor email="lindenberg.research@gmail.com" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project
-    </vendor>
+  <vendor email="parrt@antlr.org, lindenberg.research@gmail.com" url="https://github.com/lindenbergresearch/intellij-plugin-v4">ANTLR Project</vendor>
 
     <description><![CDATA[
       <p>
           This plugin is based on the original ANTLR v4 plugin v2.19 using ANTLR 4.10.1.
+          which could be found at: https://github.com/antlr/intellij-plugin-v4
+
           The main difference is a complete redesign of the parse-tree-viewer and some other small
-          enhancements like better syntax coloring etc.
+          enhancements like better syntax coloring etc. and a bunch of fixes.
           It works with 2021.2 and above. It should work in other JetBrains IDEs.
       </p>
 
@@ -31,39 +27,34 @@
           shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
           for grammar preview. Right click on rule and say "Test ANTLR Rule".
           Changes to grammar seen in parse tree upon save of grammar.
-  <p>
+      <p>
           You can configure the ANTLR tool options per grammar file; right-click
           in a grammar or on a grammar element within the structured view.
           When you change and save a grammar, it automatically builds with ANTLR
           in the background according to the preferences you have set.  ANTLR
           tool errors appear in a console you can opened by clicking on a button
           in the bottom tab.
-  <p>
+      <p>
           You can use the ctrl-key while moving the mouse and it will show you
           token information in the preview editor box via tooltips.
 
-  <p>
+      <p>
           Errors within the preview editor are now highlighted with tooltips
           and underlining just like a regular editor window. The difference
           is that this window's grammar is specified in your grammar file.
 
-<p>See <a href="https://github.com/antlr/intellij-plugin-v4/blob/master/README.md">README.md</a>
-for more details.
+      <p>
+    For really big files and slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
 
 <p>
-For really big files and slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
-
-<p>
-<a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
+<a href="https://github.com/lindenbergresearch/intellij-plugin-v4">Github source</a>
       ]]>
     </description>
 
     <change-notes><![CDATA[
 	<ul>
-	    <li>Updated to ANTLR 4.10.1</li>
-	    <li>Fixed an exception in IDEA 2022.1 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/533">#533</a>)</li>
+	    <li>Updated to ANTLR 4.10.1 and IntelliJ 2022.1</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.18+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
@@ -88,12 +79,12 @@ For really big files and slow grammars, there is an appreciable delay when displ
   <actions>
       <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateParserAction" text="Generate ANTLR Recognizer">
      		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
-     		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+     		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="ExternalToolsGroup"/>
      		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
      		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
      	</action>
         <action id="antlr.Configure" class="org.antlr.intellij.plugin.actions.ConfigureANTLRAction" text="Configure ANTLR...">
-            <add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+            <add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="ExternalToolsGroup"/>
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
@@ -115,10 +106,6 @@ For really big files and slow grammars, there is an appreciable delay when displ
 		<action id="antlr.UniquifyRuleRefs" class="org.antlr.intellij.plugin.actions.UniquifyRuleRefs" text="Make Refs to Rule Unique...">
 			<add-to-group group-id="RefactoringMenu" anchor="after" relative-to-action="antlr.ExtractRule"/>
 		</action>
-
-      <!--action class="org.antlr.intellij.plugin.TestAction" description="An scala test action" text="Test Scala Action" id="antlr.ScalaTestAction">
-          <add-to-group group-id="ToolsMenu" anchor="last"/>
-      </action-->
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -136,7 +123,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
       <lang.foldingBuilder language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.folding.ANTLRv4FoldingBuilder"/>
       <iconProvider implementation="org.antlr.intellij.plugin.ANTLRv4IconProvider"/>
 
-      <lang.formatter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.formatter.SimpleFormattingModelBuilder"/>
+      <!-- lang.formatter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.formatter.SimpleFormattingModelBuilder"/-->
 
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
       <lang.findUsagesProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
