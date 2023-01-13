@@ -53,17 +53,17 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
  */
 public class PreviewPanel extends JPanel implements ParsingResultSelectionListener {
     public static final Logger LOG =
-            Logger.getInstance("ANTLR PreviewPanel");
+        Logger.getInstance("ANTLR PreviewPanel");
 
     // com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
     // perhaps in a few more years they will get around to backport whatever it was they fixed.
     // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
     private static final boolean isTrackpadZoomSupported =
-            SystemInfo.isMac &&
-                    (
-                            SystemInfo.JAVA_VERSION.startsWith("1.6") ||
-                                    SystemInfo.JAVA_VERSION.startsWith("1.9")
-                    );
+        SystemInfo.isMac &&
+            (
+                SystemInfo.JAVA_VERSION.startsWith("1.6") ||
+                    SystemInfo.JAVA_VERSION.startsWith("1.9")
+            );
 
     public Project project;
     public InputPanel inputPanel;
@@ -115,12 +115,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout(2, 2));
         leftPanel.setBorder(
-                BorderFactory.createEmptyBorder(0, 0, 0, 0)
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
 
         errorConsolePanel = new ErrorConsolePanel(
-                new BorderLayout(2, 2),
-                BorderFactory.createEmptyBorder(0, 0, 0, 0)
+            new BorderLayout(2, 2),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
 
 
@@ -162,9 +162,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     private ActionToolbar createButtonBarGraph() {
         ToggleAction toggleAutoscaling = new ToggleAction(
-                "Auto-Scale",
-                "Set proper zoom-level upon live-testing grammars.",
-                Replace
+            "Auto-Scale",
+            "Set proper zoom-level upon live-testing grammars.",
+            Replace
         ) {
 
             @Override
@@ -182,8 +182,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         AnAction zoomActualSize = new AnAction(
-                "Actual Size", "Set zoom-level to 1:1.",
-                ActualZoom
+            "Actual Size", "Set zoom-level to 1:1.",
+            ActualZoom
         ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
@@ -204,9 +204,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         /* --------------------------------------------------------------------- */
 
         AnAction zoomOut = new AnAction(
-                "Zoom Out",
-                null,
-                ZoomOut
+            "Zoom Out",
+            null,
+            ZoomOut
         ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
@@ -225,9 +225,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         AnAction zoomIn = new AnAction(
-                "Zoom In",
-                null,
-                ZoomIn
+            "Zoom In",
+            null,
+            ZoomIn
         ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
@@ -247,9 +247,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         AnAction fitScreen = new AnAction(
-                "Fit Screen",
-                "Fit content to screen.",
-                FitContent
+            "Fit Screen",
+            "Fit content to screen.",
+            FitContent
         ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
@@ -266,9 +266,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         AnAction fitSelected = new AnAction(
-                "Fit Selected Node",
-                "Zoom to selected tree node.",
-                ShortcutFilter
+            "Fit Selected Node",
+            "Zoom to selected tree node.",
+            ShortcutFilter
         ) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -280,9 +280,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         /* --------------------------------------------------------------------- */
 
         ToggleAction toggleCompactLabels = new ToggleAction(
-                "Compact Labels",
-                "Use compact labeling for tree-nodes.",
-                Json.Array
+            "Compact Labels",
+            "Use compact labeling for tree-nodes.",
+            Json.Array
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -297,9 +297,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         ToggleAction toggleObjectExplorer = new ToggleAction(
-                "Object Explorer",
-                "Show Object Explorer to show additional properties for tree-nodes.",
-                GroupByPrefix
+            "Object Explorer",
+            "Show Object Explorer to show additional properties for tree-nodes.",
+            GroupByPrefix
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -317,9 +317,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         /* --------------------------------------------------------------------- */
 
         ToggleAction toggleTopLayout = new ToggleAction(
-                "Top-Down Layout",
-                "Layout orientation from top to bottom.",
-                Chooser.Bottom
+            "Top-Down Layout",
+            "Layout orientation from top to bottom.",
+            Chooser.Bottom
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -335,9 +335,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         ToggleAction toggleBottomLayout = new ToggleAction(
-                "Bottom-Up Layout",
-                "Layout orientation from bottom to top.",
-                Chooser.Top
+            "Bottom-Up Layout",
+            "Layout orientation from bottom to top.",
+            Chooser.Top
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -354,9 +354,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
         ToggleAction toggleLeftLayout = new ToggleAction(
-                "Left-Right Layout",
-                "Layout orientation from left to right.",
-                Chooser.Right
+            "Left-Right Layout",
+            "Layout orientation from left to right.",
+            Chooser.Right
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -372,9 +372,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         ToggleAction toggleRightLayout = new ToggleAction(
-                "Right-Left Layout",
-                "Layout orientation from right to left.",
-                Chooser.Left
+            "Right-Left Layout",
+            "Layout orientation from right to left.",
+            Chooser.Left
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -393,41 +393,41 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         /* --------------------------------------------------------------------- */
 
         DefaultActionGroup actionGroup = new DefaultActionGroup(
-                toggleAutoscaling,
-                fitScreen,
-                fitSelected
+            toggleAutoscaling,
+            fitScreen,
+            fitSelected
         );
 
         actionGroup.addSeparator();
 
         actionGroup.addAll(
-                zoomActualSize,
-                zoomIn,
-                zoomOut
+            zoomActualSize,
+            zoomIn,
+            zoomOut
         );
 
         actionGroup.addSeparator();
 
         actionGroup.addAll(
-                toggleCompactLabels,
-                toggleObjectExplorer
+            toggleCompactLabels,
+            toggleObjectExplorer
         );
 
         actionGroup.addSeparator();
 
         actionGroup.addAll(
-                toggleTopLayout,
-                toggleBottomLayout,
-                toggleLeftLayout,
-                toggleRightLayout
+            toggleTopLayout,
+            toggleBottomLayout,
+            toggleLeftLayout,
+            toggleRightLayout
         );
 
         ActionToolbar toolbar =
-                ActionManager.getInstance().createActionToolbar(
-                        PREVIEW_WINDOW_ID,
-                        actionGroup,
-                        true
-                );
+            ActionManager.getInstance().createActionToolbar(
+                PREVIEW_WINDOW_ID,
+                actionGroup,
+                true
+            );
 
         toolbar.setTargetComponent(this);
 
@@ -437,9 +437,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     private ActionToolbar createButtonBar() {
         final AnAction refreshAction = new ToggleAction(
-                "Refresh Preview Automatically",
-                "Refresh preview automatically upon grammar changes",
-                Actions.Refresh
+            "Refresh Preview Automatically",
+            "Refresh preview automatically upon grammar changes",
+            Actions.Refresh
         ) {
 
             @Override
@@ -455,9 +455,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         ToggleAction scrollFromSourceBtn = new ToggleAction(
-                "Scroll from Source",
-                "",
-                AutoscrollFromSource
+            "Scroll from Source",
+            "",
+            AutoscrollFromSource
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -472,9 +472,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
 
         ToggleAction scrollToSourceBtn = new ToggleAction(
-                "Highlight Source",
-                "",
-                Find
+            "Highlight Source",
+            "",
+            Find
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
@@ -493,18 +493,18 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         /* --------------------------------------------------------------------- */
 
         DefaultActionGroup actionGroup = new DefaultActionGroup(
-                refreshAction,
-                cancelParserAction,
-                scrollFromSourceBtn,
-                scrollToSourceBtn
+            refreshAction,
+            cancelParserAction,
+            scrollFromSourceBtn,
+            scrollToSourceBtn
         );
 
         ActionToolbar toolbar =
-                ActionManager.getInstance().createActionToolbar(
-                        PREVIEW_WINDOW_ID,
-                        actionGroup,
-                        false
-                );
+            ActionManager.getInstance().createActionToolbar(
+                PREVIEW_WINDOW_ID,
+                actionGroup,
+                false
+            );
 
         toolbar.setTargetComponent(this);
 
@@ -536,11 +536,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         splitter.setAndLoadSplitterProportionKey("PreviewPanel.parseTreeSplitter");
 
         propertiesPanel =
-                new PropertiesPanel(
-                        new BorderLayout(0, 0),
-                        BorderFactory.createEmptyBorder(2, 0, 0, 2)
-                        //  BorderFactory.createEtchedBorder(1)
-                );
+            new PropertiesPanel(
+                new BorderLayout(0, 0),
+                BorderFactory.createEmptyBorder(2, 0, 0, 2)
+                //  BorderFactory.createEtchedBorder(1)
+            );
 
 
         JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
@@ -592,9 +592,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         JPanel treePanel = new JPanel(new BorderLayout(2, 4));
 
         final UberTreeViewer uberTreeViewer =
-                isTrackpadZoomSupported ?
-                        new TrackpadZoomingTreeView(this) :
-                        new UberTreeViewer(this);
+            isTrackpadZoomSupported ?
+                new TrackpadZoomingTreeView(this) :
+                new UberTreeViewer(this);
 
 
         uberTreeViewer.setDoubleBuffered(true);
@@ -602,15 +602,15 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         this.buttonBarGraph = createButtonBarGraph();
         buttonBarGraph.getComponent().setBorder(
-                BorderFactory.createEmptyBorder(5, 0, 0, 0)
+            BorderFactory.createEmptyBorder(5, 0, 0, 0)
         );
 
 
         // Wrap tree uberTreeViewer component in scroll pane
         JScrollPane scrollPane = new JBScrollPane(
-                uberTreeViewer,
-                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
+            uberTreeViewer,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
         );
 
         scrollPane.setDoubleBuffered(true);
@@ -654,8 +654,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
         // if start rule no longer exists, reset display/state.
         if (previewState.grammar != null &&
-                previewState.grammar != ParsingUtils.BAD_PARSER_GRAMMAR &&
-                previewState.startRuleName != null) {
+            previewState.grammar != ParsingUtils.BAD_PARSER_GRAMMAR &&
+            previewState.startRuleName != null) {
             Rule rule = previewState.grammar.getRule(previewState.startRuleName);
 
             if (rule == null) {
@@ -680,14 +680,14 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     private void switchToGrammar(VirtualFile grammarFile) {
         String grammarFileName = grammarFile.getPath();
         ANTLRv4PluginController controller =
-                ANTLRv4PluginController.getInstance(project);
+            ANTLRv4PluginController.getInstance(project);
 
         // should not happen
         if (controller == null)
             return;
 
         PreviewState previewState =
-                controller.getPreviewState(grammarFile);
+            controller.getPreviewState(grammarFile);
 
         autoSetStartRule(previewState);
 
@@ -809,13 +809,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
     public void updateParseTreeFromDoc(VirtualFile grammarFile, boolean forceUpdate) {
         ANTLRv4PluginController controller =
-                ANTLRv4PluginController.getInstance(project);
+            ANTLRv4PluginController.getInstance(project);
 
         if (controller == null)
             return;
 
         PreviewState previewState =
-                controller.getPreviewState(grammarFile);
+            controller.getPreviewState(grammarFile);
 
 
         if (!previewState.hasValidGrammar()) {
@@ -852,9 +852,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 
         if (autoRefresh
-                && controller != null
-                && inputPanel.previewState != null
-                && inputPanel.previewState.startRuleName != null) {
+            && controller != null
+            && inputPanel.previewState != null
+            && inputPanel.previewState.startRuleName != null) {
             ApplicationManager.getApplication().invokeLater(() -> controller.grammarFileSavedEvent(virtualFile));
         }
     }
