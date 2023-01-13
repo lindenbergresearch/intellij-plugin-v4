@@ -131,7 +131,7 @@ public class GrammarIssuesCollector {
         }
         ST msgST = null;
         if (issue.getMsg() instanceof GrammarInfoMessage) { // not in ANTLR so must hack it in
-            Token t = ((GrammarSemanticsMessage) issue.getMsg()).offendingToken;
+            var t = issue.getMsg().offendingToken;
             issue.getOffendingTokens().add(t);
             msgST = new ST("unused parser rule <arg>");
             msgST.add("arg", t.getText());
@@ -171,20 +171,25 @@ public class GrammarIssuesCollector {
     
     
     private static Map<String, GrammarAST> getUnusedParserRules(Grammar g) {
-        if (g.ast == null || g.isLexer()) return null;
-        List<GrammarAST> ruleNodes = g.ast.getNodesWithTypePreorderDFS(IntervalSet.of(ANTLRParser.RULE_REF));
+        if (g.ast == null || g.isLexer())
+            return null;
+        
+        var ruleNodes = g.ast.getNodesWithTypePreorderDFS(IntervalSet.of(ANTLRParser.RULE_REF));
+        
         // in case of errors, we walk AST ourselves
         // ANTLR's Grammar object might have bailed on rule defs etc...
         Set<String> ruleRefs = new HashSet<>();
         Map<String, GrammarAST> ruleDefs = new HashMap<>();
-        for (GrammarAST x : ruleNodes) {
-            if (x.getParent().getType() == ANTLRParser.RULE) {
+        
+        for (var x : ruleNodes) {
+            if (x.getParent().getType() == ANTLRParser.RULE && !ruleNodes.get(0).equals(x)) {
                 ruleDefs.put(x.getText(), x);
             } else if (x instanceof RuleRefAST) {
-                RuleRefAST r = (RuleRefAST) x;
+                var r = (RuleRefAST) x;
                 ruleRefs.add(r.getText());
             }
         }
+        
         ruleDefs.keySet().removeAll(ruleRefs);
         return ruleDefs;
     }
