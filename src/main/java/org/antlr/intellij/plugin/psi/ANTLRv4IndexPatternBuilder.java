@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.getTokenElementType;
 
 public class ANTLRv4IndexPatternBuilder implements IndexPatternBuilder {
-
+    
     @Nullable
     @Override
     public Lexer getIndexingLexer(@NotNull PsiFile file) {
@@ -24,8 +24,8 @@ public class ANTLRv4IndexPatternBuilder implements IndexPatternBuilder {
         }
         return null;
     }
-
-
+    
+    
     @Nullable
     @Override
     public TokenSet getCommentTokenSet(@NotNull PsiFile file) {
@@ -34,14 +34,14 @@ public class ANTLRv4IndexPatternBuilder implements IndexPatternBuilder {
         }
         return null;
     }
-
-
+    
+    
     @Override
     public int getCommentStartDelta(IElementType tokenType) {
         return tokenType == getTokenElementType(ANTLRv4Lexer.LINE_COMMENT) ? 2 : 0;
     }
-
-
+    
+    
     @Override
     public int getCommentEndDelta(IElementType tokenType) {
         return 0;

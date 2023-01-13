@@ -14,8 +14,8 @@ public enum CaseChangingStrategy {
         public CharStream applyTo(CharStream source) {
             return source;
         }
-
-
+        
+        
         @Override
         public String toString() {
             return "Leave as-is";
@@ -26,8 +26,8 @@ public enum CaseChangingStrategy {
         public CharStream applyTo(CharStream source) {
             return new CaseChangingCharStream(source, true);
         }
-
-
+        
+        
         @Override
         public String toString() {
             return "Transform to uppercase when lexing";
@@ -38,15 +38,15 @@ public enum CaseChangingStrategy {
         public CharStream applyTo(CharStream source) {
             return new CaseChangingCharStream(source, false);
         }
-
-
+        
+        
         @Override
         public String toString() {
             return "Transform to lowercase when lexing";
         }
     };
-
-
+    
+    
     public abstract CharStream applyTo(CharStream source);
-
+    
 }

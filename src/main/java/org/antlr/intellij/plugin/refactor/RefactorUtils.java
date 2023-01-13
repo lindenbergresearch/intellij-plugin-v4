@@ -66,10 +66,10 @@ public class RefactorUtils {
         put("'...'", "ELLIPSIS");
         put("'\\'", "BACKSLASH");
     }};
-
+    
     public static int lexerRuleNameID = 1;
-
-
+    
+    
     public static String getLexerRuleNameFromLiteral(String literal) {
         String name = literalToRuleNameMap.get(literal);
         if (name != null) {
@@ -82,8 +82,8 @@ public class RefactorUtils {
         }
         return "T__" + lexerRuleNameID++;
     }
-
-
+    
+    
     public static TerminalNode getRuleDefNameNode(Parser parser, ParseTree tree, String ruleName) {
         Collection<ParseTree> ruleDefRuleNodes;
         if (Grammar.isTokenName(ruleName)) {
@@ -99,16 +99,16 @@ public class RefactorUtils {
         }
         return null;
     }
-
-
+    
+    
     public static boolean ruleHasMultipleOutermostAlts(Parser parser, ParseTree ruleTree) {
         Collection<ParseTree> ors = XPath.findAll(ruleTree, "/parserRuleSpec/ruleBlock/ruleAltList/OR", parser);
         if (ors.size() >= 1) return true;
         ors = XPath.findAll(ruleTree, "/lexerRule/lexerRuleBlock/lexerAltList/OR", parser);
         return ors.size() >= 1;
     }
-
-
+    
+    
     public static Token getTokenForCharIndex(TokenStream tokens, int charIndex) {
         for (int i = 0; i < tokens.size(); i++) {
             Token t = tokens.get(i);
@@ -118,8 +118,8 @@ public class RefactorUtils {
         }
         return null;
     }
-
-
+    
+    
     public static ParseTree getAncestorWithType(ParseTree t, Class<? extends ParseTree> clazz) {
         if (t == null || clazz == null || t.getParent() == null) return null;
         Tree p = t.getParent();
@@ -129,8 +129,8 @@ public class RefactorUtils {
         }
         return null;
     }
-
-
+    
+    
     public static int childIndexOf(ParseTree t, ParseTree child) {
         if (t == null || child == null) return -1;
         for (int i = 0; i < t.getChildCount(); i++) {
@@ -138,8 +138,8 @@ public class RefactorUtils {
         }
         return -1;
     }
-
-
+    
+    
     public static void replaceText(
         final Project project, final Document doc,
         final int start, final int stop, // inclusive
@@ -153,8 +153,8 @@ public class RefactorUtils {
         };
         setTextAction.execute();
     }
-
-
+    
+    
     public static void insertText(
         final Project project, final Document doc,
         final int where,
@@ -168,8 +168,8 @@ public class RefactorUtils {
         };
         setTextAction.execute();
     }
-
-
+    
+    
     /**
      * Get start/stop of an entire rule including semi and then clean up
      * WS at end.
@@ -181,7 +181,7 @@ public class RefactorUtils {
         Token colon = colonNode.getSymbol();
         Token beforeSemi = tokens.get(stop.getTokenIndex() - 1);
         Token afterColon = tokens.get(colon.getTokenIndex() + 1);
-
+        
         // trim whitespace/comments before / after rule text
         List<Token> ignoreBefore = tokens.getHiddenTokensToRight(colon.getTokenIndex());
         List<Token> ignoreAfter = tokens.getHiddenTokensToLeft(semi.getTokenIndex());
@@ -195,11 +195,11 @@ public class RefactorUtils {
             int firstWSAtEndOfRule = ignoreAfter.get(0).getTokenIndex() - 1;
             textStop = tokens.get(firstWSAtEndOfRule); // stop before 1st ignore token at end
         }
-
+        
         return tokens.getText(textStart, textStop);
     }
-
-
+    
+    
     public static List<TerminalNode> getAllRuleRefNodes(Parser parser, ParseTree tree, String ruleName) {
         List<TerminalNode> nodes = new ArrayList<>();
         Collection<ParseTree> ruleRefs;
@@ -219,8 +219,8 @@ public class RefactorUtils {
         if (nodes.size() == 0) return null;
         return nodes;
     }
-
-
+    
+    
     /**
      * Given a token index into buffer, find surrounding rule then return
      * char position of start of next rule.
@@ -230,7 +230,7 @@ public class RefactorUtils {
             Trees.getRootOfSubtreeEnclosingRegion(tree, tokenIndex, tokenIndex);
         final ParserRuleContext ruleRoot = (ParserRuleContext)
             getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
-
+        
         return ruleRoot.getStop().getStopIndex() + 2; // insert after '\n' following ';'
     }
 }

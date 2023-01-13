@@ -11,22 +11,22 @@ import org.jetbrains.annotations.NotNull;
  */
 @State(name = "ANTLRGenerationPreferences")
 public class ANTLRv4GrammarPropertiesComponent implements PersistentStateComponent<ANTLRv4GrammarPropertiesStore> {
-
+    
     private ANTLRv4GrammarPropertiesStore mySettings = new ANTLRv4GrammarPropertiesStore();
-
-
+    
+    
     public static ANTLRv4GrammarPropertiesComponent getInstance(Project project) {
         return ServiceManager.getService(project, ANTLRv4GrammarPropertiesComponent.class);
     }
-
-
+    
+    
     @NotNull
     @Override
     public ANTLRv4GrammarPropertiesStore getState() {
         return mySettings;
     }
-
-
+    
+    
     @Override
     public void loadState(ANTLRv4GrammarPropertiesStore state) {
         mySettings = state;

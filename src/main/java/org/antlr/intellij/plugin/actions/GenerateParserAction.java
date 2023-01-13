@@ -28,14 +28,14 @@ import java.util.Set;
  */
 public class GenerateParserAction extends AnAction implements DumbAware {
     public static final Logger LOG = Logger.getInstance("ANTLR GenerateAction");
-
-
+    
+    
     @Override
     public void update(AnActionEvent e) {
         MyActionUtils.selectedFileIsGrammar(e);
     }
-
-
+    
+    
     @Override
     public void actionPerformed(final AnActionEvent e) {
         Project project = e.getData(PlatformDataKeys.PROJECT);
@@ -48,20 +48,20 @@ public class GenerateParserAction extends AnAction implements DumbAware {
         if (grammarFile == null) return;
         String title = "ANTLR Code Generation";
         boolean canBeCancelled = true;
-
+        
         // commit changes to PSI and file system
         PsiDocumentManager psiMgr = PsiDocumentManager.getInstance(project);
         FileDocumentManager docMgr = FileDocumentManager.getInstance();
         Document doc = docMgr.getDocument(grammarFile);
         if (doc == null) return;
-
+        
         boolean unsaved = !psiMgr.isCommitted(doc) || docMgr.isDocumentUnsaved(doc);
         if (unsaved) {
             // save event triggers ANTLR run if autogen on
             psiMgr.commitDocument(doc);
             docMgr.saveDocument(doc);
         }
-
+        
         boolean forceGeneration = true; // from action, they really mean it
         RunANTLROnGrammarFile gen =
             new RunANTLROnGrammarFile(grammarFile,
@@ -69,14 +69,14 @@ public class GenerateParserAction extends AnAction implements DumbAware {
                 title,
                 canBeCancelled,
                 forceGeneration);
-
+        
         boolean autogen = ANTLRv4GrammarPropertiesStore.getGrammarProperties(project, grammarFile).shouldAutoGenerateParser();
         if (!unsaved || !autogen) {
             // if everything already saved (not stale) then run ANTLR
             // if had to be saved and autogen NOT on, then run ANTLR
             // Otherwise, the save file event will have or will run ANTLR.
             ProgressManager.getInstance().run(gen); //, "Generating", canBeCancelled, e.getData(PlatformDataKeys.PROJECT));
-
+            
             // refresh from disk to see new files
             Set<File> generatedFiles = new HashSet<>();
             generatedFiles.add(new File(gen.getOutputDirName()));

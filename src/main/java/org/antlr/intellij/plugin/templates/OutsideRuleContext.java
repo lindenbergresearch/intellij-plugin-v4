@@ -12,8 +12,8 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
     public OutsideRuleContext() {
         super("ANTLR_OUTSIDE", "Outside rule", ANTLRGenericContext.class);
     }
-
-
+    
+    
     @Override
     public boolean isInContext(@NotNull PsiFile file, PsiElement element, int offset) {
         CommonTokenStream tokens = ParsingUtils.tokenizeANTLRGrammar(file.getText());
@@ -24,14 +24,14 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
         int tokenIndex = tokenUnderCursor.getTokenIndex();
         Token nextRealToken = ParsingUtils.nextRealToken(tokens, tokenIndex);
         Token previousRealToken = ParsingUtils.previousRealToken(tokens, tokenIndex);
-
+        
         if (nextRealToken == null || previousRealToken == null) {
             return false;
         }
-
+        
         int previousRealTokenType = previousRealToken.getType();
         int nextRealTokenType = nextRealToken.getType();
-
+        
         if (previousRealTokenType == ANTLRv4Parser.BEGIN_ACTION) {
             // make sure we're not in a rule; has to be @lexer::header {...} stuff
             Token prevPrevRealToken = ParsingUtils.previousRealToken(tokens, previousRealToken.getTokenIndex());
@@ -47,7 +47,7 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
                 return false;
             }
         }
-
+        
         boolean okBefore =
             previousRealTokenType == ANTLRv4Parser.RBRACE ||
                 previousRealTokenType == ANTLRv4Parser.SEMI ||
@@ -56,7 +56,7 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
             nextRealTokenType == ANTLRv4Parser.TOKEN_REF ||
                 nextRealTokenType == ANTLRv4Parser.RULE_REF ||
                 nextRealTokenType == Token.EOF;
-
+        
         return okBefore && okAfter;
     }
 }

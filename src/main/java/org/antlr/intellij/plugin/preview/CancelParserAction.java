@@ -11,33 +11,33 @@ import org.jetbrains.annotations.NotNull;
  * process the input in the Preview window.
  */
 public class CancelParserAction extends AnAction {
-
+    
     private boolean enabled = false;
-
-
+    
+    
     public CancelParserAction() {
         super("Cancel Parsing", "Cancel the current parsing", AllIcons.Actions.Suspend);
     }
-
-
+    
+    
     @Override
     public void update(@NotNull AnActionEvent e) {
         super.update(e);
-
+        
         e.getPresentation().setEnabled(enabled);
     }
-
-
+    
+    
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(e.getProject());
-
+        
         if (controller != null) {
             controller.abortCurrentParsing();
         }
     }
-
-
+    
+    
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }

@@ -28,29 +28,29 @@ import java.util.*;
 public class GrammarIssuesCollector {
     public static final Logger LOG = Logger.getInstance(GrammarIssuesCollector.class.getName());
     private static final String LANGUAGE_ARG_PREFIX = "-Dlanguage=";
-
-
+    
+    
     public static List<GrammarIssue> collectGrammarIssues(PsiFile file) {
         String grammarFileName = file.getVirtualFile().getPath();
         LOG.info("doAnnotate " + grammarFileName);
         String fileContents = file.getText();
         List<String> args = RunANTLROnGrammarFile.getANTLRArgsAsList(file.getProject(), file.getVirtualFile());
         GrammarIssuesCollectorToolListener listener = new GrammarIssuesCollectorToolListener();
-
+        
         String languageArg = findLanguageArg(args);
-
+        
         if (languageArg != null) {
             String language = languageArg.substring(LANGUAGE_ARG_PREFIX.length());
-
+            
             if (!targetExists(language)) {
                 GrammarIssue issue = new GrammarIssue(null);
                 issue.setAnnotation("Unknown target language '" + language + "', analysis will be done using the default target language 'Java'");
                 listener.getIssues().add(issue);
-
+                
                 args.remove(languageArg);
             }
         }
-
+        
         final Tool antlr = new Tool(args.toArray(new String[args.size()]));
         if (!args.contains("-lib")) {
             // getContainingDirectory() must be identified as a read operation on file system
@@ -58,7 +58,7 @@ public class GrammarIssuesCollector {
                 antlr.libDirectory = file.getContainingDirectory().toString();
             });
         }
-
+        
         antlr.removeListeners();
         antlr.addListener(listener);
         try {
@@ -74,13 +74,13 @@ public class GrammarIssuesCollector {
             }
             Grammar g = antlr.createGrammar(ast);
             g.fileName = grammarFileName;
-
+            
             String vocabName = g.getOptionString("tokenVocab");
             if (vocabName != null) { // import vocab to avoid spurious warnings
                 LOG.info("token vocab file " + vocabName);
                 g.importTokensFromTokensFile();
             }
-
+            
             VirtualFile vfile = file.getVirtualFile();
             if (vfile == null) {
                 LOG.error("doAnnotate no virtual file for " + file);
@@ -88,7 +88,7 @@ public class GrammarIssuesCollector {
             }
             g.fileName = vfile.getPath();
             antlr.process(g, false);
-
+            
             Map<String, GrammarAST> unusedRules = getUnusedParserRules(g);
             if (unusedRules != null) {
                 for (String r : unusedRules.keySet()) {
@@ -97,7 +97,7 @@ public class GrammarIssuesCollector {
                     listener.getIssues().add(issue);
                 }
             }
-
+            
             for (GrammarIssue issue : listener.getIssues()) {
                 processIssue(file, issue);
             }
@@ -106,8 +106,8 @@ public class GrammarIssuesCollector {
         }
         return listener.getIssues();
     }
-
-
+    
+    
     @Nullable
     private static String findLanguageArg(List<String> args) {
         for (String arg : args) {
@@ -115,11 +115,11 @@ public class GrammarIssuesCollector {
                 return arg;
             }
         }
-
+        
         return null;
     }
-
-
+    
+    
     public static void processIssue(final PsiFile file, GrammarIssue issue) {
         File grammarFile = new File(file.getVirtualFile().getPath());
         if (issue.getMsg() == null || issue.getMsg().fileName == null) { // weird, issue doesn't have a file associated with it
@@ -157,7 +157,7 @@ public class GrammarIssuesCollector {
         } else if (issue.getMsg() instanceof ToolMessage) {
             issue.getOffendingTokens().add(issue.getMsg().offendingToken);
         }
-
+        
         Tool antlr = new Tool();
         if (msgST == null) {
             msgST = antlr.errMgr.getMessageTemplate(issue.getMsg());
@@ -168,8 +168,8 @@ public class GrammarIssuesCollector {
         }
         issue.setAnnotation(outputMsg);
     }
-
-
+    
+    
     private static Map<String, GrammarAST> getUnusedParserRules(Grammar g) {
         if (g.ast == null || g.isLexer()) return null;
         List<GrammarAST> ruleNodes = g.ast.getNodesWithTypePreorderDFS(IntervalSet.of(ANTLRParser.RULE_REF));
@@ -188,8 +188,8 @@ public class GrammarIssuesCollector {
         ruleDefs.keySet().removeAll(ruleRefs);
         return ruleDefs;
     }
-
-
+    
+    
     public static boolean targetExists(String language) {
         String targetName = "org.antlr.v4.codegen.target." + language + "Target";
         try {

@@ -265,8 +265,8 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     public double getWidth() {
         if (getMargin() != null)
             return getViewport().getWidth() +
-                   getStyleProperties().getMargin().getLeft() +
-                   getStyleProperties().getMargin().getRight();
+                getStyleProperties().getMargin().getLeft() +
+                getStyleProperties().getMargin().getRight();
         
         else return getViewport().getWidth();
     }
@@ -280,8 +280,8 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     public double getHeight() {
         if (getMargin() != null)
             return getViewport().getHeight() +
-                   getStyleProperties().getMargin().getTop() +
-                   getStyleProperties().getMargin().getBottom();
+                getStyleProperties().getMargin().getTop() +
+                getStyleProperties().getMargin().getBottom();
         
         return getViewport().getHeight();
     }

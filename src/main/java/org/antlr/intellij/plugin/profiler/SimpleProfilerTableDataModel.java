@@ -22,8 +22,8 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
     private final String[] ruleNamesByDecision;
     public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
-
-
+    
+    
     public SimpleProfilerTableDataModel(ParseInfo parseInfo, Parser parser) {
         this.parseInfo = parseInfo;
         /*copying rule names to not hold ref to parser object*/
@@ -35,26 +35,26 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
             nameToColumnMap.put(columnNames[i], i);
         }
     }
-
-
+    
+    
     @Override
     public String[] getColumnNames() {
         return columnNames;
     }
-
-
+    
+    
     @Override
     public String[] getColumnToolTips() {
         return columnToolTips;
     }
-
-
+    
+    
     @Override
     public int getRowCount() {
         return parseInfo.getDecisionInfo().length;
     }
-
-
+    
+    
     @Override
     public Object getValueAt(int row, int col) {
         int decision = row;

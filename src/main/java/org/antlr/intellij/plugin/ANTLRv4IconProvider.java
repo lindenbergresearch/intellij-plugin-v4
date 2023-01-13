@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class ANTLRv4IconProvider extends IconProvider {
-
+    
     @Nullable
     @Override
     public Icon getIcon(@NotNull PsiElement element, int flags) {

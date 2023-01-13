@@ -11,21 +11,21 @@ import java.awt.*;
 public class ChooseExtractedRuleName extends DialogWrapper {
     public String ruleName;
     JBTextField nameField;
-
-
+    
+    
     protected ChooseExtractedRuleName(@Nullable Project project) {
         super(project, true);
         init();
     }
-
-
+    
+    
     @Override
     protected void doOKAction() {
         super.doOKAction();
         ruleName = nameField.getText();
     }
-
-
+    
+    
     @Override
     protected JComponent createCenterPanel() {
         nameField = new JBTextField("newRule");
@@ -35,8 +35,8 @@ public class ChooseExtractedRuleName extends DialogWrapper {
         nameField.selectAll();
         return nameField;
     }
-
-
+    
+    
     @Nullable
     @Override
     public JComponent getPreferredFocusedComponent() {

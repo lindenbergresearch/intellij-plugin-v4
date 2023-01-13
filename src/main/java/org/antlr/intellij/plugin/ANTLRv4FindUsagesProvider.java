@@ -13,22 +13,22 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
     public boolean canFindUsagesFor(@NotNull PsiElement psiElement) {
         return psiElement instanceof RuleSpecNode;
     }
-
-
+    
+    
     @Nullable
     @Override
     public WordsScanner getWordsScanner() {
         return null; // seems ok as JavaFindUsagesProvider does same thing
     }
-
-
+    
+    
     @Nullable
     @Override
     public String getHelpId(@NotNull PsiElement element) {
         return null;
     }
-
-
+    
+    
     @NotNull
     @Override
     public String getType(@NotNull PsiElement element) {
@@ -49,8 +49,8 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
         }
         return "n/a";
     }
-
-
+    
+    
     @NotNull
     @Override
     public String getDescriptiveName(@NotNull PsiElement element) {
@@ -58,8 +58,8 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
         if (rule != null) return rule.getText();
         return "n/a";
     }
-
-
+    
+    
     @NotNull
     @Override
     public String getNodeText(@NotNull PsiElement element, boolean useFullName) {

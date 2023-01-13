@@ -156,7 +156,7 @@ public class ProfilerPanel {
         numTokensField.setText(String.valueOf(numTokens));
         double look =
             parseInfo.getTotalSLLLookaheadOps() +
-            parseInfo.getTotalLLLookaheadOps();
+                parseInfo.getTotalLLLookaheadOps();
         lookaheadBurdenField.setText(
             String.format("%d/%d = %3.2f", (long) look, numTokens, look / numTokens)
         );
@@ -214,7 +214,7 @@ public class ProfilerPanel {
         
         TextAttributes attr =
             new TextAttributes(JBColor.BLACK, JBColor.WHITE, effectColor,
-                               EffectType.ROUNDED_BOX, Font.PLAIN
+                EffectType.ROUNDED_BOX, Font.PLAIN
             );
         MarkupModel markupModel = grammarEditor.getMarkupModel();
         final RangeHighlighter rangeHighlighter = markupModel.addRangeHighlighter(
@@ -258,9 +258,9 @@ public class ProfilerPanel {
                 maxLookEvent = decisionInfo.LL_MaxLookEvent;
             }
             firstToken = addDecisionEventHighlighter(previewState, markupModel,
-                                                     maxLookEvent,
-                                                     DEEPESTLOOK_COLOR,
-                                                     EffectType.BOLD_DOTTED_LINE
+                maxLookEvent,
+                DEEPESTLOOK_COLOR,
+                EffectType.BOLD_DOTTED_LINE
             );
         }
         
@@ -299,7 +299,7 @@ public class ProfilerPanel {
         Token stopToken = tokens.get(info.stopIndex);
         TextAttributes textAttributes =
             new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor,
-                               effectType, Font.PLAIN
+                effectType, Font.PLAIN
             );
         textAttributes.setErrorStripeColor(errorStripeColor);
         final RangeHighlighter rangeHighlighter =

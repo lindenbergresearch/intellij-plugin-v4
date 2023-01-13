@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
     private static final Map<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new HashMap<>();
-
+    
     static {
         // later auto gen with tokens from some spec in grammar?
         ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.Factory.INSTANCE);
@@ -31,8 +31,8 @@ public class ANTLRv4ASTFactory extends ASTFactory {
         ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.Factory.INSTANCE);
         ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_identifier), TokenSpecNode.Factory.INSTANCE);
     }
-
-
+    
+    
     public static PsiElement createInternalParseTreeNode(ASTNode node) {
         PsiElement t;
         IElementType tokenType = node.getElementType();
@@ -42,11 +42,11 @@ public class ANTLRv4ASTFactory extends ASTFactory {
         } else {
             t = new ASTWrapperPsiElement(node);
         }
-
+        
         return t;
     }
-
-
+    
+    
     /**
      * Create a FileElement for root or a parse tree CompositeElement (not
      * PSI) for the token. This impl is more or less the default.
@@ -58,8 +58,8 @@ public class ANTLRv4ASTFactory extends ASTFactory {
         }
         return new CompositeElement(type);
     }
-
-
+    
+    
     /**
      * Create PSI nodes out of tokens so even parse tree sees them as such.
      * Does not see whitespace tokens.
@@ -78,5 +78,5 @@ public class ANTLRv4ASTFactory extends ASTFactory {
         }
         return t;
     }
-
+    
 }

@@ -20,8 +20,8 @@ import java.awt.event.MouseEvent;
 
 public class TestRuleAction extends AnAction implements DumbAware {
     public static final Logger LOG = Logger.getInstance("ANTLR TestRuleAction");
-
-
+    
+    
     /**
      * Only show if selection is a grammar and in a rule
      */
@@ -30,14 +30,14 @@ public class TestRuleAction extends AnAction implements DumbAware {
         Presentation presentation = e.getPresentation();
         presentation.setText("Test ANTLR Rule"); // default text
         presentation.setIcon(AllIcons.Actions.Execute);
-
+        
         VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
         if (grammarFile == null) { // we clicked somewhere outside text or non grammar file
             presentation.setEnabled(false);
             presentation.setVisible(false);
             return;
         }
-
+        
         ParserRuleRefNode r = null;
         InputEvent inputEvent = e.getInputEvent();
         if (inputEvent instanceof MouseEvent) { // this seems to be after update() called 2x and we have selected the action
@@ -67,7 +67,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
             presentation.setEnabled(false);
             return;
         }
-
+        
         presentation.setVisible(true);
         String ruleName = r.getText();
         if (Character.isLowerCase(ruleName.charAt(0))) {
@@ -77,8 +77,8 @@ public class TestRuleAction extends AnAction implements DumbAware {
             presentation.setEnabled(false);
         }
     }
-
-
+    
+    
     @Override
     public void actionPerformed(final AnActionEvent e) {
         if (e.getProject() == null) {
@@ -87,12 +87,12 @@ public class TestRuleAction extends AnAction implements DumbAware {
         }
         VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
         if (grammarFile == null) return;
-
+        
         LOG.info("actionPerformed " + grammarFile);
-
+        
         ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(e.getProject());
         controller.getPreviewWindow().show(null);
-
+        
         ParserRuleRefNode r = MyActionUtils.getParserRuleSurroundingRef(e);
         if (r == null) {
             return; // weird. no rule name.
@@ -103,8 +103,8 @@ public class TestRuleAction extends AnAction implements DumbAware {
         if (doc != null) {
             docMgr.saveDocument(doc);
         }
-
+        
         controller.setStartRuleNameEvent(grammarFile, ruleName);
     }
-
+    
 }

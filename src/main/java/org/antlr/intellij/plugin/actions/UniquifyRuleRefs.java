@@ -33,37 +33,37 @@ public class UniquifyRuleRefs extends AnAction {
     public void update(AnActionEvent e) {
         MyActionUtils.showOnlyIfSelectionIsRule(e, "Dup to Make %s Refs Unique");
     }
-
-
+    
+    
     @Override
     public void actionPerformed(AnActionEvent e) {
         PsiElement el = MyActionUtils.getSelectedPsiElement(e);
         if (el == null) return;
-
+        
         final String ruleName = el.getText();
-
+        
         final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
         if (psiFile == null) return;
-
+        
         final Project project = e.getProject();
-
+        
         Editor editor = e.getData(PlatformDataKeys.EDITOR);
         if (editor == null) return;
         final Document doc = editor.getDocument();
-
+        
         String grammarText = psiFile.getText();
         ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
         Parser parser = results.parser;
         ParseTree tree = results.tree;
-
+        
         // find all parser and lexer rule refs
         final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
         if (rrefNodes == null) return;
-
+        
         // find rule def
         final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
         if (ruleDefNameNode == null) return;
-
+        
         // alter rule refs and dup rules
         WriteCommandAction setTextAction = new WriteCommandAction(project) {
             @Override
@@ -74,8 +74,8 @@ public class UniquifyRuleRefs extends AnAction {
         };
         setTextAction.execute();
     }
-
-
+    
+    
     public void dupRuleAndMakeRefsUnique(
         Document doc,
         String ruleName,
@@ -84,9 +84,9 @@ public class UniquifyRuleRefs extends AnAction {
         int base = 0;
         int i = 1;
         int nrefs = rrefNodes.size();
-
+        
         if (nrefs == 1) return; // no need to make unique if already unique
-
+        
         for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
             Token rrefToken = t.getSymbol();
             String uniqueRuleName = ruleName + i;
@@ -95,18 +95,18 @@ public class UniquifyRuleRefs extends AnAction {
             base += uniqueRuleName.length() - rrefToken.getText().length();
             i++;
         }
-
+        
         // reparse to find new rule location
         String grammarText = doc.getText();
         ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
         Parser parser = results.parser;
         ParseTree tree = results.tree;
         CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
-
+        
         // find rule def
         final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
         if (ruleDefNameNode == null) return;
-
+        
         final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
         Token start = ruleDefNode.getStart();
         Token stop = ruleDefNode.getStop();
@@ -115,7 +115,7 @@ public class UniquifyRuleRefs extends AnAction {
         if (start.getType() == ANTLRv4Lexer.DOC_COMMENT) {
             javadoc = start.getText() + "\n";
         }
-
+        
         // delete original rule
         List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
         if (hiddenTokensToRight != null && hiddenTokensToRight.size() > 0) {
@@ -127,7 +127,7 @@ public class UniquifyRuleRefs extends AnAction {
             }
         }
         doc.deleteString(start.getStartIndex(), stop.getStopIndex() + 1);
-
+        
         // now insert nrefs copies of ruleText at insertionPoint
         final String ruleText = RefactorUtils.getRuleText(tokens, ruleDefNode);
         for (i = nrefs; i >= 1; i--) {

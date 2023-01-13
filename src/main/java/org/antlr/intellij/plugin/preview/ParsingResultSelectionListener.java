@@ -9,9 +9,9 @@ import org.antlr.v4.runtime.tree.Tree;
  * corresponding area in the input editor.
  */
 public interface ParsingResultSelectionListener {
-
+    
     void onLexerTokenSelected(Token token);
-
-
+    
+    
     void onParserRuleSelected(Tree rule);
 }

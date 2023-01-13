@@ -17,11 +17,11 @@ public abstract class ANTLRLiveTemplateContext extends TemplateContextType {
     ) {
         super(id, presentableName, baseContextType);
     }
-
-
+    
+    
     protected abstract boolean isInContext(@NotNull PsiFile file, @NotNull PsiElement element, int offset);
-
-
+    
+    
     @Override
     public boolean isInContext(@NotNull PsiFile file, int offset) {
         // offset is where cursor or insertion point is I guess
@@ -32,11 +32,11 @@ public abstract class ANTLRLiveTemplateContext extends TemplateContextType {
             offset--;
         }
         PsiElement element = file.findElementAt(offset);
-
+        
         if (element == null) {
             return false;
         }
-
+        
         return isInContext(file, element, offset);
     }
 }

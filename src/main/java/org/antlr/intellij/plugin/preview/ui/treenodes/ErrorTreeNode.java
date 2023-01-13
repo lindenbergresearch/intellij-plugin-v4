@@ -8,6 +8,6 @@ import java.awt.geom.Rectangle2D;
 public class ErrorTreeNode extends BasicStyledTreeNode {
     
     public ErrorTreeNode(StyledElement parent, Rectangle2D viewport, boolean selected, boolean compact) {
-        super(parent, viewport, DefaultStyles.ERROR_NODE_STYLE, selected,compact);
+        super(parent, viewport, DefaultStyles.ERROR_NODE_STYLE, selected, compact);
     }
 }

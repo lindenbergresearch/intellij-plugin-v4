@@ -9,14 +9,14 @@ import javax.swing.*;
 public class LiteralChooserObject {
     private final String text;
     private final Icon icon;
-
-
+    
+    
     public LiteralChooserObject(final String text, @Nullable final Icon icon) {
         this.text = text;
         this.icon = icon;
     }
-
-
+    
+    
     public void renderTreeNode(SimpleColoredComponent component, JTree tree) {
         String literal = getText();
         SimpleTextAttributes attributes =
@@ -24,8 +24,8 @@ public class LiteralChooserObject {
         component.append(literal, attributes);
         component.setIcon(icon);
     }
-
-
+    
+    
     public String getText() {
         return text;
     }

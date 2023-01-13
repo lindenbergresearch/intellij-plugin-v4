@@ -304,9 +304,9 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public double getMaximumTextWith() {
         if (
             treeLayout == null ||
-            getTree() == null ||
-            getTree().getRoot() == null ||
-            extentProvider == null
+                getTree() == null ||
+                getTree().getRoot() == null ||
+                extentProvider == null
         )
             return 0;
         
@@ -334,7 +334,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         double w =
             bounds.getWidth() +
-            DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizonal();
+                DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizonal();
         
         width = max(w, width);
         
@@ -390,11 +390,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         double xRatio =
             canvasBounds.getWidth() /
-            (treeBounds.getWidth() + VIEWER_HORIZONTAL_MARGIN * 2. / scale);
+                (treeBounds.getWidth() + VIEWER_HORIZONTAL_MARGIN * 2. / scale);
         
         double yRatio =
             canvasBounds.getHeight() /
-            (treeBounds.getHeight() + VIEWER_VERTICAL_MARGIN * 2. / scale);
+                (treeBounds.getHeight() + VIEWER_VERTICAL_MARGIN * 2. / scale);
         
         // determine the smallest scale factor
         scale = min(xRatio, yRatio);
@@ -505,8 +505,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // detect any canvas size change
         boolean sizeChanged =
             viewport == null ||
-            !getSize().equals(viewport) ||
-            !getSize().equals(getParent().getSize());
+                !getSize().equals(viewport) ||
+                !getSize().equals(getParent().getSize());
         
         sizeChanged = !treeInvalidated && sizeChanged;
         
@@ -684,7 +684,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected boolean treeBoundsExceedViewport() {
         Rectangle viewport = scrollPane.getViewportBorderBounds();
         return getScaledTreeSize().getWidth() > viewport.getWidth() ||
-               getScaledTreeSize().getHeight() > viewport.getHeight();
+            getScaledTreeSize().getHeight() > viewport.getHeight();
     }
     
     
@@ -698,7 +698,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         Dimension bounds = getSize();
         
         return getScaledTreeSize().getWidth() > bounds.getWidth() ||
-               getScaledTreeSize().getHeight() > bounds.getHeight();
+            getScaledTreeSize().getHeight() > bounds.getHeight();
     }
     
     
@@ -916,8 +916,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             ParserRuleContext ctx = (ParserRuleContext) tree;
             ruleFailed =
                 ctx.exception != null &&
-                ctx.stop != null &&
-                ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
+                    ctx.stop != null &&
+                    ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
         }
         
         /* --------------------------------------------------------------------- */
@@ -1004,7 +1004,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public boolean isEOFNode(Tree tree) {
         return (
             tree instanceof TerminalNode &&
-            Objects.equals(((TerminalNode) tree).getSymbol().getText(), "<EOF>")
+                Objects.equals(((TerminalNode) tree).getSymbol().getText(), "<EOF>")
         );
     }
     
@@ -1142,7 +1142,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      */
     public boolean isSelectedTreeNode(Tree tree) {
         return selectedTreeNode != null &&
-               tree == selectedTreeNode;
+            tree == selectedTreeNode;
     }
     
     

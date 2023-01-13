@@ -52,8 +52,8 @@ public abstract class StyledShape extends StyledElement {
     public boolean isFilled() {
         return filled;
     }
-
-
+    
+    
     public void setFilled(boolean filled) {
         this.filled = filled;
     }

@@ -77,7 +77,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         
         double w =
             bounds.getWidth() +
-            DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizonal();
+                DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizonal();
         
         if (viewer.isRootNode(tree)) {
             return w * EXTENDED_BOUNDS_WIDTH;
@@ -105,7 +105,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         );
         
         double h = bounds.getHeight() +
-                   DefaultStyles.DEFAULT_TEXT_MARGIN.getVertical();
+            DefaultStyles.DEFAULT_TEXT_MARGIN.getVertical();
         
         if (viewer.isRootNode(tree)) {
             return h * EXTENDED_BOUNDS_HEIGHT;

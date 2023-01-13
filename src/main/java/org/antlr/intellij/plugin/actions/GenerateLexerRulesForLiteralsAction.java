@@ -31,8 +31,8 @@ import java.util.List;
 
 public class GenerateLexerRulesForLiteralsAction extends AnAction {
     public static final Logger LOG = Logger.getInstance("GenerateLexerRulesForLiterals");
-
-
+    
+    
     /**
      * Only show if selection is a literal
      */
@@ -52,20 +52,20 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
             return;
         }
     }
-
-
+    
+    
     @Override
     public void actionPerformed(AnActionEvent e) {
         LOG.info("actionPerformed GenerateLexerRulesForLiteralsAction");
         final Project project = e.getProject();
-
+        
         final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
         if (psiFile == null) {
             return;
         }
         String inputText = psiFile.getText();
         ParsingResult results = ParsingUtils.parseANTLRGrammar(inputText);
-
+        
         final Parser parser = results.parser;
         final ParseTree tree = results.tree;
         Collection<ParseTree> literalNodes = XPath.findAll(tree, "//ruleBlock//STRING_LITERAL", parser);
@@ -76,26 +76,26 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
                 RefactorUtils.getLexerRuleNameFromLiteral(literal), literal);
             lexerRules.put(literal, ruleText);
         }
-
+        
         // remove those already defined
         String lexerRulesXPath = "//lexerRule";
         String treePattern = "<TOKEN_REF> : <STRING_LITERAL>;";
         ParseTreePattern p = parser.compileParseTreePattern(treePattern, ANTLRv4Parser.RULE_lexerRule);
         List<ParseTreeMatch> matches = p.findAll(tree, lexerRulesXPath);
-
+        
         for (ParseTreeMatch match : matches) {
             ParseTree lit = match.get("STRING_LITERAL");
             if (lexerRules.containsKey(lit.getText())) { // we have rule for this literal already
                 lexerRules.remove(lit.getText());
             }
         }
-
+        
         final LiteralChooser chooser =
             new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
         chooser.show();
         List<String> selectedElements = chooser.getSelectedElements();
         // chooser disposed automatically.
-
+        
         final Editor editor = e.getData(PlatformDataKeys.EDITOR);
         final Document doc = editor.getDocument();
         final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
@@ -121,7 +121,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
                     break;
                 }
             }
-
+            
             String allRules = Utils.join(selectedElements.iterator(), "\n");
             text =
                 text.substring(0, cursorOffset) +
@@ -130,5 +130,5 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
             MyPsiUtils.replacePsiFileFromText(project, psiFile, text);
         }
     }
-
+    
 }

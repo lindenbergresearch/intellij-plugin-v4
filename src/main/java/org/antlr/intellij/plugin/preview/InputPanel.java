@@ -244,9 +244,9 @@ public class InputPanel {
                 } else if (eventInfo instanceof PredicateEvalInfo) {
                     PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
                     msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
-                                                                        previewState,
-                                                                        evalInfo.semctx, evalInfo.predictedAlt,
-                                                                        evalInfo.evalResult
+                        previewState,
+                        evalInfo.semctx, evalInfo.predictedAlt,
+                        evalInfo.evalResult
                     );
                     msg += (!evalInfo.fullCtx ? " (DFA)" : "");
                 } else {
@@ -278,8 +278,8 @@ public class InputPanel {
     
     public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
         int flags = HintManager.HIDE_BY_ANY_KEY |
-                    HintManager.HIDE_BY_TEXT_CHANGE |
-                    HintManager.HIDE_BY_SCROLLING;
+            HintManager.HIDE_BY_TEXT_CHANGE |
+            HintManager.HIDE_BY_SCROLLING;
         
         int timeout = 0; // default?
         hintMgr.showErrorHint(editor, msg, offset, offset + 1, HintManager.ABOVE, flags, timeout);
@@ -288,8 +288,8 @@ public class InputPanel {
     
     public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
         int flags = HintManager.HIDE_BY_ANY_KEY |
-                    HintManager.HIDE_BY_TEXT_CHANGE |
-                    HintManager.HIDE_BY_SCROLLING;
+            HintManager.HIDE_BY_TEXT_CHANGE |
+            HintManager.HIDE_BY_SCROLLING;
         
         int timeout = 0; // default?
         JComponent infoLabel = HintUtil.createInformationLabel(msg);

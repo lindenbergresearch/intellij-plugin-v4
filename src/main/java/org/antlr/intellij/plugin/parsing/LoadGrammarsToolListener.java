@@ -15,11 +15,11 @@ import java.util.List;
 public class LoadGrammarsToolListener extends DefaultToolListener {
     public List<String> grammarErrorMessages = new ArrayList<>();
     public List<String> grammarWarningMessages = new ArrayList<>();
-
-
+    
+    
     public LoadGrammarsToolListener(Tool tool) {super(tool);}
-
-
+    
+    
     @Override
     public void error(ANTLRMessage msg) {
         ST msgST = tool.errMgr.getMessageTemplate(msg);
@@ -29,8 +29,8 @@ public class LoadGrammarsToolListener extends DefaultToolListener {
         }
         grammarErrorMessages.add(s);
     }
-
-
+    
+    
     @Override
     public void warning(ANTLRMessage msg) {
         ST msgST = tool.errMgr.getMessageTemplate(msg);
@@ -40,8 +40,8 @@ public class LoadGrammarsToolListener extends DefaultToolListener {
         }
         grammarWarningMessages.add(s);
     }
-
-
+    
+    
     public void clear() {
         grammarErrorMessages.clear();
         grammarWarningMessages.clear();

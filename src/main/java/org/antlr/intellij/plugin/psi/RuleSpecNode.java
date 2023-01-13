@@ -15,13 +15,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNameIdentifierOwner {
     protected String name = null; // an override to input text ID
-
-
+    
+    
     public RuleSpecNode(@NotNull final ASTNode node) {
         super(node);
     }
-
-
+    
+    
     @Override
     public String getName() {
         if (name != null) return name;
@@ -31,12 +31,12 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
         }
         return "unknown-name";
     }
-
-
+    
+    
     @Nullable
     public abstract GrammarElementRefNode getNameIdentifier();
-
-
+    
+    
     @Override
     public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
 		/*
@@ -54,18 +54,18 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
         this.name = name;
         return this;
     }
-
-
+    
+    
     public abstract IElementType getRuleRefType();
-
-
+    
+    
     @Override
     public void subtreeChanged() {
         super.subtreeChanged();
         name = null;
     }
-
-
+    
+    
     @Override
     public int getTextOffset() {
         GrammarElementRefNode id = getNameIdentifier();

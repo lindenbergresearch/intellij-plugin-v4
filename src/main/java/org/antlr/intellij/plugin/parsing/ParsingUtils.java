@@ -43,7 +43,7 @@ import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesSt
 public class ParsingUtils {
     public static Grammar BAD_PARSER_GRAMMAR;
     public static LexerGrammar BAD_LEXER_GRAMMAR;
-
+    
     static {
         try {
             ParsingUtils.BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
@@ -54,7 +54,7 @@ public class ParsingUtils {
             ANTLRv4PluginController.LOG.error("can't init bad grammar markers");
         }
     }
-
+    
     public static Token nextRealToken(CommonTokenStream tokens, int i) {
         int n = tokens.size();
         i++; // search after current i token
@@ -78,8 +78,8 @@ public class ParsingUtils {
         }
         return t;
     }
-
-
+    
+    
     public static Token previousRealToken(CommonTokenStream tokens, int i) {
         int size = tokens.size();
         i--; // search before current i token
@@ -92,17 +92,17 @@ public class ParsingUtils {
         }
         return t;
     }
-
-
+    
+    
     public static Token getTokenUnderCursor(PreviewState previewState, int offset) {
         if (previewState == null || previewState.parsingResult == null) return null;
-
+        
         PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
         CommonTokenStream tokenStream = (CommonTokenStream) parser.getInputStream();
         return ParsingUtils.getTokenUnderCursor(tokenStream, offset);
     }
-
-
+    
+    
     public static Token getTokenUnderCursor(CommonTokenStream tokens, int offset) {
         Comparator<Token> cmp = (a, b) -> {
             if (a.getStopIndex() < b.getStartIndex()) return -1;
@@ -119,8 +119,8 @@ public class ParsingUtils {
         if (i >= 0) tokenUnderCursor = tokenList.get(i);
         return tokenUnderCursor;
     }
-
-
+    
+    
     /*
     [77] = {org.antlr.v4.runtime.CommonToken@16710}"[@77,263:268='import',<25>,9:0]"
     [78] = {org.antlr.v4.runtime.CommonToken@16709}"[@78,270:273='java',<100>,9:7]"
@@ -156,8 +156,8 @@ public class ParsingUtils {
         }
         return tokenUnderCursor;
     }
-
-
+    
+    
     public static CommonTokenStream tokenizeANTLRGrammar(String text) {
         CodePointCharStream input = CharStreams.fromString(text);
         ANTLRv4Lexer lexer = new ANTLRv4Lexer(input);
@@ -165,13 +165,13 @@ public class ParsingUtils {
         tokens.fill();
         return tokens;
     }
-
-
+    
+    
     public static ParseTree getParseTreeNodeWithToken(ParseTree tree, Token token) {
         if (tree == null || token == null) {
             return null;
         }
-
+        
         Collection<ParseTree> tokenNodes = Trees.findAllTokenNodes(tree, token.getType());
         for (ParseTree t : tokenNodes) {
             TerminalNode tnode = (TerminalNode) t;
@@ -181,25 +181,25 @@ public class ParsingUtils {
         }
         return null;
     }
-
-
+    
+    
     public static ParsingResult parseANTLRGrammar(String text) {
         CodePointCharStream input = CharStreams.fromString(text);
         ANTLRv4Lexer lexer = new ANTLRv4Lexer(input);
         CommonTokenStream tokens = new TokenStreamSubset(lexer);
         ANTLRv4Parser parser = new ANTLRv4Parser(tokens);
-
+        
         SyntaxErrorListener listener = new SyntaxErrorListener();
         parser.removeErrorListeners();
         parser.addErrorListener(listener);
         lexer.removeErrorListeners();
         lexer.addErrorListener(listener);
-
+        
         ParseTree t = parser.grammarSpec();
         return new ParsingResult(parser, t, listener);
     }
-
-
+    
+    
     public static ParsingResult parseText(
         Grammar g,
         LexerGrammar lg,
@@ -219,8 +219,8 @@ public class ParsingUtils {
         CommonTokenStream tokens = new TokenStreamSubset(lexEngine);
         return parseText(g, lg, startRuleName, grammarFile, syntaxErrorListener, tokens, 0);
     }
-
-
+    
+    
     public static ParsingResult parseText(
         Grammar g,
         LexerGrammar lg,
@@ -235,39 +235,39 @@ public class ParsingUtils {
                 (grammarFile != null ? grammarFile.getName() : "<unknown file>"));
             return null;
         }
-
+        
         String grammarFileName = g.fileName;
         if (!new File(grammarFileName).exists()) {
             ANTLRv4PluginController.LOG.info("parseText grammar doesn't exist " + grammarFileName);
             return null;
         }
-
+        
         if (g == BAD_PARSER_GRAMMAR || lg == BAD_LEXER_GRAMMAR) {
             return null;
         }
-
+        
         tokens.seek(startIndex);
-
+        
         PreviewParser parser = new PreviewParser(g, tokens);
         parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
         parser.setProfile(true);
-
+        
         parser.removeErrorListeners();
         parser.addErrorListener(syntaxErrorListener);
-
+        
         Rule start = g.getRule(startRuleName);
         if (start == null) {
             return null; // can't find start rule
         }
         ParseTree t = parser.parse(start.index);
-
+        
         if (t != null) {
             return new ParsingResult(parser, t, syntaxErrorListener);
         }
         return null;
     }
-
-
+    
+    
     public static Tool createANTLRToolForLoadingGrammars(ANTLRv4GrammarProperties grammarProperties) {
         Tool antlr = new Tool();
         antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
@@ -278,8 +278,8 @@ public class ParsingUtils {
         antlr.libDirectory = grammarProperties.getLibDir();
         return antlr;
     }
-
-
+    
+    
     /**
      * Get lexer and parser grammars
      */
@@ -287,14 +287,14 @@ public class ParsingUtils {
         ANTLRv4PluginController.LOG.info("loadGrammars " + grammarFile.getPath() + " " + project.getName());
         Tool antlr = createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
         LoadGrammarsToolListener listener = (LoadGrammarsToolListener) antlr.getListeners().get(0);
-
+        
         ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
         Grammar g = loadGrammar(grammarFile, antlr);
         if (g == null) {
             reportBadGrammar(grammarFile, console);
             return null;
         }
-
+        
         // see if a lexer is hanging around somewhere; don't want implicit token defs to make us bail
         LexerGrammar lg = null;
         if (g.getType() == ANTLRParser.PARSER) {
@@ -305,14 +305,14 @@ public class ParsingUtils {
                 lg = BAD_LEXER_GRAMMAR;
             }
         }
-
+        
         antlr.process(g, false);
         if (listener.grammarErrorMessages.size() != 0) {
             String msg = Utils.join(listener.grammarErrorMessages.iterator(), "\n");
             console.print(msg + "\n", ConsoleViewContentType.ERROR_OUTPUT);
             return null; // upon error, bail
         }
-
+        
         // Examine's Grammar AST constructed by v3 for a v4 grammar.
         // Use ANTLR v3's ANTLRParser not ANTLRv4Parser from this plugin
         switch (g.getType()) {
@@ -334,14 +334,14 @@ public class ParsingUtils {
         ANTLRv4PluginController.LOG.info("loadGrammars invalid grammar type " + g.getTypeString() + " for " + g.name);
         return null;
     }
-
-
+    
+    
     private static void reportBadGrammar(VirtualFile grammarFile, ConsoleView console) {
         String msg = "Empty or bad grammar in file " + grammarFile.getName();
         console.print(msg + "\n", ConsoleViewContentType.ERROR_OUTPUT);
     }
-
-
+    
+    
     @Nullable
     private static Grammar loadGrammar(VirtualFile grammarFile, Tool antlr) {
         // basically here I am mimicking the loadGrammar() method from Tool
@@ -350,20 +350,20 @@ public class ParsingUtils {
         if (grammarRootAST == null) {
             return null;
         }
-
+        
         // Create a grammar from the AST so we can figure out what type it is
         Grammar g = antlr.createGrammar(grammarRootAST);
         g.fileName = grammarFile.getPath();
-
+        
         return g;
     }
-
-
+    
+    
     public static GrammarRootAST parseGrammar(Tool antlr, VirtualFile grammarFile) {
         try {
             Document document = FileDocumentManager.getInstance().getDocument(grammarFile);
             String grammarText = document != null ? document.getText() : new String(grammarFile.contentsToByteArray());
-
+            
             ANTLRStringStream in = new ANTLRStringStream(grammarText);
             in.name = grammarFile.getPath();
             return antlr.parse(grammarFile.getPath(), in);
@@ -372,8 +372,8 @@ public class ParsingUtils {
         }
         return null;
     }
-
-
+    
+    
     /**
      * Try to load a LexerGrammar given a parser grammar g. Derive lexer name
      * as:
@@ -386,7 +386,7 @@ public class ParsingUtils {
         LoadGrammarsToolListener listener = (LoadGrammarsToolListener) antlr.getListeners().get(0);
         LexerGrammar lg = null;
         VirtualFile lexerGrammarFile;
-
+        
         String vocabName = g.getOptionString("tokenVocab");
         if (vocabName != null) {
             VirtualFile grammarFile = LocalFileSystem.getInstance().findFileByIoFile(new File(g.fileName));
@@ -394,10 +394,10 @@ public class ParsingUtils {
         } else {
             lexerGrammarFile = LocalFileSystem.getInstance().findFileByIoFile(new File(getLexerNameFromParserFileName(g.fileName)));
         }
-
+        
         if (lexerGrammarFile != null && lexerGrammarFile.exists()) {
             ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
-
+            
             try {
                 lg = (LexerGrammar) loadGrammar(lexerGrammarFile, antlr);
                 if (lg != null) {
@@ -422,8 +422,8 @@ public class ParsingUtils {
         }
         return lg;
     }
-
-
+    
+    
     @NotNull
     public static String getLexerNameFromParserFileName(String parserFileName) {
         String lexerGrammarFileName;
@@ -440,23 +440,23 @@ public class ParsingUtils {
         }
         return lexerGrammarFileName;
     }
-
-
+    
+    
     public static Tree findOverriddenDecisionRoot(Tree ctx) {
         return Trees.findNodeSuchThat(
             ctx,
             t -> t instanceof PreviewInterpreterRuleContext && ((PreviewInterpreterRuleContext) t).isDecisionOverrideRoot()
         );
     }
-
-
+    
+    
     public static List<TerminalNode> getAllLeaves(Tree t) {
         List<TerminalNode> leaves = new ArrayList<>();
         _getAllLeaves(t, leaves);
         return leaves;
     }
-
-
+    
+    
     private static void _getAllLeaves(Tree t, List<TerminalNode> leaves) {
         int n = t.getChildCount();
         if (t instanceof TerminalNode) {
@@ -470,8 +470,8 @@ public class ParsingUtils {
             _getAllLeaves(t.getChild(i), leaves);
         }
     }
-
-
+    
+    
     /**
      * Get ancestors where the first element of the list is the parent of t
      */
@@ -485,5 +485,5 @@ public class ParsingUtils {
         }
         return ancestors;
     }
-
+    
 }

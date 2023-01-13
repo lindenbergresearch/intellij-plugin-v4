@@ -8,15 +8,15 @@ import java.awt.geom.Rectangle2D;
  *
  */
 public class BasicStyledElement extends StyledElement {
-
+    
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
     public BasicStyledElement() {
         super();
     }
-
-
+    
+    
     /**
      * Constructs a new StyledElement with its basic setup.
      *
@@ -27,8 +27,8 @@ public class BasicStyledElement extends StyledElement {
     public BasicStyledElement(StyledElement parent, Rectangle2D viewport, StyleProperties styles) {
         super(parent, viewport, styles);
     }
-
-
+    
+    
     /**
      * Should be called to reset/init styles of the component.
      */
@@ -36,8 +36,8 @@ public class BasicStyledElement extends StyledElement {
     public void setup() {
         styleProperties = DefaultStyles.DEFAULT_STYLE;
     }
-
-
+    
+    
     /**
      * This is the actual place where the user-code
      * for drawing the styled element can be put.

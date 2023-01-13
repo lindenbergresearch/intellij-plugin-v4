@@ -16,13 +16,13 @@ public class TokenStreamSubset extends CommonTokenStream {
     public static final int STOP_TOKEN_TYPE = -3;
     //	protected int indexOfLastToken = -1;
     protected Token saveToken;
-
-
+    
+    
     public TokenStreamSubset(TokenSource tokenSource) {
         super(tokenSource);
     }
-
-
+    
+    
     public void setIndexOfLastToken(int indexOfLastToken) {
         System.out.println("setIndexOfLastToken(" + indexOfLastToken + ")");
         if (indexOfLastToken < 0) {

@@ -30,50 +30,50 @@ public class InlineRuleAction extends AnAction {
     public void update(AnActionEvent e) {
         MyActionUtils.showOnlyIfSelectionIsRule(e, "Inline and Remove Rule %s");
     }
-
-
+    
+    
     @Override
     public void actionPerformed(AnActionEvent e) {
         PsiElement el = MyActionUtils.getSelectedPsiElement(e);
         if (el == null) return;
-
+        
         final String ruleName = el.getText();
-
+        
         final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
         if (psiFile == null) return;
-
+        
         final Project project = e.getProject();
-
+        
         Editor editor = e.getData(PlatformDataKeys.EDITOR);
         if (editor == null) return;
         final Document doc = editor.getDocument();
-
+        
         String grammarText = psiFile.getText();
         ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
         Parser parser = results.parser;
         ParseTree tree = results.tree;
-
+        
         final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
-
+        
         // find all parser and lexer rule refs
         final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
         if (rrefNodes == null) return;
-
+        
         // find rule def
         ParseTree ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
         if (ruleDefNameNode == null) return;
-
+        
         // identify rhs of rule
         final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
         String ruleText_ = RefactorUtils.getRuleText(tokens, ruleDefNode);
-
+        
         // if rule has outermost alt, must add (...) around insertion
         // Look for ruleBlock, lexerRuleBlock
         if (RefactorUtils.ruleHasMultipleOutermostAlts(parser, ruleDefNode)) {
             ruleText_ = "(" + ruleText_ + ")";
         }
         final String ruleText = ruleText_; // we ref from inner class; requires final
-
+        
         // replace rule refs with rule text
         WriteCommandAction setTextAction = new WriteCommandAction(project) {
             @Override
@@ -84,8 +84,8 @@ public class InlineRuleAction extends AnAction {
         };
         setTextAction.execute();
     }
-
-
+    
+    
     public void replaceRuleRefs(
         Document doc, CommonTokenStream tokens,
         String ruleName,
@@ -108,22 +108,22 @@ public class InlineRuleAction extends AnAction {
             // text shifts underneath us so we adjust token start/stop indexes into doc
             base += thisReplacementRuleText.length() - ruleName.length();
         }
-
+        
         // reparse to find new rule location
         String grammarText = doc.getText();
         ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
         Parser parser = results.parser;
         ParseTree tree = results.tree;
         tokens = (CommonTokenStream) parser.getTokenStream();
-
+        
         // find rule def
         TerminalNode ruleDefNameNode = (TerminalNode) RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
         if (ruleDefNameNode == null) return;
-
+        
         final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
         Token start = ruleDefNode.getStart();
         Token stop = ruleDefNode.getStop();
-
+        
         // check for direct recursive, in which case we don't delete it
         boolean ruleIsDirectlyRecursive = false;
         for (TerminalNode t : rrefNodes) {
@@ -131,10 +131,10 @@ public class InlineRuleAction extends AnAction {
                 ruleIsDirectlyRecursive = true;
             }
         }
-
+        
         // don't delete if we made replacements in the rule itself
         if (ruleIsDirectlyRecursive) return;
-
+        
         // remove the inlined rule (lexer or parser)
         List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
         if (hiddenTokensToRight != null && hiddenTokensToRight.size() > 0) {
@@ -145,7 +145,7 @@ public class InlineRuleAction extends AnAction {
                 stop = afterSemi;
             }
         }
-
+        
         doc.deleteString(start.getStartIndex(), stop.getStopIndex() + 1);
     }
 }

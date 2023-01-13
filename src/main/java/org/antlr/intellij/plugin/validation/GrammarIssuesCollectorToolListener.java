@@ -14,25 +14,25 @@ import java.util.List;
  */
 class GrammarIssuesCollectorToolListener implements ANTLRToolListener {
     private final List<GrammarIssue> issues = new ArrayList<>();
-
-
+    
+    
     @Override
     public void info(String msg) {
     }
-
-
+    
+    
     @Override
     public void error(ANTLRMessage msg) {
         issues.add(new GrammarIssue(msg));
     }
-
-
+    
+    
     @Override
     public void warning(ANTLRMessage msg) {
         issues.add(new GrammarIssue(msg));
     }
-
-
+    
+    
     public List<GrammarIssue> getIssues() {
         return issues;
     }

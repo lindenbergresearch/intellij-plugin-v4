@@ -6,7 +6,7 @@ import java.awt.geom.Rectangle2D;
  * Styled label element.
  */
 public class StyledLabel extends StyledText {
-
+    
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
@@ -14,8 +14,8 @@ public class StyledLabel extends StyledText {
         super("");
         this.parent = parent;
     }
-
-
+    
+    
     /**
      * Constructs a new StyledElement with its basic setup.
      *
@@ -27,8 +27,8 @@ public class StyledLabel extends StyledText {
     public StyledLabel(StyledElement parent, Rectangle2D viewport, StyleProperties styles, String text) {
         super(parent, viewport, styles, text);
     }
-
-
+    
+    
     /**
      * Should be called to reset/init styles of the component.
      */

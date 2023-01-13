@@ -9,8 +9,8 @@ public class PluginIgnoreMissingTokensFileErrorManager extends ErrorManager {
     public PluginIgnoreMissingTokensFileErrorManager(Tool tool) {
         super(tool);
     }
-
-
+    
+    
     @Override
     public void emit(ErrorType etype, ANTLRMessage msg) {
         if (etype == ErrorType.CANNOT_FIND_TOKENS_FILE_REFD_IN_GRAMMAR ||

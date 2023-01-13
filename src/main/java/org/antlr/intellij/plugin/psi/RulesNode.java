@@ -10,12 +10,12 @@ public class RulesNode extends ASTWrapperPsiElement {
     public RulesNode(@NotNull ASTNode node) {
         super(node);
     }
-
-
+    
+    
     public static class Factory implements PsiElementFactory {
         public static Factory INSTANCE = new Factory();
-
-
+        
+        
         @Override
         public PsiElement createElement(ASTNode node) {
             return new RulesNode(node);

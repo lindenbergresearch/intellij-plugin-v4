@@ -10,26 +10,26 @@ public class GrammarIssue {
     private final List<Token> offendingTokens = new ArrayList<>();
     private final ANTLRMessage msg;
     private String annotation;
-
-
+    
+    
     public GrammarIssue(ANTLRMessage msg) {this.msg = msg;}
-
-
+    
+    
     public String getAnnotation() {
         return annotation;
     }
-
-
+    
+    
     public void setAnnotation(String annotation) {
         this.annotation = annotation;
     }
-
-
+    
+    
     public List<Token> getOffendingTokens() {
         return offendingTokens;
     }
-
-
+    
+    
     public ANTLRMessage getMsg() {
         return msg;
     }

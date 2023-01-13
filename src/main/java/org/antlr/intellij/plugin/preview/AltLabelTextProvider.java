@@ -124,7 +124,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
             if (altLabels != null) {
                 return
                     outerAltNum >= 0 &&
-                    outerAltNum < altLabels.length;
+                        outerAltNum < altLabels.length;
             }
         }
         

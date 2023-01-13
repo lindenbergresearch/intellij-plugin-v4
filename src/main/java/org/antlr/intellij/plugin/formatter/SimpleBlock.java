@@ -31,7 +31,7 @@ public class SimpleBlock extends AbstractBlock {
     protected List<Block> buildChildren() {
         List<Block> blocks = new ArrayList<>();
         ASTNode child = myNode.getFirstChildNode();
-       
+        
         while (child != null) {
             if (child.getElementType() != TokenType.WHITE_SPACE) {
                 Block block = new SimpleBlock(
@@ -40,10 +40,10 @@ public class SimpleBlock extends AbstractBlock {
                     Alignment.createAlignment(),
                     spacingBuilder
                 );
-        
+                
                 blocks.add(block);
             }
-        
+            
             child = child.getTreeNext();
         }
         

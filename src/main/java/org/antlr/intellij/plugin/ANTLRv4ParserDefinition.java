@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 public class ANTLRv4ParserDefinition implements ParserDefinition {
     public static final IFileElementType FILE =
         new IFileElementType(ANTLRv4Language.INSTANCE);
-
-
+    
+    
     public ANTLRv4ParserDefinition() {
         PSIElementTypeFactory.defineLanguageIElementTypes(
             ANTLRv4Language.INSTANCE,
@@ -32,57 +32,57 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
             ANTLRv4Parser.ruleNames
         );
     }
-
-
+    
+    
     @NotNull
     @Override
     public Lexer createLexer(Project project) {
         ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
         return new ANTLRv4LexerAdaptor(lexer);
     }
-
-
+    
+    
     @NotNull
     public PsiParser createParser(final Project project) {
         return new ANTLRv4GrammarParser();
     }
-
-
+    
+    
     @NotNull
     public TokenSet getWhitespaceTokens() {
         return ANTLRv4TokenTypes.WHITESPACES;
     }
-
-
+    
+    
     @NotNull
     public TokenSet getCommentTokens() {
         return ANTLRv4TokenTypes.COMMENTS;
     }
-
-
+    
+    
     @NotNull
     public TokenSet getStringLiteralElements() {
         return TokenSet.EMPTY;
     }
-
-
+    
+    
     @Override
     public IFileElementType getFileNodeType() {
         return FILE;
     }
-
-
+    
+    
     @Override
     public PsiFile createFile(FileViewProvider viewProvider) {
         return new ANTLRv4FileRoot(viewProvider);
     }
-
-
+    
+    
     public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
         return SpaceRequirements.MAY;
     }
-
-
+    
+    
     /**
      * Convert from internal parse node (AST they call it) to final PSI node. This
      * converts only internal rule nodes apparently, not leaf nodes. Leaves

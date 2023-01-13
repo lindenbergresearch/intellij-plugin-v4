@@ -8,10 +8,10 @@ import java.awt.geom.Rectangle2D;
  * Staled rectangle element.
  */
 public class StyledRectangle extends StyledShape {
-
+    
     /* ----- CONSTRUCTOR -----------------------------------------------------------------------------*/
-
-
+    
+    
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
@@ -19,8 +19,8 @@ public class StyledRectangle extends StyledShape {
         super();
         this.parent = parent;
     }
-
-
+    
+    
     /**
      * Constructs a new StyledElement with its basic setup.
      *
@@ -31,10 +31,10 @@ public class StyledRectangle extends StyledShape {
     public StyledRectangle(StyledElement parent, Rectangle2D viewport, StyleProperties styles) {
         super(parent, viewport, styles);
     }
-
+    
     /* ----- RENDERING / EVENTS ----------------------------------------------------------------------*/
-
-
+    
+    
     /**
      * This is the actual place where the user-code
      * for drawing the styled element can be put.
@@ -45,12 +45,12 @@ public class StyledRectangle extends StyledShape {
     public void draw(Graphics2D graphics2D) {
         graphics2D.setColor(getBackground());
         graphics2D.fillRect(0, 0, (int) getWidth(), (int) getHeight());
-
+        
         graphics2D.setColor(getForeground());
         graphics2D.drawRect(0, 0, (int) getWidth(), (int) getHeight());
     }
-
-
+    
+    
     /**
      * Should be called to reset/init styles of the component.
      */

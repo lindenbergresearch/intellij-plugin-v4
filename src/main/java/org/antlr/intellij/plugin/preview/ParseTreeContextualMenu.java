@@ -35,62 +35,62 @@ import java.io.IOException;
  * to export the parse tree to several image formats.
  */
 class ParseTreeContextualMenu {
-
+    
     static void showPopupMenu(UberTreeViewer parseTreeViewer, MouseEvent event) {
         JPopupMenu menu = new JPopupMenu();
-
+        
         menu.add(createExportMenuItem(parseTreeViewer, "Export to image (white background)", false));
         menu.add(createExportMenuItem(parseTreeViewer, "Export to image (transparent background)", true));
-
+        
         menu.show(parseTreeViewer, event.getX(), event.getY());
     }
-
-
+    
+    
     private static JMenuItem createExportMenuItem(UberTreeViewer parseTreeViewer, String label, boolean useTransparentBackground) {
         JMenuItem item = new JMenuItem(label);
         boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
-
+        
         item.addActionListener(event -> {
             String[] extensions = useTransparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
             FileSaverDescriptor descriptor = new FileSaverDescriptor("Export Image to", "Choose the destination file", extensions);
             FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project) null);
-
+            
             String fileName = "parseTree" + (isMacNativSaveDialog ? ".png" : "");
             VirtualFileWrapper vf = dialog.save((VirtualFile) null, fileName);
-
+            
             if (vf == null) {
                 return;
             }
-
+            
             File file = vf.getFile();
             String imageFormat = FileUtilRt.getExtension(file.getName());
             if (StringUtils.isBlank(imageFormat)) {
                 imageFormat = "png";
             }
-
+            
             if ("svg".equals(imageFormat)) {
                 exportToSvg(parseTreeViewer, file, useTransparentBackground);
             } else {
                 exportToImage(parseTreeViewer, file, useTransparentBackground, imageFormat);
             }
         });
-
+        
         return item;
     }
-
-
+    
+    
     private static void exportToImage(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground, String imageFormat) {
         int imageType = useTransparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
         BufferedImage bi = ImageUtil.createImage(parseTreeViewer.getWidth(), parseTreeViewer.getHeight(), imageType);
         Graphics graphics = bi.getGraphics();
-
+        
         if (!useTransparentBackground) {
             graphics.setColor(JBColor.WHITE);
             graphics.fillRect(0, 0, parseTreeViewer.getWidth(), parseTreeViewer.getHeight());
         }
-
+        
         parseTreeViewer.paint(graphics);
-
+        
         try {
             if (!ImageIO.write(bi, imageFormat, file)) {
                 Notification notification = new Notification(
@@ -106,19 +106,19 @@ class ParseTreeContextualMenu {
                 .error("Error while exporting parse tree to file " + file.getAbsolutePath(), e);
         }
     }
-
-
+    
+    
     private static void exportToSvg(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground) {
         DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
         Document document = domImpl.createDocument("http://www.w3.org/2000/svg", "svg", null);
         SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-
+        
         if (!useTransparentBackground) {
             svgGenerator.setColor(JBColor.WHITE);
             svgGenerator.fillRect(0, 0, parseTreeViewer.getWidth(), parseTreeViewer.getHeight());
         }
         parseTreeViewer.paint(svgGenerator);
-
+        
         try {
             svgGenerator.stream(file.getAbsolutePath(), true);
         } catch (SVGGraphics2DIOException e) {

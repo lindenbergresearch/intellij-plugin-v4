@@ -30,8 +30,8 @@ public class ANTLRv4StructureViewFactory implements PsiStructureViewFactory {
             }
         };
     }
-
-
+    
+    
     /**
      * fake a blank Treeview with a warning
      */
@@ -39,15 +39,15 @@ public class ANTLRv4StructureViewFactory implements PsiStructureViewFactory {
         public DummyViewTreeElement(PsiElement psiElement) {
             super(psiElement);
         }
-
-
+        
+        
         @NotNull
         @Override
         public Collection<StructureViewTreeElement> getChildrenBase() {
             return Collections.emptyList();
         }
-
-
+        
+        
         @Nullable
         @Override
         public String getPresentableText() {

@@ -19,14 +19,14 @@ public class RunANTLRListener implements ANTLRToolListener {
     public Tool tool;
     public ConsoleView console;
     public boolean hasOutput = false;
-
-
+    
+    
     public RunANTLRListener(Tool tool, ConsoleView console) {
         this.tool = tool;
         this.console = console;
     }
-
-
+    
+    
     @Override
     public void info(String msg) {
         if (tool.errMgr.formatWantsSingleLineMessage()) {
@@ -35,20 +35,20 @@ public class RunANTLRListener implements ANTLRToolListener {
         console.print(msg + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
         hasOutput = true;
     }
-
-
+    
+    
     @Override
     public void error(ANTLRMessage msg) {
         track(msg, ConsoleViewContentType.ERROR_OUTPUT);
     }
-
-
+    
+    
     @Override
     public void warning(ANTLRMessage msg) {
         track(msg, ConsoleViewContentType.NORMAL_OUTPUT);
     }
-
-
+    
+    
     private void track(ANTLRMessage msg, ConsoleViewContentType errType) {
         ST msgST = tool.errMgr.getMessageTemplate(msg);
         String outputMsg = msgST.render();

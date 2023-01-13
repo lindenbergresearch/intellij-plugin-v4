@@ -11,12 +11,12 @@ import java.awt.geom.Rectangle2D;
  * Selected tree-node.
  */
 public class SelectedTreeNode extends BasicStyledTreeNode {
-
-
+    
+    
     public SelectedTreeNode(StyledElement parent, Rectangle2D viewport, StyleProperties base, boolean compact) {
-        super(parent, viewport, DefaultStyles.SELECTED_NODE_STYLE, true,compact);
+        super(parent, viewport, DefaultStyles.SELECTED_NODE_STYLE, true, compact);
         this.setStyleProperties(base);
-
+        
         styleProperties.setStroke(DefaultStyles.THICK_STROKE);
         setOutlineColor((JBColor) (shape.hasOutlineColor() ? getOutlineColor() : getForeground()).brighter());
         setBackground((JBColor) getBackground().brighter());

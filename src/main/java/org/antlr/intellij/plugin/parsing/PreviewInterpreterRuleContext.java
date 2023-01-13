@@ -19,8 +19,8 @@ public class PreviewInterpreterRuleContext extends GrammarInterpreterRuleContext
      * Used to mark root of subtree that hits the decision override, if any
      */
     protected boolean isDecisionOverrideRoot;
-
-
+    
+    
     /**
      * Constructs a new {@link InterpreterRuleContext} with the specified
      * parent, invoking state, and rule index.
@@ -36,21 +36,21 @@ public class PreviewInterpreterRuleContext extends GrammarInterpreterRuleContext
     ) {
         super(parent, invokingStateNumber, ruleIndex);
     }
-
-
+    
+    
     /**
      * The predicted outermost alternative for the rule associated
      * with this context object.  If left recursive, the true original
      * outermost alternative is returned.
      */
     public int getOuterAltNum() {return outerAltNum;}
-
-
+    
+    
     public boolean isDecisionOverrideRoot() {
         return isDecisionOverrideRoot;
     }
-
-
+    
+    
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof PreviewInterpreterRuleContext)) return false;
@@ -58,8 +58,8 @@ public class PreviewInterpreterRuleContext extends GrammarInterpreterRuleContext
         return this == other ||
             (ruleIndex == other.ruleIndex && outerAltNum == other.outerAltNum);
     }
-
-
+    
+    
     @Override
     public int hashCode() {
         return ruleIndex << 7 + outerAltNum;

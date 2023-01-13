@@ -11,7 +11,7 @@ import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.getTokenElementType;
 import static org.antlr.intellij.plugin.parser.ANTLRv4Lexer.*;
 
 public class ANTLRv4BraceMatcher implements PairedBraceMatcher {
-
+    
     @NotNull
     @Override
     public BracePair @NotNull [] getPairs() {
@@ -25,14 +25,14 @@ public class ANTLRv4BraceMatcher implements PairedBraceMatcher {
             new BracePair(getTokenElementType(LT), getTokenElementType(GT), false),
         };
     }
-
-
+    
+    
     @Override
     public boolean isPairedBracesAllowedBeforeType(@NotNull IElementType lbraceType, @Nullable IElementType contextType) {
         return true;
     }
-
-
+    
+    
     @Override
     public int getCodeConstructStart(PsiFile file, int openingBraceOffset) {
         return openingBraceOffset;

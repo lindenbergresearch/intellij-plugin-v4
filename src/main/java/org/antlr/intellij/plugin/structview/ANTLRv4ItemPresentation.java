@@ -17,19 +17,19 @@ import javax.swing.*;
 
 public class ANTLRv4ItemPresentation implements ItemPresentation {
     protected final PsiElement element;
-
-
+    
+    
     protected ANTLRv4ItemPresentation(PsiElement element) {
         this.element = element;
     }
-
-
+    
+    
     @Nullable
     public String getLocationString() {
         return null;
     }
-
-
+    
+    
     @Override
     public String getPresentableText() {
         if (element instanceof ANTLRv4FileRoot) {
@@ -51,8 +51,8 @@ public class ANTLRv4ItemPresentation implements ItemPresentation {
         ASTNode node = element.getNode();
         return node.getText();
     }
-
-
+    
+    
     @Nullable
     public Icon getIcon(boolean open) {
         return element.getIcon(0);

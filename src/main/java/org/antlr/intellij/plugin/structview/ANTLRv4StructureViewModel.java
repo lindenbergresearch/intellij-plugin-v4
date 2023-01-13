@@ -39,69 +39,69 @@ public class ANTLRv4StructureViewModel
                 return s1.compareTo(s2);
             };
         }
-
-
+        
+        
         public boolean isVisible() {
             return true;
         }
-
-
+        
+        
         @NotNull
         public ActionPresentation getPresentation() {
             // how it's described in sort by dropdown in nav window.
             String name = "Sort by rule type";
             return new ActionPresentationData(name, name, AllIcons.ObjectBrowser.SortByType);
         }
-
-
+        
+        
         @NotNull
         public String getName() {
             return "PARSER_LEXER_RULE_SORTER";
         }
     };
-
+    
     ANTLRv4FileRoot rootElement;
-
-
+    
+    
     public ANTLRv4StructureViewModel(ANTLRv4FileRoot rootElement) {
         super(rootElement, new ANTLRv4StructureViewElement(rootElement));
         this.rootElement = rootElement;
     }
-
-
+    
+    
     @NotNull
     public Sorter[] getSorters() {
         return new Sorter[]{PARSER_LEXER_RULE_SORTER, Sorter.ALPHA_SORTER};
     }
-
-
+    
+    
     @Override
     protected PsiFile getPsiFile() {
         return rootElement;
     }
-
-
+    
+    
     @NotNull
     @Override
     public StructureViewTreeElement getRoot() {
         return new ANTLRv4StructureViewElement(rootElement);
     }
-
-
+    
+    
     @Override
     public boolean isAlwaysShowsPlus(StructureViewTreeElement element) {
         Object value = element.getValue();
         return value instanceof ANTLRv4FileRoot;
     }
-
-
+    
+    
     @Override
     public boolean isAlwaysLeaf(StructureViewTreeElement element) {
         Object value = element.getValue();
         return value instanceof ParserRuleSpecNode || value instanceof LexerRuleSpecNode;
     }
-
-
+    
+    
     /**
      * Intellij: The implementation of StructureViewTreeElement.getChildren()
      * needs to be matched by TextEditorBasedStructureViewModel.getSuitableClasses().

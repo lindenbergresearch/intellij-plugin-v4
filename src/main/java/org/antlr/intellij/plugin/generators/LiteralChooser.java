@@ -25,16 +25,16 @@ public class LiteralChooser extends DialogWrapper {
     Tree tree;
     LinkedHashSet<String> selectedElements =
         new LinkedHashSet<>();
-
-
+    
+    
     public LiteralChooser(@Nullable Project project, java.util.List<String> literals) {
         super(project, true);
         tree = createTree(literals);
         setTitle("Choose Literal Rules to Generate");
         init();
     }
-
-
+    
+    
     public Tree createTree(java.util.List<String> literals) {
         final CheckedTreeNode rootNode = new CheckedTreeNode("all literals not defined");
         for (String literal : literals) {
@@ -43,18 +43,18 @@ public class LiteralChooser extends DialogWrapper {
             rootNode.add(child);
         }
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-
+        
         selectedElements.addAll(literals); // all are "on" by default
-
+        
         Tree tree = new Tree(treeModel);
         tree.setRootVisible(false);
         tree.setCellRenderer(new LiteralChooserRenderer());
         tree.addTreeSelectionListener(new MyTreeSelectionListener());
-
+        
         return tree;
     }
-
-
+    
+    
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
@@ -69,29 +69,29 @@ public class LiteralChooser extends DialogWrapper {
                 return false;
             }
         }.installOn(tree);
-
+        
         TreeUtil.installActions(tree);
         JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(tree);
 //		scrollPane.setPreferredSize(new Dimension(350, 450));
         panel.add(scrollPane, BorderLayout.CENTER);
-
+        
         return panel;
     }
-
-
+    
+    
     @Nullable
     private LinkedHashSet<String> getSelectedElementsList() {
         return getExitCode() == OK_EXIT_CODE ? selectedElements : null;
     }
-
-
+    
+    
     @Nullable
     public java.util.List<String> getSelectedElements() {
         final LinkedHashSet<String> list = getSelectedElementsList();
         return list == null ? null : new ArrayList<>(list);
     }
-
-
+    
+    
     private class MyTreeSelectionListener implements TreeSelectionListener {
         public void valueChanged(TreeSelectionEvent e) {
             TreePath[] paths = e.getPaths();
@@ -110,7 +110,7 @@ public class LiteralChooser extends DialogWrapper {
                                 selectedElements.add(text);
                             }
                             CheckedTreeNode checkedNode = (CheckedTreeNode) node;
-
+                            
                             checkedNode.setChecked(!checkedNode.isChecked()); // toggle
                         }
                     }
@@ -118,5 +118,5 @@ public class LiteralChooser extends DialogWrapper {
             }
         }
     }
-
+    
 }

@@ -19,8 +19,8 @@ public class CaseChangingStrategyConverter extends Converter<CaseChangingStrateg
             return null;
         }
     }
-
-
+    
+    
     @Nullable
     @Override
     public String toString(@NotNull CaseChangingStrategy value) {

@@ -48,19 +48,19 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
     public String getDemoText() {
         return
             "// line comment\ngrammar Foo;\n\n" + "options { tokenVocab=FooLexer; }\n\n" +
-            '\n' +
-            "compilationUnit : STUFF EOF;\n" +
-            "\n/* block comment */" +
-            "STUFF : 'stuff' -> pushMode(OTHER_MODE);\n" +
-            "WS : [ \\t]+ -> channel(HIDDEN);\n" +
-            "NEWLINE : [\\r\\n]+ -> type(WS);\n" +
-            "BAD_CHAR : . -> skip;\n\n" +
-            "fragment\n" +
-            "INT : [1..9] [0..9]*\n" +
-            '\n' +
-            "mode OTHER_MODE;\n" +
-            '\n' +
-            "KEYWORD : 'keyword' -> popMode;\n";
+                '\n' +
+                "compilationUnit : STUFF EOF;\n" +
+                "\n/* block comment */" +
+                "STUFF : 'stuff' -> pushMode(OTHER_MODE);\n" +
+                "WS : [ \\t]+ -> channel(HIDDEN);\n" +
+                "NEWLINE : [\\r\\n]+ -> type(WS);\n" +
+                "BAD_CHAR : . -> skip;\n\n" +
+                "fragment\n" +
+                "INT : [1..9] [0..9]*\n" +
+                '\n' +
+                "mode OTHER_MODE;\n" +
+                '\n' +
+                "KEYWORD : 'keyword' -> popMode;\n";
     }
     
     

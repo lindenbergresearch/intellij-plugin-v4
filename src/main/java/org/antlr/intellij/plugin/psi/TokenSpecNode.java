@@ -15,33 +15,33 @@ import org.jetbrains.annotations.NotNull;
  * A token defined in the {@code tokens} section.
  */
 public class TokenSpecNode extends RuleSpecNode {
-
+    
     public TokenSpecNode(@NotNull ASTNode node) {
         super(node);
     }
-
-
+    
+    
     @Override
     public GrammarElementRefNode getNameIdentifier() {
         return PsiTreeUtil.getChildOfType(this, LexerRuleRefNode.class);
     }
-
-
+    
+    
     @Override
     public IElementType getRuleRefType() {
         return ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF);
     }
-
-
+    
+    
     public static class Factory implements PsiElementFactory {
         public static Factory INSTANCE = new Factory();
-
-
+        
+        
         @Override
         public PsiElement createElement(ASTNode node) {
             ASTNode idList = node.getTreeParent();
             ASTNode parent = null;
-
+            
             if (idList != null) {
                 parent = idList.getTreeParent();
             }
@@ -52,7 +52,7 @@ public class TokenSpecNode extends RuleSpecNode {
                     return new ChannelSpecNode(node);
                 }
             }
-
+            
             return new ASTWrapperPsiElement(node);
         }
     }

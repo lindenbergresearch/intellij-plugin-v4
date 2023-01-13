@@ -96,8 +96,8 @@ public class ShowAmbigTreesDialog extends JDialog {
                 phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
             }
             String title = ambiguousParseTrees.size() +
-                           " Interpretations of Ambiguous Input Phrase: " +
-                           phrase;
+                " Interpretations of Ambiguous Input Phrase: " +
+                phrase;
             dialog.ambigPhraseLabel.setText(title);
             dialog.setTrees(previewState, ambiguousParseTrees, title, 0, true);
         }
@@ -151,8 +151,8 @@ public class ShowAmbigTreesDialog extends JDialog {
                 phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
             }
             String title = lookaheadParseTrees.size() +
-                           " Interpretations of Lookahead Phrase: " +
-                           phrase;
+                " Interpretations of Lookahead Phrase: " +
+                phrase;
             dialog.ambigPhraseLabel.setText(title);
             dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1, false);
         }

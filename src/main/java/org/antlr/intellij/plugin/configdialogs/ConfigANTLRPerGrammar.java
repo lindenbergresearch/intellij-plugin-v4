@@ -31,21 +31,21 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
     private TextFieldWithBrowseButton libDirField;
     private JTextField fileEncodingField;
     private JComboBox<CaseChangingStrategy> caseTransformation;
-
-
+    
+    
     private ConfigANTLRPerGrammar(final Project project) {
         super(project, false);
     }
-
-
+    
+    
     public static ConfigANTLRPerGrammar getDialogForm(final Project project, String qualFileName) {
         ConfigANTLRPerGrammar grammarFrom = new ConfigANTLRPerGrammar(project);
         grammarFrom.init();
         grammarFrom.initAntlrFields(project, qualFileName);
         return grammarFrom;
     }
-
-
+    
+    
     public static ConfigANTLRPerGrammar getProjectSettingsForm(final Project project, String qualFileName) {
         ConfigANTLRPerGrammar grammarFrom = new ConfigANTLRPerGrammar(project);
         grammarFrom.initAntlrFields(project, qualFileName);
@@ -54,26 +54,26 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
         grammarFrom.autoGenerateParsersCheckBox.setVisible(false);
         return grammarFrom;
     }
-
-
+    
+    
     private void initAntlrFields(Project project, String qualFileName) {
         FileChooserDescriptor dirChooser =
             FileChooserDescriptorFactory.createSingleFolderDescriptor();
         outputDirField.addBrowseFolderListener("Select output dir", null, project, dirChooser);
         outputDirField.setTextFieldPreferredWidth(50);
-
+        
         dirChooser =
             FileChooserDescriptorFactory.createSingleFolderDescriptor();
         libDirField.addBrowseFolderListener("Select lib dir", null, project, dirChooser);
         libDirField.setTextFieldPreferredWidth(50);
-
+        
         loadValues(project, qualFileName);
     }
-
-
+    
+    
     public void loadValues(Project project, String qualFileName) {
         ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, qualFileName);
-
+        
         autoGenerateParsersCheckBox.setSelected(grammarProperties.shouldAutoGenerateParser());
         outputDirField.setText(grammarProperties.getOutputDir());
         libDirField.setText(grammarProperties.getLibDir());
@@ -84,11 +84,11 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
         generateParseTreeListenerCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeListener());
         generateParseTreeVisitorCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeVisitor());
     }
-
-
+    
+    
     public void saveValues(Project project, String qualFileName) {
         ANTLRv4GrammarProperties grammarProperties = getOrCreateGrammarProperties(project, qualFileName);
-
+        
         grammarProperties.autoGen = autoGenerateParsersCheckBox.isSelected();
         grammarProperties.outputDir = getOutputDirText();
         grammarProperties.libDir = getLibDirText();
@@ -99,8 +99,8 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
         grammarProperties.generateListener = generateParseTreeListenerCheckBox.isSelected();
         grammarProperties.generateVisitor = generateParseTreeVisitorCheckBox.isSelected();
     }
-
-
+    
+    
     boolean isModified(ANTLRv4GrammarProperties originalProperties) {
         return !Objects.equals(originalProperties.getOutputDir(), getOutputDirText())
             || !Objects.equals(originalProperties.getLibDir(), getLibDirText())
@@ -109,45 +109,45 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
             || !Objects.equals(originalProperties.getLanguage(), getLanguageText())
             || !Objects.equals(originalProperties.caseChangingStrategy, getCaseChangingStrategy());
     }
-
-
+    
+    
     String getLanguageText() {
         return languageField.getText();
     }
-
-
+    
+    
     String getPackageFieldText() {
         return packageField.getText();
     }
-
-
+    
+    
     String getFileEncodingText() {
         return fileEncodingField.getText();
     }
-
-
+    
+    
     String getLibDirText() {
         return libDirField.getText();
     }
-
-
+    
+    
     String getOutputDirText() {
         return outputDirField.getText();
     }
-
-
+    
+    
     private CaseChangingStrategy getCaseChangingStrategy() {
         return (CaseChangingStrategy) caseTransformation.getSelectedItem();
     }
-
-
+    
+    
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
         return dialogContents;
     }
-
-
+    
+    
     @Override
     public String toString() {
         return "ConfigANTLRPerGrammar{" +
@@ -158,8 +158,8 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
             ", libDirField=" + libDirField +
             '}';
     }
-
-
+    
+    
     private void createUIComponents() {
         caseTransformation = new ComboBox<>(CaseChangingStrategy.values());
     }

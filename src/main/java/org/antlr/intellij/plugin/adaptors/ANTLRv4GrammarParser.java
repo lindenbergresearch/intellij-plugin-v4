@@ -18,8 +18,8 @@ public class ANTLRv4GrammarParser extends ANTLRParserAdaptor {
     public ANTLRv4GrammarParser() {
         super(ANTLRv4Language.INSTANCE, new ANTLRv4Parser(null));
     }
-
-
+    
+    
     @Override
     protected ParseTree parse(Parser parser, IElementType root) {
         int startRule;
@@ -31,14 +31,14 @@ public class ANTLRv4GrammarParser extends ANTLRParserAdaptor {
         } else {
             startRule = Token.INVALID_TYPE;
         }
-
+        
         switch (startRule) {
             case ANTLRv4Parser.RULE_grammarSpec:
                 return ((ANTLRv4Parser) parser).grammarSpec();
-
+            
             case ANTLRv4Parser.RULE_atom:
                 return ((ANTLRv4Parser) parser).atom();
-
+            
             default:
                 throw new UnsupportedOperationException(String.format("cannot start parsing using root element %s", root));
         }

@@ -31,8 +31,8 @@ public class MyActionUtils {
         e.getPresentation().setEnabled(true); // enable action if we're looking at grammar file
         e.getPresentation().setVisible(true);
     }
-
-
+    
+    
     public static VirtualFile getGrammarFileFromEvent(AnActionEvent e) {
         VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
         if (files == null || files.length == 0) return null;
@@ -42,23 +42,23 @@ public class MyActionUtils {
         }
         return null;
     }
-
-
+    
+    
     public static int getMouseOffset(MouseEvent mouseEvent, Editor editor) {
         Point point = new Point(mouseEvent.getPoint());
         LogicalPosition pos = editor.xyToLogicalPosition(point);
         return editor.logicalPositionToOffset(pos);
     }
-
-
+    
+    
     public static int getMouseOffset(Editor editor) {
         Point mousePosition = editor.getContentComponent().getMousePosition();
         LogicalPosition pos = editor.xyToLogicalPosition(mousePosition);
         int offset = editor.logicalPositionToOffset(pos);
         return offset;
     }
-
-
+    
+    
     public static void moveCursor(Editor editor, int cursorOffset) {
         CaretModel caretModel = editor.getCaretModel();
         caretModel.moveToOffset(cursorOffset);
@@ -66,8 +66,8 @@ public class MyActionUtils {
         scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
         editor.getContentComponent().requestFocus();
     }
-
-
+    
+    
     @NotNull
     public static List<RangeHighlighter> getRangeHighlightersAtOffset(Editor editor, int offset) {
         MarkupModel markupModel = editor.getMarkupModel();
@@ -82,8 +82,8 @@ public class MyActionUtils {
         }
         return highlightersAtOffset;
     }
-
-
+    
+    
     public static DecisionEventInfo getHighlighterWithDecisionEventType(List<RangeHighlighter> highlighters, Class decisionEventType) {
         for (RangeHighlighter r : highlighters) {
             DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
@@ -95,8 +95,8 @@ public class MyActionUtils {
         }
         return null;
     }
-
-
+    
+    
     public static ParserRuleRefNode getParserRuleSurroundingRef(AnActionEvent e) {
         PsiElement selectedPsiNode = getSelectedPsiElement(e);
         RuleSpecNode ruleSpecNode = getRuleSurroundingRef(selectedPsiNode, ParserRuleSpecNode.class);
@@ -104,16 +104,16 @@ public class MyActionUtils {
         // find the name of rule under ParserRuleSpecNode
         return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
     }
-
-
+    
+    
     public static ParserRuleRefNode getParserRuleSurroundingRef(PsiElement element) {
         RuleSpecNode ruleSpecNode = getRuleSurroundingRef(element, ParserRuleSpecNode.class);
         if (ruleSpecNode == null) return null;
         // find the name of rule under ParserRuleSpecNode
         return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
     }
-
-
+    
+    
     public static LexerRuleRefNode getLexerRuleSurroundingRef(AnActionEvent e) {
         PsiElement selectedPsiNode = getSelectedPsiElement(e);
         RuleSpecNode ruleSpecNode = getRuleSurroundingRef(selectedPsiNode, LexerRuleSpecNode.class);
@@ -121,8 +121,8 @@ public class MyActionUtils {
         // find the name of rule under ParserRuleSpecNode
         return PsiTreeUtil.findChildOfType(ruleSpecNode, LexerRuleRefNode.class);
     }
-
-
+    
+    
     public static RuleSpecNode getRuleSurroundingRef(
         PsiElement selectedPsiNode,
         final Class<? extends RuleSpecNode> ruleSpecNodeClass
@@ -130,7 +130,7 @@ public class MyActionUtils {
         if (selectedPsiNode == null) { // didn't select a node in parse tree
             return null;
         }
-
+        
         // find root of rule def
         if (!selectedPsiNode.getClass().equals(ruleSpecNodeClass)) {
             selectedPsiNode = PsiTreeUtil.findFirstParent(selectedPsiNode, psiElement -> psiElement.getClass().equals(ruleSpecNodeClass));
@@ -141,11 +141,11 @@ public class MyActionUtils {
         }
         return (RuleSpecNode) selectedPsiNode;
     }
-
-
+    
+    
     public static PsiElement getSelectedPsiElement(AnActionEvent e) {
         Editor editor = e.getData(PlatformDataKeys.EDITOR);
-
+        
         if (editor == null) { // not in editor
             PsiElement selectedNavElement = e.getData(LangDataKeys.PSI_ELEMENT);
             // in nav bar?
@@ -154,19 +154,19 @@ public class MyActionUtils {
             }
             return selectedNavElement;
         }
-
+        
         // in editor
         PsiFile file = e.getData(LangDataKeys.PSI_FILE);
         if (file == null) {
             return null;
         }
-
+        
         int offset = editor.getCaretModel().getOffset();
         PsiElement el = file.findElementAt(offset);
         return el;
     }
-
-
+    
+    
     /**
      * Only show if selection is a lexer or parser rule
      */
@@ -177,16 +177,16 @@ public class MyActionUtils {
             presentation.setEnabled(false);
             return;
         }
-
+        
         PsiElement el = getSelectedPsiElement(e);
         if (el == null) {
             presentation.setEnabled(false);
             return;
         }
-
+        
         ParserRuleRefNode parserRule = getParserRuleSurroundingRef(e);
         LexerRuleRefNode lexerRule = getLexerRuleSurroundingRef(e);
-
+        
         if ((lexerRule != null && el instanceof LexerRuleRefNode) ||
             (parserRule != null && el instanceof ParserRuleRefNode)) {
             String ruleName = el.getText();
@@ -195,5 +195,5 @@ public class MyActionUtils {
             presentation.setEnabled(false);
         }
     }
-
+    
 }
