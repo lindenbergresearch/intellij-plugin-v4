@@ -121,7 +121,7 @@ public class GrammarIssuesCollector {
     
     
     public static void processIssue(final PsiFile file, GrammarIssue issue) {
-        File grammarFile = new File(file.getVirtualFile().getPath());
+        var grammarFile = new File(file.getVirtualFile().getPath());
         if (issue.getMsg() == null || issue.getMsg().fileName == null) { // weird, issue doesn't have a file associated with it
             return;
         }
@@ -133,7 +133,7 @@ public class GrammarIssuesCollector {
         if (issue.getMsg() instanceof GrammarInfoMessage) { // not in ANTLR so must hack it in
             var t = issue.getMsg().offendingToken;
             issue.getOffendingTokens().add(t);
-            msgST = new ST("unused parser rule <arg>");
+            msgST = new ST("Unused parser rule: <arg>");
             msgST.add("arg", t.getText());
             msgST.impl.name = "info";
         } else if (issue.getMsg() instanceof GrammarSemanticsMessage) {
