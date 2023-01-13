@@ -5,11 +5,11 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.intellij" version "1.5.3"
+    id "org.jetbrains.intellij" version "1.10.0"
 }
 
 wrapper {
-    gradleVersion = '7.4.2'
+    gradleVersion = '7.5'
 }
 
 group 'antlr'
@@ -20,8 +20,8 @@ apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'antlr'
 
 compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
 }
 
 intellij {
@@ -46,7 +46,7 @@ dependencies {
     }
     implementation "org.antlr:antlr4-intellij-adaptor:0.1"
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.4.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.9.0'
 }
 
 generateGrammarSource {
@@ -64,4 +64,8 @@ test {
         events "failed"
         exceptionFormat "full"
     }
+}
+
+runIde {
+    jvmArgs '-Xmx8G'
 }
