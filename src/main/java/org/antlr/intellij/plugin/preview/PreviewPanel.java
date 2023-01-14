@@ -4,7 +4,6 @@ import com.intellij.icons.AllIcons.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
@@ -129,7 +128,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         inputPanel.addCaretListener(new CaretListener() {
             @Override
             public void caretPositionChanged(@NotNull CaretEvent event) {
-                Caret caret = event.getCaret();
+                var caret = event.getCaret();
                 
                 if (scrollFromSource && caret != null) {
                     tokenStreamViewer.onInputTextSelected(caret.getOffset());

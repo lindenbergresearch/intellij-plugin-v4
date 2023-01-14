@@ -13,7 +13,6 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.EditorMarkupModel;
 import com.intellij.openapi.editor.markup.*;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -35,7 +34,6 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.runtime.CommonToken;
-import org.antlr.v4.misc.OrderedHashMap;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.misc.Interval;
@@ -43,7 +41,6 @@ import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
@@ -146,15 +143,15 @@ public class InputPanel {
     
     
     public InputPanel(final PreviewPanel previewPanel) {
-        WrappedFlowLayout layout = new WrappedFlowLayout(0, 0);
+        var layout = new WrappedFlowLayout(0, 0);
         layout.setAlignment(FlowLayout.LEFT);
         this.startRuleAndInputPanel.setLayout(layout);
         this.previewPanel = previewPanel;
         errorConsolePanel = previewPanel.getErrorConsolePanel();
         
-        FileChooserDescriptor singleFileDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-        BrowseFolderActionListener<JTextField> browseActionListener =
-            new BrowseFolderActionListener<JTextField>(
+        var singleFileDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
+        var browseActionListener =
+            new BrowseFolderActionListener<>(
                 "Select Input File", null,
                 fileChooser,
                 previewPanel.project,
@@ -172,7 +169,7 @@ public class InputPanel {
                 }
             };
         fileChooser.getTextField().addActionListener(e -> {
-            VirtualFile chosenFile = VirtualFileManager.getInstance()
+            var chosenFile = VirtualFileManager.getInstance()
                 .getFileSystem("file")
                 .findFileByPath(fileChooser.getText());
             onFileChosen(chosenFile);
@@ -187,6 +184,7 @@ public class InputPanel {
         fileRadioButton.addActionListener(e -> selectFileEvent());
         
         resetStartRuleLabel();
+        setupStartRuleLabelUI();
         propertiesComponent = PropertiesComponent.getInstance(previewPanel.project);
         editorMouseListener = new PreviewEditorMouseListener(this);
     }
@@ -514,7 +512,7 @@ public class InputPanel {
         }
         editor.addEditorMouseMotionListener(editorMouseListener);
         editor.addEditorMouseListener(editorMouseListener);
-        for (CaretListener listener : caretListeners) {
+        for (var listener : caretListeners) {
             editor.getCaretModel().addCaretListener(listener);
         }
     }
@@ -524,23 +522,25 @@ public class InputPanel {
         if (editor == null) return;
         editor.removeEditorMouseListener(editorMouseListener);
         editor.removeEditorMouseMotionListener(editorMouseListener);
-        for (CaretListener listener : caretListeners) {
+        for (var listener : caretListeners) {
             editor.getCaretModel().removeCaretListener(listener);
         }
     }
     
     
     public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
-        if (previewState == null || previewState.grammar == null)
+        if (previewState == null || previewState.grammar == null) {
+            startRuleLabel.setText("");
             return;
+        }
         
-        Grammar grammar = previewState.grammar;
-        OrderedHashMap<String, Rule> rules = grammar.rules;
+        var grammar = previewState.grammar;
+        var rules = grammar.rules;
         
         if (startRuleName.equals(comboBox.getItem()))
             return;
         
-        final String labelGrammar = String.format(
+        final var labelGrammar = String.format(
             grammarFileLabelText,
             grammarFile.getName()
         );
@@ -549,37 +549,37 @@ public class InputPanel {
         comboBox.removeAllItems();
         
         
-        for (String s : rules.keySet()) {
+        for (var s : rules.keySet()) {
             comboBox.addItem(s);
             if (startRuleName.equals(s)) {
                 comboBox.setSelectedItem(s);
             }
         }
         
-        
         startRuleLabel.setForeground(JBColor.foreground());
-//        startRuleLabel.setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(14.f));
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
         startRuleLabel.setText(labelGrammar);
-        
-        // startRuleLabel2.setForeground(JBColor.BLUE);
-        // startRuleLabel2.setFont(bold.deriveFont(bold.getSize()));
-//        startRuleLabel2.setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(14.f));
-        //   startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
-        startRuleLabel2.setText(startRuleLabelText);
-        
+    }
+    
+    void setupStartRuleLabelUI() {
+        startRuleLabel.setForeground(JBColor.foreground());
+        startRuleLabel.setIcon(ANTLRv4Icons.FILE);
+        startRuleLabel.setText("");
+    
+            startRuleLabel2.setText(startRuleLabelText);
+    
         startRuleLabel.setBorder(
             BorderFactory.createEmptyBorder(0, 15, 0, 5)
         );
-        
+    
         startRuleLabel2.setBorder(
             BorderFactory.createEmptyBorder(0, 10, 0, 7)
         );
+        
     }
     
-    
     public void resetStartRuleLabel() {
-        String grammarName = "?.g4";
+        var grammarName = "???";
         
         if (previewState != null) {
             grammarName = previewState.grammarFile.getName();
@@ -588,10 +588,9 @@ public class InputPanel {
         startRuleLabel.setText(String.format(grammarName));
         startRuleLabel.setForeground(JBColor.RED);
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
+        startRuleLabel2.setText(startRuleLabelText);
         
-        //    startRuleLabel2.setText(String.format(missingStartRuleLabelText));
-        //  startRuleLabel2.setForeground(JBColor.RED);
-        // startRuleLabel2.setIcon(ANTLRv4Icons.PARSER_RULE);
+        
         comboBox.removeAllItems();
         comboBox.addItem("<none>");
         comboBox.setEnabled(false);
@@ -604,7 +603,7 @@ public class InputPanel {
     
     
     public void displayErrorInParseErrorConsole(SyntaxError e) {
-        String msg = getErrorDisplayString(e);
+        var msg = getErrorDisplayString(e);
         // errorScrollPane.setVisible(true);
         errorConsolePanel.add(msg);
     }
