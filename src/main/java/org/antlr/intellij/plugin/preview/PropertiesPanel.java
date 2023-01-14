@@ -4,7 +4,6 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
@@ -19,10 +18,7 @@ import java.awt.*;
  */
 public class PropertiesPanel extends JPanel {
     private JBTable propertiesTable;
-    private PropertiesTableModelModel propertiesTableModelModel;
-    private JBScrollPane scrollPane;
-    private JLabel caption;
-    private AltLabelTextProvider altLabelTextProvider;
+    private final PropertiesTableModelModel propertiesTableModelModel;
     
     
     public PropertiesPanel(LayoutManager layout, Border border) {
@@ -41,7 +37,7 @@ public class PropertiesPanel extends JPanel {
         propertiesTable.setBackground(DefaultStyles.getConsoleBackground());
         propertiesTable.setFont(DefaultStyles.VERY_SMALL_FONT);
         
-        scrollPane = new JBScrollPane(
+        var scrollPane = new JBScrollPane(
             propertiesTable,
             JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
             JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
@@ -49,13 +45,14 @@ public class PropertiesPanel extends JPanel {
         
         scrollPane.setWheelScrollingEnabled(true);
         
-        caption = new JLabel(
+        // AllIcons.Debugger.Watch,
+        var caption = new JLabel(
             "Node Explorer",
             // AllIcons.Debugger.Watch,
             SwingConstants.CENTER
         );
         
-        caption.setFont(DefaultStyles.SMALL_FONT.deriveFont(5.f));
+        caption.setFont(DefaultStyles.SMALL_FONT.deriveFont(12.f));
         caption.setBorder(BorderFactory.createEmptyBorder(10, 0, 4, 0));
         
         add(caption, BorderLayout.NORTH);
@@ -75,12 +72,12 @@ public class PropertiesPanel extends JPanel {
         
         /* collect properties for terminals */
         if (tree instanceof TerminalNodeImpl) {
-            TerminalNodeImpl ctx = (TerminalNodeImpl) tree;
-            String name = ctx.getClass().getSimpleName();
-            Token token = ctx.getSymbol();
-            String text = ctx.getText();
+            var ctx = (TerminalNodeImpl) tree;
+            var name = ctx.getClass().getSimpleName();
+            var token = ctx.getSymbol();
+            var text = ctx.getText();
             
-            int length =
+            var length =
                 ctx.getPayload().getStartIndex() < 0 || ctx.getPayload().getStopIndex() < 0 ? -1 :
                     ctx.getPayload().getStopIndex() - ctx.getPayload().getStartIndex() + 1;
             
@@ -111,21 +108,21 @@ public class PropertiesPanel extends JPanel {
         
         /* collect properties for rule nodes */
         if (tree instanceof PreviewInterpreterRuleContext) {
-            PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext) tree;
-            String name = ctx.getClass().getSimpleName();
-            String ruleName = altLabelTextProvider.getRule(tree).name;
-            String text = ctx.getText();
-            String label = altLabelTextProvider.getRuleLabel(tree);
-            String subTree = ctx.toString();
-            Token startToken = ctx.getStart();
-            Token stopToken = ctx.getStop();
+            var ctx = (PreviewInterpreterRuleContext) tree;
+            var name = ctx.getClass().getSimpleName();
+            var ruleName = altLabelTextProvider.getRule(tree).name;
+            var text = ctx.getText();
+            var label = altLabelTextProvider.getRuleLabel(tree);
+            var subTree = ctx.toString();
+            var startToken = ctx.getStart();
+            var stopToken = ctx.getStop();
             
-            int childNum = ctx.getChildCount();
-            int altNum = ctx.getAltNumber();
-            int outerAltNum = ctx.getOuterAltNum();
-            int depth = ctx.depth();
+            var childNum = ctx.getChildCount();
+            var altNum = ctx.getAltNumber();
+            var outerAltNum = ctx.getOuterAltNum();
+            var depth = ctx.depth();
             
-            int length =
+            var length =
                 ctx.start.getStartIndex() < 0 || ctx.stop.getStopIndex() < 0 ? -1 :
                     ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
             
@@ -135,12 +132,12 @@ public class PropertiesPanel extends JPanel {
                 parent = altLabelTextProvider.getRule(ctx.getParent()).name;
             } else parent = "-";
             
-            String hasException =
+            var hasException =
                 ctx.exception != null ?
                     ctx.exception.getClass().getSimpleName() :
                     "-";
             
-            String exceptionMsg =
+            var exceptionMsg =
                 (ctx.exception != null) && ctx.exception.getMessage() != null ?
                     ctx.exception.getMessage() :
                     "-";
