@@ -34,8 +34,8 @@ public class PropertiesPanel extends JPanel {
         propertiesTable.getEmptyText().appendLine("its properties.");
         //  propertiesTable.setStriped(true);
         propertiesTable.setShowVerticalLines(true);
-        propertiesTable.setBackground(DefaultStyles.getConsoleBackground());
-        propertiesTable.setFont(DefaultStyles.VERY_SMALL_FONT);
+     //   propertiesTable.setBackground(DefaultStyles.getConsoleBackground());
+        propertiesTable.setFont(DefaultStyles.SMALL_FONT);
         
         var scrollPane = new JBScrollPane(
             propertiesTable,
@@ -52,7 +52,7 @@ public class PropertiesPanel extends JPanel {
             SwingConstants.CENTER
         );
         
-        caption.setFont(DefaultStyles.SMALL_FONT.deriveFont(12.f));
+       // caption.setFont(DefaultStyles.REGULAR_FONT);
         caption.setBorder(BorderFactory.createEmptyBorder(10, 0, 4, 0));
         
         add(caption, BorderLayout.NORTH);
