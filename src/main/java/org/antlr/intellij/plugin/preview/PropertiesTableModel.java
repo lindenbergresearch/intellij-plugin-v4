@@ -67,7 +67,7 @@ class PropertiesTableModelModel implements TableModel {
     @Override
     public Object getValueAt(int row, int col) {
         if (row >= 0 && col < getColumnCount()) {
-            Pair<String, Object> entry =
+            var entry =
                 properties.get(row);
             
             if (col == PROPERTIES_NAME_COLUMN) {
