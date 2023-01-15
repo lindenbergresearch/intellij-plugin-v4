@@ -341,10 +341,10 @@ public class InputPanel {
     
     
     public void createManualInputPreviewEditor(final PreviewState previewState) {
-        final EditorFactory factory = EditorFactory.getInstance();
-        Document doc = factory.createDocument("");
+        final var factory = EditorFactory.getInstance();
+        var doc = factory.createDocument("");
         
-        Editor editor = createPreviewEditor(previewState.grammarFile, doc, false);
+        var editor = createPreviewEditor(previewState.grammarFile, doc, false);
         setEditorComponent(editor.getComponent()); // do before setting state
         previewState.setInputEditor(editor);
         
@@ -372,13 +372,13 @@ public class InputPanel {
             return;
         }
         
-        VirtualFile inputFile = previewState.inputFile;
+        var inputFile = previewState.inputFile;
         if (inputFile == null) {
             errorConsolePanel.add("Invalid input file!");
             return;
         }
         
-        Document inputDocument = FileDocumentManager.getInstance().getDocument(inputFile);
+        var inputDocument = FileDocumentManager.getInstance().getDocument(inputFile);
         
         if (inputDocument == null) {
             errorConsolePanel.add("Input file does not exist or cannot be loaded: " + inputFile.getPath());
@@ -386,11 +386,11 @@ public class InputPanel {
         }
         
         // get state for grammar in current editor, not editor where user is typing preview input!
-        ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+        var controller = ANTLRv4PluginController.getInstance(previewPanel.project);
         
         // wipe old and make new one
         releaseEditor(previewState);
-        Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), inputDocument, true);
+        var editor = createPreviewEditor(controller.getCurrentGrammarFile(), inputDocument, true);
         setEditorComponent(editor.getComponent()); // do before setting state
         previewState.setInputEditor(editor);
         clearErrorConsole();
@@ -400,7 +400,7 @@ public class InputPanel {
     
     
     public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc, boolean readOnly) {
-        final EditorFactory factory = EditorFactory.getInstance();
+        final var factory = EditorFactory.getInstance();
         
         doc.addDocumentListener(
             new DocumentListener() {
@@ -411,7 +411,7 @@ public class InputPanel {
             }
         );
         
-        final Editor editor = readOnly
+        final var editor = readOnly
             ? factory.createViewer(doc, previewPanel.project)
             : factory.createEditor(doc, previewPanel.project);
         
@@ -422,7 +422,7 @@ public class InputPanel {
         
         // force right margin
         ((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
-        EditorSettings settings = editor.getSettings();
+        var settings = editor.getSettings();
         settings.setWhitespacesShown(true);
         settings.setLeadingWhitespaceShown(true);
         settings.setLineNumbersShown(true);
@@ -484,7 +484,7 @@ public class InputPanel {
             // creates the previewState.
             return null;
         }
-        Editor editor = previewState.getInputEditor();
+        var editor = previewState.getInputEditor();
         if (editor == null) {
             createManualInputPreviewEditor(previewState); // ensure we always have an input window
             return previewState.getInputEditor();
@@ -565,13 +565,13 @@ public class InputPanel {
         startRuleLabel.setForeground(JBColor.foreground());
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
         startRuleLabel.setText("");
-    
-            startRuleLabel2.setText(startRuleLabelText);
-    
+        
+        startRuleLabel2.setText(startRuleLabelText);
+        
         startRuleLabel.setBorder(
             BorderFactory.createEmptyBorder(0, 15, 0, 5)
         );
-    
+        
         startRuleLabel2.setBorder(
             BorderFactory.createEmptyBorder(0, 10, 0, 7)
         );
