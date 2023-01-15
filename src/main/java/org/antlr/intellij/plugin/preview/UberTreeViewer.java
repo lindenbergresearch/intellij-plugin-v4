@@ -500,10 +500,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             treeInvalidated = true;
         
         // capture timestamp
-        long time = System.nanoTime();
+        var time = System.nanoTime();
         
         // detect any canvas size change
-        boolean sizeChanged =
+        var sizeChanged =
             viewport == null ||
                 !getSize().equals(viewport) ||
                 !getSize().equals(getParent().getSize());
@@ -513,6 +513,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // do a complete relayout if update flag has been set
         if (treeInvalidated) {
             doTreeLayout();         // create a new tree-layout based on the parse-tree
+            
+            // tree-layout could not be set
+            if (!hasTreeLayout())
+                return;
+            
             updateScaling();        // compute the proper scaling factor
             updateOffset();         // compute the offset and margin of layout
             updateStyledTreeNodes();// transform the parse-tree to styled-nodes
@@ -528,8 +533,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             updatePreferredSize();  // update the canvas size
         }
         
-        Graphics2D g2 =
-            (Graphics2D) g;
+        var g2 = (Graphics2D) g;
         
         // anti-alias the lines
         g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
@@ -781,18 +785,18 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             return;
         }
         
-        double verticalGap =
+        var verticalGap =
             isCompactLabels() ?
                 gapBetweenLevels * COMPACT_LABELS_FACTOR_VERTICAL :
                 gapBetweenLevels;
         
-        double horizontalGap =
+        var horizontalGap =
             isCompactLabels() ?
                 gapBetweenNodes * COMPACT_LABELS_FACTOR_HORIZONTAL :
                 gapBetweenNodes;
         
-        DefaultConfiguration<Tree> configuration =
-            new DefaultConfiguration<>(
+        var configuration =
+            new DefaultConfiguration<Tree>(
                 verticalGap,
                 horizontalGap,
                 layoutOrientation,
