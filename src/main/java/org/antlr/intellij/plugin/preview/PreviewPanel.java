@@ -98,27 +98,27 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         this.setLayout(new BorderLayout());
         
         // Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
-        JBSplitter splitPane = new JBSplitter();
+        var splitPane = new JBSplitter();
         splitPane.setShowDividerIcon(true);
         splitPane.setDividerWidth(2);
         splitPane.setProportion(0.4f);
         splitPane.setAndLoadSplitterProportionKey("PreviewPanel.splitPane");
-        
-        JBSplitter splitPaneLeft = new JBSplitter();
+    
+        var splitPaneLeft = new JBSplitter();
         splitPaneLeft.setShowDividerIcon(true);
-        splitPaneLeft.setDividerWidth(3);
+        splitPaneLeft.setDividerWidth(2);
         splitPaneLeft.setProportion(0.8f);
         splitPaneLeft.setOrientation(true);
         splitPaneLeft.setAndLoadSplitterProportionKey("PreviewPanel.splitPaneLeft");
         
         leftPanel = new JPanel();
-        leftPanel.setLayout(new BorderLayout(2, 2));
+        leftPanel.setLayout(new BorderLayout(0, 0));
         leftPanel.setBorder(
             BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
         
         errorConsolePanel = new ErrorConsolePanel(
-            new BorderLayout(2, 2),
+            new BorderLayout(0, 0),
             BorderFactory.createEmptyBorder(0, 0, 0, 0)
         );
         
