@@ -34,7 +34,7 @@ public class PropertiesPanel extends JPanel {
         propertiesTable.getEmptyText().appendLine("its properties.");
         //  propertiesTable.setStriped(true);
         propertiesTable.setShowVerticalLines(true);
-     //   propertiesTable.setBackground(DefaultStyles.getConsoleBackground());
+        //   propertiesTable.setBackground(DefaultStyles.getConsoleBackground());
         propertiesTable.setFont(DefaultStyles.SMALL_FONT);
         
         var scrollPane = new JBScrollPane(
@@ -52,7 +52,7 @@ public class PropertiesPanel extends JPanel {
             SwingConstants.CENTER
         );
         
-       // caption.setFont(DefaultStyles.REGULAR_FONT);
+        // caption.setFont(DefaultStyles.REGULAR_FONT);
         caption.setBorder(BorderFactory.createEmptyBorder(10, 0, 4, 0));
         
         add(caption, BorderLayout.NORTH);
@@ -123,7 +123,7 @@ public class PropertiesPanel extends JPanel {
             var depth = ctx.depth();
             
             var length =
-                ctx.start.getStartIndex() < 0 || ctx.stop.getStopIndex() < 0 ? -1 :
+                ctx.start == null || ctx.stop == null || ctx.start.getStartIndex() < 0 || ctx.stop.getStopIndex() < 0 ? -1 :
                     ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
             
             String parent;
@@ -160,11 +160,21 @@ public class PropertiesPanel extends JPanel {
             
             addProperty("range", ctx.getSourceInterval());
             
-            addProperty("range start", "line=" + startToken.getLine() + " char=" + startToken.getCharPositionInLine());
-            addProperty("range end", "line=" + stopToken.getLine() + " char=" + stopToken.getCharPositionInLine());
+            if (startToken != null) {
+                addProperty("range start", "line=" + startToken.getLine() + " char=" + startToken.getCharPositionInLine());
+                addProperty("start-token", startToken);
+            } else {
+                addProperty("range start", "-1");
+                addProperty("start-token", "-");
+            }
             
-            addProperty("start-token", startToken);
-            addProperty("stop-token", stopToken);
+            if (stopToken != null) {
+                addProperty("range end", "line=" + stopToken.getLine() + " char=" + stopToken.getCharPositionInLine());
+                addProperty("stop-token", stopToken);
+            } else {
+                addProperty("range end", "-1");
+                addProperty("stop-token", "-");
+            }
         }
         
         
