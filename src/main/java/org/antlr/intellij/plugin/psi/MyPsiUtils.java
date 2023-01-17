@@ -18,13 +18,60 @@ import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+
+import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.RULE_ELEMENT_TYPES;
+import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES;
 
 @SuppressWarnings("SimplifiableIfStatement")
 public class MyPsiUtils {
+    
+    /**
+     * Tests a Rule Psi IElement against an ANTLRv4 token-id-constant from the parser.
+     *
+     * @param type         IElementType to check.
+     * @param antlrTokenID The ANTLRv4 internal token-id to match.
+     * @return True if the IElementType matches its ANTLRv4 counterpart.
+     */
+    public static boolean isRuleIElement(IElementType type, int antlrTokenID) {
+        return Objects.equals(type, RULE_ELEMENT_TYPES.get(antlrTokenID));
+    }
+    
+    /**
+     * Tests a Token Psi IElement against an ANTLRv4 token-id-constant from the lexer.
+     *
+     * @param type         IElementType to check.
+     * @param antlrTokenID The ANTLRv4 internal token-id to match.
+     * @return True if the IElementType matches its ANTLRv4 counterpart.
+     */
+    public static boolean isTokenIElement(IElementType type, int antlrTokenID) {
+        return Objects.equals(type, TOKEN_ELEMENT_TYPES.get(antlrTokenID));
+    }
+    
+    
+    /**
+     * Tests a PsiElement for matching its ANTLRv4 rule-id counterpart in the parser.
+     *
+     * @param element      PsiElement to check.
+     * @param antlrTokenID The ANTLRv4 internal token-id to match.
+     * @return True if the PsiElement matches its ANTLRv4 counterpart.
+     */
+    public static boolean isRuleElement(PsiElement element, int antlrTokenID) {
+        return isRuleIElement(element.getNode().getElementType(), antlrTokenID);
+    }
+    
+    /**
+     * Tests a PsiElement for matching its ANTLRv4 token-id counterpart in the lexer.
+     *
+     * @param element      PsiElement to check.
+     * @param antlrTokenID The ANTLRv4 internal token-id to match.
+     * @return True if the PsiElement matches its ANTLRv4 counterpart.
+     */
+    public static boolean isTokenElement(PsiElement element, int antlrTokenID) {
+        return isTokenIElement(element.getNode().getElementType(), antlrTokenID);
+    }
+    
+    
     @Nullable
     public static PsiElement findFirstChildOfType(final PsiElement parent, IElementType type) {
         return findFirstChildOfType(parent, TokenSet.create(type));
