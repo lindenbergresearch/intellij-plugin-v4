@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * Represents a path element of the path expression in
  * its validator form.
  */
-public abstract class XPathElement {
+public abstract class XPathValidator {
     String pathExpr;
     String label;
     
@@ -21,7 +21,7 @@ public abstract class XPathElement {
      * @param pathExpr  Path-expression.
      * @param label Label.
      */
-    public XPathElement(String pathExpr, String label) {
+    public XPathValidator(String pathExpr, String label) {
         this.pathExpr = pathExpr;
         this.label = label;
     }
@@ -32,7 +32,7 @@ public abstract class XPathElement {
      *
      * @param pathExpr Path-expression.
      */
-    public XPathElement(String pathExpr) {
+    public XPathValidator(String pathExpr) {
         this.pathExpr = pathExpr;
     }
     
@@ -88,13 +88,13 @@ public abstract class XPathElement {
      * @param pathExpr The path-expression.
      * @return A new instance if it could be matched or null otherwise.
      */
-    public static XPathElement fromString(String pathExpr) {
+    public static XPathValidator fromString(String pathExpr) {
         
-        if (matches(pathExpr, XPathPlainElement.getRegex()))
-            return new XPathPlainElement(extract(pathExpr, XPathPlainElement.getRegex()), "Plain path matcher");
+        if (matches(pathExpr, XPathPlainValidator.getRegex()))
+            return new XPathPlainValidator(extract(pathExpr, XPathPlainValidator.getRegex()), "Plain path matcher");
         
-        if (matches(pathExpr, XPathCountElement.getRegex())) {
-            return new XPathCountElement(extract(pathExpr, XPathCountElement.getRegex()), "Count path matcher");
+        if (matches(pathExpr, XPathCountValidator.getRegex())) {
+            return new XPathCountValidator(extract(pathExpr, XPathCountValidator.getRegex()), "Count path matcher");
         }
         
         return null;

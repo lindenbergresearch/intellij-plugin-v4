@@ -13,7 +13,7 @@ public class PsiXPathSelector {
     private PsiElement root;
     private String[] paths;
     
-    private XPathElement[] elements;
+    private XPathValidator[] elements;
     private int index = 0;
     
     
@@ -42,7 +42,7 @@ public class PsiXPathSelector {
      *
      * @return The next element or null of the end has been reached.
      */
-    public XPathElement getNextXPE() {
+    public XPathValidator getNextXPE() {
         if (!hasNextXPE())
             return null;
         
@@ -64,17 +64,17 @@ public class PsiXPathSelector {
             return;
         }
         
-        var pathElements = new ArrayList<XPathElement>();
+        var pathElements = new ArrayList<XPathValidator>();
         
         for (var path : paths) {
-            var elem = XPathElement.fromString(path);
+            var elem = XPathValidator.fromString(path);
             if (elem == null)
                 throw new XPathSelectorException("Malformed PisXPath element: '" + path + "'.");
             
             pathElements.add(elem);
         }
         
-        elements = pathElements.toArray(new XPathElement[0]);
+        elements = pathElements.toArray(new XPathValidator[0]);
     }
     
     
@@ -103,11 +103,11 @@ public class PsiXPathSelector {
      * Recursive path resolver, tries to math the path against the psi-tree.
      *
      * @param psiElement   The psi-element to match.
-     * @param xPathElement The path-element to match against.
+     * @param xPathValidator The path-element to match against.
      * @return True if matches well.
      */
-    private boolean resolve(PsiElement psiElement, XPathElement xPathElement) {
-        var children = xPathElement.resolve(psiElement);
+    private boolean resolve(PsiElement psiElement, XPathValidator xPathValidator) {
+        var children = xPathValidator.resolve(psiElement);
         
         // path end
         if (!hasNextXPE()) {
