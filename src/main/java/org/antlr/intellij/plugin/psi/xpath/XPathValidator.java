@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.psi.xpath;
 
 import com.intellij.psi.PsiElement;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,6 +49,21 @@ public abstract class XPathValidator implements XPathExprMatcher {
     
     
     /**
+     * A list of all available validators.
+     */
+    static List<XPathValidator> validators;
+    
+    
+    static {
+        validators = new ArrayList<>();
+        validators.add(XPathPlainValidator.getInstance());
+        validators.add(XPathCountValidator.getInstance());
+        validators.add(XPathParentValidator.getInstance());
+        validators.add(XPathWildcardValidator.getInstance());
+    }
+    
+    
+    /**
      * Setup and compile pattern.
      *
      * @param regex    The regex to validate the path.
@@ -71,10 +87,9 @@ public abstract class XPathValidator implements XPathExprMatcher {
      * @return A new instance if it could be matched or null otherwise.
      */
     public static XPathValidator fromString(String pathExpr) {
-        var plainValidator = XPathPlainValidator.getInstance();
-        
-        if (plainValidator.setPathExpr(pathExpr)) {
-            return plainValidator;
+        for (var validator : validators) {
+            if (validator.setPathExpr(pathExpr))
+                return validator;
         }
         
         return null;
