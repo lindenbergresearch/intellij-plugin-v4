@@ -11,6 +11,11 @@ import java.util.regex.PatternSyntaxException;
  */
 public class XPathCountValidator extends XPathValidator {
     /**
+     * Forbid direct instantiation, only singleton is allowed.
+     */
+    private XPathCountValidator() {}
+   
+    /**
      * Singleton instance.
      */
     static final XPathCountValidator instance =

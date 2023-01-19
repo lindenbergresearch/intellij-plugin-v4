@@ -4,23 +4,18 @@ import com.intellij.psi.PsiElement;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.PatternSyntaxException;
 
-/**
- * Plain validator for matching exact path names. final String regex = "^\\$([a-zA-Z_][a-zA-Z0-9_]*)$";
- */
-public class XPathPlainValidator extends XPathValidator {
+public class XPathWildcardValidator extends XPathValidator {
     /**
      * Forbid direct instantiation, only singleton is allowed.
      */
-    private XPathPlainValidator() {}
-    
-    
+    private XPathWildcardValidator() {}
+   
     /**
      * Singleton instance.
      */
-    static final XPathPlainValidator instance =
-        new XPathPlainValidator();
+    static final XPathWildcardValidator instance =
+        new XPathWildcardValidator();
     
     
     /**
@@ -28,16 +23,16 @@ public class XPathPlainValidator extends XPathValidator {
      *
      * @return Singleton.
      */
-    public static XPathPlainValidator getInstance() {
+    public static XPathWildcardValidator getInstance() {
         return instance;
     }
     
     /*|--------------------------------------------------------------------------|*/
     
     /**
-     * Regular-expression for matching plain, exact path names.
+     * Regular-expression for matching a parent element.
      */
-    private final static String regex = "^([a-zA-Z_][a-zA-Z0-9_]*)$";
+    final static String regex = "^([a-zA-Z0-9_\\*]+)$";
     
     
     /**
@@ -48,17 +43,6 @@ public class XPathPlainValidator extends XPathValidator {
      */
     @Override
     public boolean setPathExpr(String pathExpr) {
-        try {
-            setPattern(regex, pathExpr);
-        } catch (PatternSyntaxException e) {
-            return false;
-        }
-        
-        if (matcher.matches()) {
-            intPathExpr = pathExpr;
-            return true;
-        }
-        
         return false;
     }
     
@@ -76,11 +60,10 @@ public class XPathPlainValidator extends XPathValidator {
     public List<PsiElement> resolve(PsiElement psiElement) {
         var elems = new ArrayList<PsiElement>();
         
-        for (var child : psiElement.getChildren()) {
-            if (child.toString().equals(intPathExpr))
-                elems.add(child);
-        }
+        if (psiElement.getParent() != null)
+            elems.add(psiElement.getParent());
         
         return elems;
     }
+    
 }
