@@ -3,39 +3,16 @@ package org.antlr.intellij.plugin.psi.xpath;
 import com.intellij.psi.PsiElement;
 
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Abstract XPathElement.
- * Represents a path element of the path expression in
+ * Represents a path element of the path-expression in
  * its validator form.
  */
-public abstract class XPathValidator {
-    String pathExpr;
-    String label;
-    
-    
-    /**
-     * Create a XPathElement out of a pathExpr-expression and a label.
-     *
-     * @param pathExpr  Path-expression.
-     * @param label Label.
-     */
-    public XPathValidator(String pathExpr, String label) {
-        this.pathExpr = pathExpr;
-        this.label = label;
-    }
-    
-    
-    /**
-     * Create a XPathElement out of a pathExpr-expression.
-     *
-     * @param pathExpr Path-expression.
-     */
-    public XPathValidator(String pathExpr) {
-        this.pathExpr = pathExpr;
-    }
-    
+public abstract class XPathValidator implements XPathExprMatcher {
     
     /**
      * Resolver method, to be overridden in subclass to implement
@@ -48,37 +25,42 @@ public abstract class XPathValidator {
     
     
     /**
-     * Test a pathExpr string againsed a regex expression.
+     * Checks of the xpath-expression is well-formed.
      *
-     * @param pathExpr  The pathExpr-expression.
-     * @param regex The regex.
-     * @return True if matches a group.
+     * @param pathExpr The xpath-expression
+     * @return True if well-formed.
      */
-    public static boolean matches(String pathExpr, String regex) {
-        final var pattern = Pattern.compile(regex, Pattern.MULTILINE);
-        final var matcher = pattern.matcher(pathExpr);
-        
-        return matcher.find() && matcher.groupCount() == 1;
-        
-    }
+    abstract boolean setPathExpr(String pathExpr);
+    
+    /*|--------------------------------------------------------------------------|*/
+    
+    /**
+     * Internal representation of the path-expression.
+     */
+    String intPathExpr = "";
     
     
     /**
-     * Extract the needed group from a pathExpr-expression via regex.
-     *
-     * @param pathExpr  The pathExpr-expression.
-     * @param regex The regex.
-     * @return The matched group or null if nothing could be matched.
+     * The Regex pattern and matcher.
      */
-    public static String extract(String pathExpr, String regex) {
-        final var pattern = Pattern.compile(regex, Pattern.MULTILINE);
-        final var matcher = pattern.matcher(pathExpr);
+    Pattern pattern = null;
+    Matcher matcher = null;
+    
+    
+    /**
+     * Setup and compile pattern.
+     *
+     * @param regex    The regex to validate the path.
+     * @param pathExpr The path-expression.
+     */
+    protected void setPattern(String regex, String pathExpr) throws PatternSyntaxException {
+        if (regex == null)
+            return;
         
-        if (matcher.find()) {
-            if (matcher.groupCount() == 1) return matcher.group(0);
-        }
+        pattern = Pattern.compile(regex);
         
-        return null;
+        if (pathExpr != null)
+            matcher = pattern.matcher(pathExpr);
     }
     
     
@@ -89,12 +71,10 @@ public abstract class XPathValidator {
      * @return A new instance if it could be matched or null otherwise.
      */
     public static XPathValidator fromString(String pathExpr) {
+        var plainValidator = XPathPlainValidator.getInstance();
         
-        if (matches(pathExpr, XPathPlainValidator.getRegex()))
-            return new XPathPlainValidator(extract(pathExpr, XPathPlainValidator.getRegex()), "Plain path matcher");
-        
-        if (matches(pathExpr, XPathCountValidator.getRegex())) {
-            return new XPathCountValidator(extract(pathExpr, XPathCountValidator.getRegex()), "Count path matcher");
+        if (plainValidator.setPathExpr(pathExpr)) {
+            return plainValidator;
         }
         
         return null;

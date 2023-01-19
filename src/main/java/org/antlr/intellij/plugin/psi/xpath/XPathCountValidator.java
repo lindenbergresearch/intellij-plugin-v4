@@ -4,11 +4,30 @@ import com.intellij.psi.PsiElement;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * XPath count validator.
  */
 public class XPathCountValidator extends XPathValidator {
+    /**
+     * Singleton instance.
+     */
+    static final XPathCountValidator instance =
+        new XPathCountValidator();
+    
+    
+    /**
+     * Returns the singleton instance.
+     *
+     * @return Singelton.
+     */
+    public static XPathCountValidator getInstance() {
+        return instance;
+    }
+    
+    /*|--------------------------------------------------------------------------|*/
+    
     /**
      * Matching regex for numbers only.
      */
@@ -16,38 +35,43 @@ public class XPathCountValidator extends XPathValidator {
     
     
     /**
-     * Creates a new validator instance.
+     * Checks of the xpath-expression is well-formed.
      *
-     * @param path  The path-expression.
-     * @param label The label
+     * @param pathExpr The xpath-expression
+     * @return True if well-formed.
      */
-    public XPathCountValidator(String path, String label) {
-        super(path, label);
+    @Override
+    public boolean setPathExpr(String pathExpr) {
+        try {
+            setPattern(regex, pathExpr);
+        } catch (PatternSyntaxException e) {
+            return false;
+        }
+        
+        if (matcher.find() && matcher.groupCount() == 1) {
+            intPathExpr = matcher.group(0);
+            return true;
+        }
+        
+        return false;
     }
+    /*|--------------------------------------------------------------------------|*/
     
     
     /**
-     * Return the specific regex for this validator.
-     *
-     * @return Regex as string.
-     */
-    public static String getRegex() {
-        return regex;
-    }
-    
-    
-    /**
-     * Returns all children if the given number matches the total numbers of children.
+     * Resolver method, to be overridden in subclass to implement
+     * the specific matcher for this path-expression.
      *
      * @param psiElement Psi-element to resolve.
-     * @return A list of PsiElements or empty List.
+     * @param pathExpr   The path-expression to used for resolving.
+     * @return A list of resolvable psi-elements.
      */
     @Override
     public List<PsiElement> resolve(PsiElement psiElement) {
         int count;
         
         try {
-            count = Integer.parseInt(pathExpr);
+            count = Integer.parseInt(intPathExpr);
         } catch (NumberFormatException e) {
             return null;
         }
