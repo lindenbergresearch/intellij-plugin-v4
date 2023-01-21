@@ -3,8 +3,6 @@ package org.antlr.intellij.plugin.psi.xpath;
 
 import com.intellij.psi.PsiElement;
 
-import java.util.ArrayList;
-
 
 /**
  * XPath validator for PsiElement trees.
@@ -13,7 +11,7 @@ public class PsiXPathSelector {
     private PsiElement root;
     private String[] paths;
     
-    private XPathValidator[] elements;
+    private XPathValidatorList elements;
     private int index = 0;
     
     
@@ -25,29 +23,30 @@ public class PsiXPathSelector {
     public PsiXPathSelector(PsiElement node) {
         this.root = node;
     }
-    
-    
-    /**
-     * Test if a next path-element is available.
-     *
-     * @return True if available.
-     */
-    public boolean hasNextXPE() {
-        return elements == null || elements.length >= index + 1;
-    }
-    
-    
-    /**
-     * returns the next path-element.
-     *
-     * @return The next element or null of the end has been reached.
-     */
-    public XPathValidator getNextXPE() {
-        if (!hasNextXPE())
-            return null;
-        
-        return elements[++index];
-    }
+
+
+//    /**
+//     * Test if a next path-element is available.
+//     *
+//     * @return True if available.
+//     */
+//    public boolean hasNextXPE() {
+//        return elements == null || elements.length >= index + 1;
+//    }
+//
+//
+//    /**
+//     * returns the next path-element.
+//     *
+//     * @return The next element or null of the end has been reached.
+//     */
+//    public XPathValidator getNextXPE() {
+//        if (!hasNextXPE())
+//            return null;
+//
+//        return elements[++index];
+//    }
+//
     
     
     /**
@@ -64,17 +63,15 @@ public class PsiXPathSelector {
             return;
         }
         
-        var pathElements = new ArrayList<XPathValidator>();
+        elements = new XPathValidatorList(paths.length);
         
         for (var path : paths) {
             var elem = XPathValidator.fromString(path);
             if (elem == null)
                 throw new XPathSelectorException("Malformed PisXPath element: '" + path + "'.");
             
-            pathElements.add(elem);
+            elements.add(elem);
         }
-        
-        elements = pathElements.toArray(new XPathValidator[0]);
     }
     
     
@@ -102,27 +99,45 @@ public class PsiXPathSelector {
     /**
      * Recursive path resolver, tries to math the path against the psi-tree.
      *
-     * @param psiElement   The psi-element to match.
+     * @param psiElement     The psi-element to match.
      * @param xPathValidator The path-element to match against.
      * @return True if matches well.
      */
-    private boolean resolve(PsiElement psiElement, XPathValidator xPathValidator) {
-        var children = xPathValidator.resolve(psiElement);
+    private boolean resolve(PsiElement psiElement, XPathValidatorList validators) {
         
-        // path end
-        if (!hasNextXPE()) {
-            return children != null && children.size() > 0;
+        // iterate over path elements
+        for (var validator : validators) {
+            // find matching children
+            var children = validator.resolve(psiElement);
+            var result = children.size() > 0;
+            
+            // iterate over all children matched by validator
+            for (var child : children) {
+                result = result && resolve(child, validators.tail());
+            }
+            
+            return result;
         }
         
-        var next = getNextXPE();
         
-        // try to resolve all sub-nodes ins psi-tree
-        for (var child : children) {
-            if (resolve(child, next))
-                return false;
-        }
+        //        var children = xPathValidator.resolve(psiElement);
+//
+//        // path end
+//        if (!hasNextXPE()) {
+//            return children != null && children.size() > 0;
+//        }
+//
+//        var next = getNextXPE();
+//
+//        // try to resolve all sub-nodes ins psi-tree
+//        for (var child : children) {
+//            if (resolve(child, next))
+//                return false;
+//        }
+//
+//        return children.size() > 0;
+        return false;
         
-        return children.size() > 0;
     }
     
     
@@ -130,12 +145,9 @@ public class PsiXPathSelector {
      * Validate the given path against the given psi-tree.
      *
      * @param path The validation path.
-     * @param root The root element to start from.
      * @return True if the given path-expression matches the given psi-tree.
      */
-    public boolean validate(String path, PsiElement root) {
-        this.root = root;
-        
+    public boolean validate(String path) {
         try {
             setPath(path);
         } catch (XPathSelectorException e) {
@@ -143,7 +155,7 @@ public class PsiXPathSelector {
         }
         
         index = 0;
-        return resolve(root, elements[index]);
+        return resolve(root, elements);
     }
     
     

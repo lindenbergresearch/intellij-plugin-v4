@@ -13,7 +13,7 @@ import java.util.regex.PatternSyntaxException;
  * Represents a path element of the path-expression in
  * its validator form.
  */
-public abstract class XPathValidator implements XPathExprMatcher {
+public abstract class XPathValidator {
     
     /**
      * Resolver method, to be overridden in subclass to implement

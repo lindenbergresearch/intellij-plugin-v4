@@ -5,7 +5,6 @@ import com.intellij.psi.PsiElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
-
 /**
  * Plain validator for matching exact path names. final String regex = "^\\$([a-zA-Z_][a-zA-Z0-9_]*)$";
  */
