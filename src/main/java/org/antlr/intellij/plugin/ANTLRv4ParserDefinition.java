@@ -37,29 +37,33 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
     @NotNull
     @Override
     public Lexer createLexer(Project project) {
-        ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
+        var lexer = new ANTLRv4Lexer(null);
         return new ANTLRv4LexerAdaptor(lexer);
     }
     
     
+    @Override
     @NotNull
     public PsiParser createParser(final Project project) {
         return new ANTLRv4GrammarParser();
     }
     
     
+    @Override
     @NotNull
     public TokenSet getWhitespaceTokens() {
         return ANTLRv4TokenTypes.WHITESPACES;
     }
     
     
+    @Override
     @NotNull
     public TokenSet getCommentTokens() {
         return ANTLRv4TokenTypes.COMMENTS;
     }
     
     
+    @Override
     @NotNull
     public TokenSet getStringLiteralElements() {
         return TokenSet.EMPTY;
@@ -67,18 +71,19 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
     
     
     @Override
-    public IFileElementType getFileNodeType() {
+    public @NotNull IFileElementType getFileNodeType() {
         return FILE;
     }
     
     
     @Override
-    public PsiFile createFile(FileViewProvider viewProvider) {
+    public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
         return new ANTLRv4FileRoot(viewProvider);
     }
     
     
-    public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
+    @Override
+    public @NotNull SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
         return SpaceRequirements.MAY;
     }
     
@@ -88,6 +93,7 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
      * converts only internal rule nodes apparently, not leaf nodes. Leaves
      * are just tokens I guess.
      */
+    @Override
     @NotNull
     public PsiElement createElement(ASTNode node) {
         return ANTLRv4ASTFactory.createInternalParseTreeNode(node);
