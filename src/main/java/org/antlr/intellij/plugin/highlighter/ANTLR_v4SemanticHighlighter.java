@@ -18,18 +18,45 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 import static org.antlr.intellij.plugin.psi.MyPsiUtils.isRuleElement;
 import static org.antlr.intellij.plugin.psi.MyPsiUtils.isTokenElement;
 
+/**
+ * Annotator providing basic semantic highlighting via PsiTree structure matching.
+ *
+ * @see org.antlr.intellij.plugin.psi.PsiTreeMatcher
+ */
 public class ANTLR_v4SemanticHighlighter implements Annotator {
-    private static final List<PsiTreeMatcher<PsiElement, TextAttributesKey>> matchers = new ArrayList<>();
+    /**
+     * Static list containing all tree-matchers for validating.
+     */
+    private static final List<PsiTreeMatcher<PsiElement, TextAttributesKey>>
+        matchers = new ArrayList<>();
+    
+    /*|--------------------------------------------------------------------------|*/
+    
+    public static final TextAttributesKey RULE_DECL =
+        createTextAttributesKey("ANTLRv4_RULE_LABEL", DefaultLanguageHighlighterColors.CONSTANT);
+    
     public static final TextAttributesKey RULE_LABEL =
         createTextAttributesKey("ANTLRv4_RULE_LABEL", DefaultLanguageHighlighterColors.CONSTANT);
     
+    /*|--------------------------------------------------------------------------|*/
+    
     
     static {
-        var ruleLabelMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(RULE_LABEL);
+        var ruleDeclMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(RULE_DECL);
+        ruleDeclMatcher.addPremise(
+            element -> isTokenElement(element, ANTLRv4Lexer.RULE_REF),
+            element -> element.getParent() != null,
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_parserRuleSpec
+            )
+        );
         
+        matchers.add(ruleDeclMatcher);
+        
+        var ruleLabelMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(RULE_LABEL);
         ruleLabelMatcher.addPremise(
             element -> isTokenElement(element, ANTLRv4Lexer.RULE_REF),
-            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_parserRuleSpec
+            element -> element.getParent() != null && element.getParent().getParent() != null,
+            element -> isRuleElement(element.getParent().getParent(), ANTLRv4Parser.RULE_labeledAlt
             )
         );
         
@@ -40,6 +67,13 @@ public class ANTLR_v4SemanticHighlighter implements Annotator {
     /*|--------------------------------------------------------------------------|*/
     
     
+    /**
+     * Helper method for adding an annotation.
+     *
+     * @param psiTreeMatcher The tree-macher.
+     * @param element        The PsiElement.
+     * @param holder         The holder.
+     */
     private void addAnnotation(PsiTreeMatcher<PsiElement, TextAttributesKey> psiTreeMatcher, @NotNull PsiElement element, @NotNull AnnotationHolder holder) {
         holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
             .range(element.getTextRange())
