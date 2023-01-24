@@ -6,7 +6,8 @@ import com.intellij.openapi.options.colors.AttributesDescriptor;
 import com.intellij.openapi.options.colors.ColorDescriptor;
 import com.intellij.openapi.options.colors.ColorSettingsPage;
 import org.antlr.intellij.plugin.ANTLRv4Icons;
-import org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighter;
+import org.antlr.intellij.plugin.highlighter.ANTLR_v4SemanticHighlighter;
+import org.antlr.intellij.plugin.highlighter.ANTLRv4SyntaxHighlighter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +26,10 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
         new AttributesDescriptor("Block comment", ANTLRv4SyntaxHighlighter.BLOCK_COMMENT),
         new AttributesDescriptor("Line comment", ANTLRv4SyntaxHighlighter.LINE_COMMENT),
         new AttributesDescriptor("Doc comment", ANTLRv4SyntaxHighlighter.DOC_COMMENT),
+        
+        /* semantic highlighting */
+        new AttributesDescriptor("Rule declaration", ANTLR_v4SemanticHighlighter.RULE_DECL),
+        new AttributesDescriptor("Rule label", ANTLR_v4SemanticHighlighter.RULE_LABEL),
         
     };
     
@@ -47,10 +52,12 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
     @Override
     public String getDemoText() {
         return
-            "// line comment\ngrammar Foo;\n\n" + "options { tokenVocab=FooLexer; }\n\n" +
-                '\n' +
-                "compilationUnit : STUFF EOF;\n" +
-                "\n/* block comment */" +
+            "// line comment\ngrammar Foo;\n\n" + "options { tokenVocab=FooLexer; }\n" +
+                "\n/* block comment */" + "\n\n" +
+                "compilationUnit\n" +
+                "   : STUFF EOF #Stuff\n" +
+                "   | otherRule #Other;\n" +
+                ";\n\n" +
                 "STUFF : 'stuff' -> pushMode(OTHER_MODE);\n" +
                 "WS : [ \\t]+ -> channel(HIDDEN);\n" +
                 "NEWLINE : [\\r\\n]+ -> type(WS);\n" +
