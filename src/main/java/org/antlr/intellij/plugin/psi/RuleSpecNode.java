@@ -25,7 +25,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
     @Override
     public String getName() {
         if (name != null) return name;
-        GrammarElementRefNode id = getNameIdentifier();
+        var id = getNameIdentifier();
         if (id != null) {
             return id.getText();
         }
@@ -33,6 +33,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
     }
     
     
+    @Override
     @Nullable
     public abstract GrammarElementRefNode getNameIdentifier();
     
@@ -47,10 +48,12 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		          node in its parse tree, build the parse tree and
 		          extract the necessary node from it.
 		 */
-        GrammarElementRefNode id = getNameIdentifier();
+        var id = getNameIdentifier();
+        
         id.replace(MyPsiUtils.createLeafFromText(getProject(),
             getContext(),
             name, getRuleRefType()));
+        
         this.name = name;
         return this;
     }
@@ -68,7 +71,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
     
     @Override
     public int getTextOffset() {
-        GrammarElementRefNode id = getNameIdentifier();
+        var id = getNameIdentifier();
         if (id != null) return id.getTextOffset();
         return super.getTextOffset();
     }

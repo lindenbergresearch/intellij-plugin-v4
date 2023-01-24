@@ -34,6 +34,6 @@ public abstract class GrammarElementRefNode extends LeafPsiElement implements Ps
     
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + getElementType().toString() + ")";
+        return getClass().getSimpleName() + "(" + getElementType() + ")";
     }
 }
