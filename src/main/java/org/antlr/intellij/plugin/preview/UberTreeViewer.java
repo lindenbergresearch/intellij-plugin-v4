@@ -49,6 +49,12 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public final static double MAX_SCALE_FACTOR = 2.0;
     public final static double MIN_SCALE_FACTOR = 0.1;
     
+    // range for the gap between nodes
+    public final static double MAX_NODES_GAP = 40;
+    public final static double MIN_NODES_GAP = 10;
+    public final static double NODE_GAP_INCREMENT = 5;
+    
+    
     // auto-scale factor interval
     public final static double MAX_AUTO_SCALE_FACTOR = 1.25;
     public final static double MIN_AUTO_SCALE_FACTOR = 0.3;
@@ -181,8 +187,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         edgesStrokeWidth = 1.5f;
         
         minCellWidth = 50;
-        gapBetweenLevels = 30;
-        gapBetweenNodes = 30;
+        gapBetweenLevels = 20;
+        gapBetweenNodes = 20;
         
         scale = 1.f;
         autoscaling = true;
@@ -354,6 +360,65 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      */
     public Rectangle2D getCanvasBounds() {
         return scrollPane.getViewport().getViewRect();
+    }
+    
+    
+    /**
+     * Returns the gap between levels (horizontal).
+     *
+     * @return Gap in px.
+     */
+    public double getGapBetweenLevels() {
+        return gapBetweenLevels;
+    }
+    
+    
+    /**
+     * Returns the gap between nodes (vertical).
+     *
+     * @return Gap in px.
+     */
+    public double getGapBetweenNodes() {
+        return gapBetweenNodes;
+    }
+    
+    
+    /**
+     * Test for exceeding the bounds set by min/max gap size.
+     *
+     * @param gap   Gap size.
+     * @param delta Delta in px.
+     * @return True if exceeds.
+     */
+    private boolean exceedsGapBounds(double gap, double delta) {
+        return gap + delta > MAX_NODES_GAP ||
+            gap + delta < MIN_NODES_GAP;
+    }
+    
+    
+    /**
+     * Set relative size of nodes gap.
+     *
+     * @param delta Delta in px.
+     */
+    public void setRelativeNodesGap(double delta) {
+        gapBetweenNodes =
+            exceedsGapBounds(gapBetweenNodes, delta) ?
+                gapBetweenNodes :
+                gapBetweenNodes + delta;
+    }
+    
+    
+    /**
+     * Set relative size of levels gap.
+     *
+     * @param delta Delta in px.
+     */
+    public void setRelativeLevelsGap(double delta) {
+        gapBetweenLevels =
+            exceedsGapBounds(gapBetweenLevels, delta) ?
+                gapBetweenLevels :
+                gapBetweenLevels + delta;
     }
     
     
