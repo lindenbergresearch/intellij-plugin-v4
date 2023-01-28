@@ -21,7 +21,6 @@ import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
-import org.antlr.v4.misc.OrderedHashMap;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
@@ -29,7 +28,6 @@ import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
-import org.antlr.v4.tool.Rule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,7 +101,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         splitPane.setDividerWidth(2);
         splitPane.setProportion(0.4f);
         splitPane.setAndLoadSplitterProportionKey("PreviewPanel.splitPane");
-    
+        
         var splitPaneLeft = new JBSplitter();
         splitPaneLeft.setShowDividerIcon(true);
         splitPaneLeft.setDividerWidth(2);
@@ -387,11 +385,97 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 treeViewer.setTreeInvalidated(true);
             }
         };
+        /*|--------------------------------------------------------------------------|*/
+        
+        final AnAction decNodesGap = new AnAction(
+            "Decrease Gap Between Nodes",
+            null,
+            CollapseComponent
+        ) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                if (treeViewer.exceedsGapBounds(treeViewer.getGapBetweenNodes(), -UberTreeViewer.NODE_GAP_INCREMENT)) {
+                    e.getPresentation().setEnabled(false);
+                }
+            }
+            
+            
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setRelativeNodesGap(-UberTreeViewer.NODE_GAP_INCREMENT);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        final AnAction decLevelsGap = new AnAction(
+            "Decrease Gap Between Levels",
+            null,
+            Collapseall
+        ) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                if (treeViewer.exceedsGapBounds(treeViewer.getGapBetweenLevels(), -UberTreeViewer.NODE_GAP_INCREMENT)) {
+                    e.getPresentation().setEnabled(false);
+                }
+            }
+            
+            
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setRelativeLevelsGap(-UberTreeViewer.NODE_GAP_INCREMENT);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        final AnAction incNodesGap = new AnAction(
+            "Increase Gap Between Nodes",
+            null,
+            ExpandComponent
+        ) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                if (treeViewer.exceedsGapBounds(treeViewer.getGapBetweenNodes(), UberTreeViewer.NODE_GAP_INCREMENT)) {
+                    e.getPresentation().setEnabled(false);
+                }
+            }
+            
+            
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setRelativeNodesGap(UberTreeViewer.NODE_GAP_INCREMENT);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        final AnAction incLevelsGap = new AnAction(
+            "Increase Gap Between Levels",
+            null,
+            Expandall
+        ) {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                if (treeViewer.exceedsGapBounds(treeViewer.getGapBetweenLevels(), UberTreeViewer.NODE_GAP_INCREMENT)) {
+                    e.getPresentation().setEnabled(false);
+                }
+            }
+            
+            
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                treeViewer.setRelativeLevelsGap(UberTreeViewer.NODE_GAP_INCREMENT);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
         
         
         /* --------------------------------------------------------------------- */
         
-        DefaultActionGroup actionGroup = new DefaultActionGroup(
+        var actionGroup = new DefaultActionGroup(
             toggleAutoscaling,
             fitScreen,
             fitSelected
@@ -421,7 +505,16 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             toggleRightLayout
         );
         
-        ActionToolbar toolbar =
+        actionGroup.addSeparator();
+        
+        actionGroup.addAll(
+            decNodesGap,
+            incNodesGap,
+            decLevelsGap,
+            incLevelsGap
+        );
+        
+        var toolbar =
             ActionManager.getInstance().createActionToolbar(
                 PREVIEW_WINDOW_ID,
                 actionGroup,
@@ -629,12 +722,15 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      * Notify the preview tool window contents that the grammar file has changed
      */
     public void grammarFileSaved(VirtualFile grammarFile) {
-        String grammarFileName = grammarFile.getPath();
-        ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-        PreviewState previewState = controller.getPreviewState(grammarFile);
+        //switchToGrammar(grammarFile);
+        
+        
+        var controller = ANTLRv4PluginController.getInstance(project);
+        var previewState = controller.getPreviewState(grammarFile);
         
         ensureStartRuleExists(grammarFile);
-        inputPanel.grammarFileSaved();
+        
+        //DEBUG LOG.info("PreviewPanel: grammarFileSaved: startrule: " + previewState.startRuleName);
         
         // if the saved grammar is not a pure lexer and there is a start rule, reparse
         // means that switching grammars must refresh preview
@@ -644,18 +740,32 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             clearTabs(null); // blank tree
         }
         
+        if (previewState.hasValidGrammar()) {
+            //DEBUG  LOG.info("grammarFileSaved: valid grammar.");
+        } else {
+            //DEBUG  LOG.info("grammarFileSaved: INVALID grammar!");
+            setEnabled(false);
+            return;
+        }
+        
+        
+        inputPanel.switchToGrammar(previewState, grammarFile);
+        inputPanel.setStartRuleName(grammarFile, previewState.startRuleName);
         profilerPanel.grammarFileSaved(previewState, grammarFile);
+        
+        setEnabled(true);
+        updateTreeViewer(previewState, previewState.parsingResult);
     }
     
     
     private void ensureStartRuleExists(VirtualFile grammarFile) {
-        PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
+        var previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
         
         // if start rule no longer exists, reset display/state.
         if (previewState.grammar != null &&
             previewState.grammar != ParsingUtils.BAD_PARSER_GRAMMAR &&
             previewState.startRuleName != null) {
-            Rule rule = previewState.grammar.getRule(previewState.startRuleName);
+            var rule = previewState.grammar.getRule(previewState.startRuleName);
             
             if (rule == null) {
                 previewState.startRuleName = null;
@@ -669,6 +779,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      * Notify the preview tool window contents that the grammar file has changed
      */
     public void grammarFileChanged(VirtualFile newFile) {
+        //DEBUG LOG.info("grammarFileChanged(" + newFile.getName() + ")");
         switchToGrammar(newFile);
     }
     
@@ -677,20 +788,21 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      * Load grammars and set editor component.
      */
     private void switchToGrammar(VirtualFile grammarFile) {
-        String grammarFileName = grammarFile.getPath();
-        ANTLRv4PluginController controller =
+        var grammarFileName = grammarFile.getPath();
+        var controller =
             ANTLRv4PluginController.getInstance(project);
+        
+        //DEBUG LOG.info("switchToGrammar: " + grammarFileName);
         
         // should not happen
         if (controller == null)
             return;
         
-        PreviewState previewState =
-            controller.getPreviewState(grammarFile);
+        var previewState = controller.getPreviewState(grammarFile);
         
         autoSetStartRule(previewState);
         
-        errorConsolePanel.clear();
+        showError("switchToGrammar: " + grammarFileName);
         
         inputPanel.switchToGrammar(previewState, grammarFile);
         profilerPanel.switchToGrammar(previewState, grammarFile);
@@ -701,12 +813,19 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         // refresh tree viewer
         if (previewState.grammar != null && previewState.startRuleName != null) {
             updateParseTreeFromDoc(previewState.grammarFile, true);
+            //DEBUG LOG.info("switchToGrammar -> updateParseTreeFromDoc: " + grammarFileName);
+            
         } else {
+            //DEBUG LOG.info("switchToGrammar -> BAD GRAMMAR: " + grammarFileName);
+            showError("Error while parsing grammar." + "See ANTLR Tool Output for more information.");
             clearTabs(null); // blank tree
         }
         
+        //DEBUG LOG.info("switchToGrammar has valid grammar? " + previewState.hasValidGrammar());
+        
         setEnabled(previewState.hasValidGrammar());
     }
+    
     
     /**
      * From 1.18, automatically set the start rule name to the first rule in the grammar
@@ -717,7 +836,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             // If there is no grammar all of a sudden, we need to unset the previous rule name
             previewState.startRuleName = null;
         } else if (previewState.startRuleName == null) {
-            OrderedHashMap<String, Rule> rules = previewState.grammar.rules;
+            var rules = previewState.grammar.rules;
             previewState.startRuleName = rules.getElement(0).name;
         }
     }
@@ -807,28 +926,27 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     public void updateParseTreeFromDoc(VirtualFile grammarFile, boolean forceUpdate) {
-        ANTLRv4PluginController controller =
-            ANTLRv4PluginController.getInstance(project);
-        
+        var controller = ANTLRv4PluginController.getInstance(project);
+        //DEBUG LOG.info("updateParseTreeFromDoc");
         if (controller == null)
             return;
         
-        PreviewState previewState =
-            controller.getPreviewState(grammarFile);
+        var previewState = controller.getPreviewState(grammarFile);
         
         
         if (!previewState.hasValidGrammar()) {
+            //DEBUG  LOG.info("updateParseTreeFromDoc: invalid grammar!");
             // likely error in grammar prevents it from loading properly into previewState; bail
             indicateInvalidGrammarInParseTreePane();
             return;
         }
         
-        Editor editor = inputPanel.getInputEditor();
+        var editor = inputPanel.getInputEditor();
         
         if (editor == null)
             return;
         
-        final String inputText = editor.getDocument().getText();
+        final var inputText = editor.getDocument().getText();
         
         // nothing changed and no forced update
         if (inputText.equals(currentEditorText) && !forceUpdate) {
@@ -836,6 +954,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         }
         
         currentEditorText = inputText;
+        //DEBUG LOG.info("update text: " + inputText);
         
         // The controller will call us back when it's done parsing
         controller.parseText(grammarFile, inputText);
