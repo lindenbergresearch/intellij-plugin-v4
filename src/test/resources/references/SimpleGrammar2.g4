@@ -6,4 +6,4 @@ DIGIT: [0-9]+;
 
 rule1: TOKEN1;
 
-rule2: DIGIT ru<caret>le1 DIGIT;
+rule2: DIGIT ru< caret >le1 DIGIT;

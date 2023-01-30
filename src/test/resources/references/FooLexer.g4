@@ -6,14 +6,13 @@ channels { MYHIDDEN }
 TOKEN1: 'TOKEN1';
 
 fragment Fragment1
-    : Fragment2
-    | TOKEN1
-    ;
+: Fragment2
+  | TOKEN1
+;
 
 fragment Fragment2
-    : 'FOO'
-    | 'BAR'
-    ;
+: 'FOO'
+  | 'BAR'
+;
 
-SINGLE : '\'' .*? '\'' -> type(STRING), channel(MYHIDDEN);
-
+SINGLE : '\'' .* ? '\'' -> type(STRING), channel(MYHIDDEN);

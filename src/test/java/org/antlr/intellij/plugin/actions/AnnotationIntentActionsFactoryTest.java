@@ -19,7 +19,7 @@ public class AnnotationIntentActionsFactoryTest {
         LexerRuleRefNode lexerRuleRefNode = mock(LexerRuleRefNode.class);
         when(lexerRuleRefNode.isValid()).thenReturn(true);
         Optional<IntentionAction> quickFix = AnnotationIntentActionsFactory.getFix(new TextRange(0, 1), ErrorType.INTERNAL_ERROR, null);
-
+        
         // then:
         assertFalse(quickFix.isPresent());
     }
