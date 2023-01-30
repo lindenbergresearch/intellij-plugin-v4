@@ -23,10 +23,10 @@ public class ANTLRv4GrammarParser extends ANTLRParserAdaptor {
     @Override
     protected ParseTree parse(Parser parser, IElementType root) {
         int startRule;
+        
         if (root instanceof IFileElementType) {
             startRule = ANTLRv4Parser.RULE_grammarSpec;
-        } else if (root == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)
-            || root == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF)) {
+        } else if (root == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) || root == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF)) {
             startRule = ANTLRv4Parser.RULE_atom;
         } else {
             startRule = Token.INVALID_TYPE;

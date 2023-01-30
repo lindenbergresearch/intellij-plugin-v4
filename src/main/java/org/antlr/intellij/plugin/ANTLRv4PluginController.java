@@ -328,6 +328,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
     
     
     public void grammarFileSavedEvent(VirtualFile grammarFile) {
+        //DEBUG LOG.info("grammarFileSavedEvent(" + grammarFile.getName() + ")");
         updateGrammarObjectsFromFile(grammarFile, true); // force reload
         
         if (previewPanel != null) {
@@ -344,11 +345,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
         }
         if (newFile.getName().endsWith(".g")) {
             LOG.info("currentEditorFileChangedEvent ANTLR 4 cannot handle .g files, only .g4");
-            hidePreview();
+            //  hidePreview();
             return;
         }
         if (!newFile.getName().endsWith(".g4")) {
-            hidePreview();
+            //  hidePreview();
             return;
         }
         
@@ -446,7 +447,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
         // if grammarFileName is a separate lexer, we need to look for
         // its matching parser, if any, that is loaded in an editor
         // (don't go looking on disk).
-        PreviewState s = getAssociatedParserIfLexer(grammarFile.getPath());
+        var s = getAssociatedParserIfLexer(grammarFile.getPath());
         if (s != null) {
             if (generateTokensFile) {
                 // Run the tool to regenerate the .tokens file, which will be
@@ -462,14 +463,18 @@ public class ANTLRv4PluginController implements ProjectComponent {
     
     
     private String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
-        String grammarFileName = grammarFile.getPath();
-        PreviewState previewState = getPreviewState(grammarFile);
-        Grammar[] grammars = ParsingUtils.loadGrammars(grammarFile, project);
+        var grammarFileName = grammarFile.getPath();
+        var previewState = getPreviewState(grammarFile);
+        var grammars = ParsingUtils.loadGrammars(grammarFile, project);
+        
         if (grammars != null) {
             synchronized (previewState) { // build atomically
                 previewState.lexerGrammar = (LexerGrammar) grammars[0];
                 previewState.grammar = grammars[1];
             }
+        } else {
+            previewState.lexerGrammar = null;
+            previewState.grammar = null;
         }
         return grammarFileName;
     }
@@ -564,10 +569,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
     
     public @NotNull PreviewState getPreviewState(VirtualFile grammarFile) {
         // make sure only one thread tries to add a preview state object for a given file
-        String grammarFileName = grammarFile.getPath();
+        var grammarFileName = grammarFile.getPath();
         // Have we seen this grammar before?
-        PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
+        var stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
         if (stateForCurrentGrammar != null) {
+            //DEBUG LOG.info("getPreviewState: return state from cache.");
             return stateForCurrentGrammar; // seen this before
         }
         
@@ -616,7 +622,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
     private class MyVirtualFileAdapter extends VirtualFileAdapter {
         @Override
         public void contentsChanged(VirtualFileEvent event) {
-            final VirtualFile vfile = event.getFile();
+            final var vfile = event.getFile();
             if (!vfile.getName().endsWith(".g4")) return;
             if (!projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) grammarFileSavedEvent(vfile);
         }

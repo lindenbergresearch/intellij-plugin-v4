@@ -15,7 +15,7 @@ An ANTLR v4 grammar in `src/main/antlr` is used to generate a lexer/parser.
 delegate parsing/lexing to these generated classes.
 
 Syntax highlighting is also using the generated lexer (by delegation) in
-`org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighter.getHighlightingLexer`.
+`org.antlr.intellij.plugin.highlighter.ANTLRv4SyntaxHighlighter.getHighlightingLexer`.
 
 ## Error checking
 

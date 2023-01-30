@@ -390,7 +390,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * @param delta Delta in px.
      * @return True if exceeds.
      */
-    private boolean exceedsGapBounds(double gap, double delta) {
+    public boolean exceedsGapBounds(double gap, double delta) {
         return gap + delta > MAX_NODES_GAP ||
             gap + delta < MIN_NODES_GAP;
     }

@@ -84,7 +84,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         }
         
         //return max(w, min(viewer.minCellWidth, viewer.getMaximumTextWith()));
-        return max(w, viewer.minCellWidth);
+        return max(w, s.length == 1 ? viewer.minCellWidth / 2.f : viewer.minCellWidth);
     }
     
     

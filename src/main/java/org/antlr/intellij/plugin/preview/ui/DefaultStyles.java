@@ -15,8 +15,8 @@ import java.awt.*;
 public class DefaultStyles {
     /* ----- CONSTANTS ---------------------------------------*/
     // round rectangle diameter
-    public static final int ROUND_RECT_WIDTH = 8;
-    public static final int ROUND_RECT_HEIGHT = 8;
+    public static final int ROUND_RECT_WIDTH = 5;
+    public static final int ROUND_RECT_HEIGHT = 5;
     
     // standard font size
     public static final float BASIC_FONT_SIZE = JBFont.regular().getSize2D();
@@ -124,6 +124,7 @@ public class DefaultStyles {
     
     public final static JBColor JB_COLOR_BRIGHT = new JBColor(new Color(232, 232, 233), new Color(1, 2, 3));
     public final static JBColor JB_COLOR_GRAY = new JBColor(Gray._122, new Color(100, 102, 103));
+    public final static JBColor JB_COLOR_DARK_GRAY = new JBColor(Gray._50, new Color(60, 87, 63));
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
     public final static JBColor JB_COLOR_BLUE = JBColor.BLUE;
     public final static JBColor JB_COLOR_RED = new JBColor(new Color(204, 80, 80), new Color(231, 87, 87));

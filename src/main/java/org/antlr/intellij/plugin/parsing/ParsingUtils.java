@@ -285,11 +285,12 @@ public class ParsingUtils {
      */
     public static Grammar[] loadGrammars(VirtualFile grammarFile, Project project) {
         ANTLRv4PluginController.LOG.info("loadGrammars " + grammarFile.getPath() + " " + project.getName());
-        Tool antlr = createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
-        LoadGrammarsToolListener listener = (LoadGrammarsToolListener) antlr.getListeners().get(0);
+        var antlr = createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
+        var listener = (LoadGrammarsToolListener) antlr.getListeners().get(0);
+    
+        var console = ANTLRv4PluginController.getInstance(project).getConsole();
+        var g = loadGrammar(grammarFile, antlr);
         
-        ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
-        Grammar g = loadGrammar(grammarFile, antlr);
         if (g == null) {
             reportBadGrammar(grammarFile, console);
             return null;

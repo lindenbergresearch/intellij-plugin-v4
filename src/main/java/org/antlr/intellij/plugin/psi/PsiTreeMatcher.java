@@ -51,7 +51,8 @@ public class PsiTreeMatcher<T, R> {
         predicates.add(premise);
     }
     
-    public void addPremise(Function<T, Boolean> ...premise) {
+    @SafeVarargs
+    public final void addPremise(Function<T, Boolean>... premise) {
         Collections.addAll(predicates, premise);
     }
     

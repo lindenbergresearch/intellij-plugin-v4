@@ -1,6 +1,6 @@
 package org.antlr.intellij.plugin.actions;
 
-import com.intellij.icons.AllIcons;
+import com.intellij.icons.AllIcons.Actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -24,7 +24,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
     public void update(AnActionEvent e) {
         var presentation = e.getPresentation();
         presentation.setText("Test ANTLR Rule"); // default text
-        presentation.setIcon(AllIcons.Actions.Execute);
+        presentation.setIcon(Actions.Execute);
         
         var grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
         if (grammarFile == null) { // we clicked somewhere outside text or non grammar file
