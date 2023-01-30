@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin;
+package org.antlr.intellij.plugin.highlighter;
 
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;

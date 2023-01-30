@@ -23,7 +23,7 @@ import static org.antlr.intellij.plugin.psi.MyPsiUtils.isTokenElement;
  *
  * @see org.antlr.intellij.plugin.psi.PsiTreeMatcher
  */
-public class ANTLR_v4SemanticHighlighter implements Annotator {
+public class ANTLRv4SemanticHighlighter implements Annotator {
     /**
      * Static list containing all tree-matchers for validating.
      */
@@ -33,11 +33,20 @@ public class ANTLR_v4SemanticHighlighter implements Annotator {
     /*|--------------------------------------------------------------------------|*/
     
     public static final TextAttributesKey RULE_DECL =
-        createTextAttributesKey("ANTLRv4_RULE_LABEL", DefaultLanguageHighlighterColors.CONSTANT);
+        createTextAttributesKey("ANTLRv4_RULE_DECL", DefaultLanguageHighlighterColors.CLASS_REFERENCE);
     
     public static final TextAttributesKey RULE_LABEL =
         createTextAttributesKey("ANTLRv4_RULE_LABEL", DefaultLanguageHighlighterColors.CONSTANT);
     
+    public static final TextAttributesKey OPTIONS_SPEC =
+        createTextAttributesKey("ANTLRv4_OPTIONS_SPEC", DefaultLanguageHighlighterColors.METADATA);
+    
+    public static final TextAttributesKey TOKENS_SPEC =
+        createTextAttributesKey("ANTLRv4_TOKENS_SPEC", DefaultLanguageHighlighterColors.METADATA);
+    
+    
+    public static final TextAttributesKey LEXER_RULE_DECL =
+        createTextAttributesKey("ANTLRv4_LEXER_RULE_DECL", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
     /*|--------------------------------------------------------------------------|*/
     
     
@@ -50,7 +59,6 @@ public class ANTLR_v4SemanticHighlighter implements Annotator {
             )
         );
         
-        matchers.add(ruleDeclMatcher);
         
         var ruleLabelMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(RULE_LABEL);
         ruleLabelMatcher.addPremise(
@@ -60,7 +68,36 @@ public class ANTLR_v4SemanticHighlighter implements Annotator {
             )
         );
         
+        
+        var optionsSpecMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(OPTIONS_SPEC);
+        optionsSpecMatcher.addPremise(
+            element -> isTokenElement(element, ANTLRv4Lexer.OPTIONS),
+            element -> element.getParent() != null,
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_optionsSpec
+            )
+        );
+        
+        
+        var tokensSpecMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(TOKENS_SPEC);
+        tokensSpecMatcher.addPremise(
+            element -> isTokenElement(element, ANTLRv4Lexer.TOKENS),
+            element -> element.getParent() != null,
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_tokensSpec
+            )
+        );
+    
+        var lexerRuleSpecMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(LEXER_RULE_DECL);
+        lexerRuleSpecMatcher.addPremise(
+            element -> isTokenElement(element, ANTLRv4Lexer.TOKEN_REF),
+            element -> element.getParent() != null,
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_lexerRule
+            )
+        );
+        
+        matchers.add(optionsSpecMatcher);
         matchers.add(ruleLabelMatcher);
+        matchers.add(ruleDeclMatcher);
+        matchers.add(lexerRuleSpecMatcher);
     }
     
     

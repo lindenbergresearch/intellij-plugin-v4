@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin;
+package org.antlr.intellij.plugin.highlighter;
 
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
     
     
     public static final TextAttributesKey RULENAME =
-        createTextAttributesKey("ANTLRv4_RULENAME", DefaultLanguageHighlighterColors.PARAMETER);
+        createTextAttributesKey("ANTLRv4_RULENAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
     
     public static final TextAttributesKey TOKENNAME =
         createTextAttributesKey("ANTLRv4_TOKENNAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD);

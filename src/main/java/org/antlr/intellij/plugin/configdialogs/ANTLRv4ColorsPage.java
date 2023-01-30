@@ -6,7 +6,7 @@ import com.intellij.openapi.options.colors.AttributesDescriptor;
 import com.intellij.openapi.options.colors.ColorDescriptor;
 import com.intellij.openapi.options.colors.ColorSettingsPage;
 import org.antlr.intellij.plugin.ANTLRv4Icons;
-import org.antlr.intellij.plugin.highlighter.ANTLR_v4SemanticHighlighter;
+import org.antlr.intellij.plugin.highlighter.ANTLRv4SemanticHighlighter;
 import org.antlr.intellij.plugin.highlighter.ANTLRv4SyntaxHighlighter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,8 +16,8 @@ import java.util.Map;
 
 public class ANTLRv4ColorsPage implements ColorSettingsPage {
     private static final AttributesDescriptor[] ATTRIBUTES = new AttributesDescriptor[]{
-        new AttributesDescriptor("Lexer rule", ANTLRv4SyntaxHighlighter.TOKENNAME),
-        new AttributesDescriptor("Parser rule", ANTLRv4SyntaxHighlighter.RULENAME),
+        new AttributesDescriptor("Lexer rule reference", ANTLRv4SyntaxHighlighter.TOKENNAME),
+        new AttributesDescriptor("Parser rule reference", ANTLRv4SyntaxHighlighter.RULENAME),
         new AttributesDescriptor("Keyword", ANTLRv4SyntaxHighlighter.KEYWORD),
         new AttributesDescriptor("Special keyword", ANTLRv4SyntaxHighlighter.SPECIAL_KEYWORD),
         new AttributesDescriptor("String", ANTLRv4SyntaxHighlighter.STRING),
@@ -28,8 +28,11 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
         new AttributesDescriptor("Doc comment", ANTLRv4SyntaxHighlighter.DOC_COMMENT),
         
         /* semantic highlighting */
-        new AttributesDescriptor("Rule declaration", ANTLR_v4SemanticHighlighter.RULE_DECL),
-        new AttributesDescriptor("Rule label", ANTLR_v4SemanticHighlighter.RULE_LABEL),
+        new AttributesDescriptor("Lexer rule", ANTLRv4SemanticHighlighter.LEXER_RULE_DECL),
+        new AttributesDescriptor("Parser rule", ANTLRv4SemanticHighlighter.RULE_DECL),
+        new AttributesDescriptor("Rule label", ANTLRv4SemanticHighlighter.RULE_LABEL),
+        new AttributesDescriptor("Options block", ANTLRv4SemanticHighlighter.OPTIONS_SPEC),
+        new AttributesDescriptor("Tokens block", ANTLRv4SemanticHighlighter.TOKENS_SPEC),
         
     };
     
