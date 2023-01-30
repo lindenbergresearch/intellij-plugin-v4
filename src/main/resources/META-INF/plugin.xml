@@ -60,7 +60,7 @@
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
     <!-- requires IntelliJ 2021.2+ due to java 11 issue really but allowing 2019.2 just in case it works for somebody -->
-    <idea-version since-build="221"/>
+    <idea-version since-build="222"/>
 
     <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
          on how to target different products -->
@@ -110,7 +110,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
      <fileType name="ANTLR 4 Grammar" implementationClass="org.antlr.intellij.plugin.ANTLRv4FileType" fieldName="INSTANCE" language="ANTLRv4" extensions="g4"/>
-      <lang.syntaxHighlighterFactory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
+      <lang.syntaxHighlighterFactory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.highlighter.ANTLRv4SyntaxHighlighterFactory"/>
       <lang.commenter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4Commenter"/>
       <indexPatternBuilder implementation="org.antlr.intellij.plugin.psi.ANTLRv4IndexPatternBuilder"/>
       <lang.braceMatcher language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.editor.ANTLRv4BraceMatcher"/>
@@ -122,7 +122,9 @@
       <lang.psiStructureViewFactory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
       <lang.foldingBuilder language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.folding.ANTLRv4FoldingBuilder"/>
       <iconProvider implementation="org.antlr.intellij.plugin.ANTLRv4IconProvider"/>
-
+      <annotator
+              language="ANTLRv4"
+              implementationClass="org.antlr.intellij.plugin.highlighter.ANTLRv4SemanticHighlighter"/>
       <!-- lang.formatter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.formatter.SimpleFormattingModelBuilder"/-->
 
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
