@@ -14,15 +14,13 @@ import java.awt.*;
  */
 public class DefaultStyles {
     /* ----- CONSTANTS ---------------------------------------*/
+    
     // round rectangle diameter
     public static final int ROUND_RECT_WIDTH = 5;
     public static final int ROUND_RECT_HEIGHT = 5;
     
-    // standard font size
-    public static final float BASIC_FONT_SIZE = JBFont.regular().getSize2D();
-    
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 0.85f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.90f;
     
     
     // text layout setup
@@ -31,39 +29,54 @@ public class DefaultStyles {
     public static final VerticalLayout
         VERTICAL_TEXT_LAYOUT = VerticalLayout.MIDDLE;
     
+    
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_TEXT_MARGIN = new StyledElementMargin(5, 5, 5, 5);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(10);
     
     public static final StyledElementMargin
         DEFAULT_MARGIN = new StyledElementMargin(0, 0, 0, 0);
     
     public static final StyledElementMargin
-        BIG_MARGIN = new StyledElementMargin(5, 5, 5, 5);
+        ROOT_NODE_MARGIN = new StyledElementMargin(16);
     
     public static final StyledElementMargin
-        TERMINAL_MARGIN = new StyledElementMargin(5, 5, 5, 5);
+        EOF_NODE_MARGIN = new StyledElementMargin(12);
+    
+    public static final StyledElementMargin
+        RESYNC_NODE_MARGIN = new StyledElementMargin(12);
+    
+    public static final StyledElementMargin
+        TERMINAL_NODE_MARGIN = new StyledElementMargin(10);
     
     
     /* ----- FONT FACES --------------------------------------*/
     
+    public static final Font BaseFont =
+        UIHelper.createTrueType("inter/Inter-SemiBold", new StyledElementMargin());
+    
+    public static final Font BaseFontBold =
+        UIHelper.createTrueType("inter/Inter-Bold", new StyledElementMargin());
+    
+    public static final Font BaseFontItalic =
+        UIHelper.createTrueType("inter/Inter-Bold", new StyledElementMargin());
+    
+    
+    public static final float BASIC_FONT_SIZE =
+        JBFont.regular().getSize2D();
+    
     public static final Font REGULAR_FONT =
-        JBFont.regular();
-//        JBFont.regular().deriveFont(BASIC_FONT_SIZE);
-    //   new Font("Times New Romen", Font.PLAIN, (int) BASIC_FONT_SIZE);
+        BaseFont.deriveFont(BASIC_FONT_SIZE);
     
     public static final Font SMALL_FONT =
-        JBFont.small();
-    
-    public static final Font VERY_SMALL_FONT =
-        JBFont.regular().deriveFont(BASIC_FONT_SIZE - 3);
+        BaseFont.deriveFont(BASIC_FONT_SIZE - 2);
     
     public static final Font BOLD_FONT =
-        REGULAR_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE);
+        BaseFontBold.deriveFont(Font.BOLD, BASIC_FONT_SIZE);
     
     public static final Font ITALIC_FONT =
-        REGULAR_FONT.deriveFont(Font.ITALIC, BASIC_FONT_SIZE);
+        BaseFontItalic.deriveFont(Font.ITALIC, BASIC_FONT_SIZE);
     
     public static final Font MONOSPACE_FONT =
         new Font("Monospaced", Font.PLAIN, (int) BASIC_FONT_SIZE);
@@ -72,7 +85,7 @@ public class DefaultStyles {
         MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE - 2);
     
     public static final Font SMALL_ITALIC_TERMINAL_FONT =
-        MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE - 2);
+        MONOSPACE_FONT.deriveFont(BASIC_FONT_SIZE - 2);
     
     
     /**
@@ -162,7 +175,7 @@ public class DefaultStyles {
     
     public static final Stroke THIN_STROKE =
         new BasicStroke(
-            0.6f,
+            0.75f,
             BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND
         );
