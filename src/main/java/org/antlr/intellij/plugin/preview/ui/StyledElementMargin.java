@@ -48,7 +48,7 @@ public class StyledElementMargin {
     }
     
     
-    public double getHorizonal() {
+    public double getHorizontal() {
         return left + right;
     }
     
@@ -92,6 +92,3 @@ public class StyledElementMargin {
         this.bottom = bottom;
     }
 }
-
-
-
