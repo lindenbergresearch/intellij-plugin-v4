@@ -268,7 +268,7 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
                 getStyleProperties().getMargin().getLeft() +
                 getStyleProperties().getMargin().getRight();
         
-        else return getViewport().getWidth();
+         return getViewport().getWidth();
     }
     
     
