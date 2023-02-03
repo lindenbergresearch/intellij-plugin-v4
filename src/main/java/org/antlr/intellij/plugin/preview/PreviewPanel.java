@@ -390,7 +390,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         final AnAction decNodesGap = new AnAction(
             "Decrease Gap Between Nodes",
             null,
-            CollapseComponent
+            Collapseall
         ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
@@ -408,31 +408,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
-        final AnAction decLevelsGap = new AnAction(
-            "Decrease Gap Between Levels",
-            null,
-            Collapseall
-        ) {
-            @Override
-            public void update(@NotNull AnActionEvent e) {
-                super.update(e);
-                if (treeViewer.exceedsGapBounds(treeViewer.getGapBetweenLevels(), -UberTreeViewer.NODE_GAP_INCREMENT)) {
-                    e.getPresentation().setEnabled(false);
-                }
-            }
-            
-            
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                treeViewer.setRelativeLevelsGap(-UberTreeViewer.NODE_GAP_INCREMENT);
-                treeViewer.setTreeInvalidated(true);
-            }
-        };
-        
         final AnAction incNodesGap = new AnAction(
             "Increase Gap Between Nodes",
             null,
-            ExpandComponent
+            Expandall
         ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
@@ -450,15 +429,15 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
-        final AnAction incLevelsGap = new AnAction(
-            "Increase Gap Between Levels",
+        final AnAction resetNodesGap = new AnAction(
+            "Reset to Default Gap Between Nodes",
             null,
-            Expandall
+            Reset
         ) {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 super.update(e);
-                if (treeViewer.exceedsGapBounds(treeViewer.getGapBetweenLevels(), UberTreeViewer.NODE_GAP_INCREMENT)) {
+                if (treeViewer.getGapBetweenNodes() == UberTreeViewer.DEFAULT_GAP_BETWEEN_NODES) {
                     e.getPresentation().setEnabled(false);
                 }
             }
@@ -466,11 +445,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                treeViewer.setRelativeLevelsGap(UberTreeViewer.NODE_GAP_INCREMENT);
+                treeViewer.setRelativeNodesGap(UberTreeViewer.NODE_GAP_INCREMENT);
                 treeViewer.setTreeInvalidated(true);
             }
         };
-        
         
         
         /* --------------------------------------------------------------------- */
@@ -510,8 +488,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         actionGroup.addAll(
             decNodesGap,
             incNodesGap,
-            decLevelsGap,
-            incLevelsGap
+            resetNodesGap
         );
         
         var toolbar =
