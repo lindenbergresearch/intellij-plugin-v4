@@ -90,7 +90,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
             shape.setEnabled(false);
         
         label.setTextColor((JBColor) shape.getBackground().brighter());
-        //  label.setFont(label.getFont().deriveFont(label.getFont().getSize() - 3.f));
+        label.setFont(label.getFont().deriveFont(label.getFont().getSize() - 3.f));
         footer.setTextColor(label.getTextColor());
     }
     
