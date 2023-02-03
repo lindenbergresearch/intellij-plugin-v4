@@ -53,6 +53,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public final static double MAX_NODES_GAP = 40;
     public final static double MIN_NODES_GAP = 10;
     public final static double NODE_GAP_INCREMENT = 5;
+    public static final int DEFAULT_GAP_BETWEEN_NODES = 20;
     
     
     // auto-scale factor interval
@@ -110,7 +111,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected Font font;
     boolean useCurvedEdges;
     
-    protected double gapBetweenLevels;
     protected double gapBetweenNodes;
     
     
@@ -187,8 +187,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         edgesStrokeWidth = 1.5f;
         
         minCellWidth = 50;
-        gapBetweenLevels = 20;
-        gapBetweenNodes = 20;
+        gapBetweenNodes = DEFAULT_GAP_BETWEEN_NODES;
         
         scale = 1.f;
         autoscaling = true;
@@ -364,16 +363,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     
     /**
-     * Returns the gap between levels (horizontal).
-     *
-     * @return Gap in px.
-     */
-    public double getGapBetweenLevels() {
-        return gapBetweenLevels;
-    }
-    
-    
-    /**
      * Returns the gap between nodes (vertical).
      *
      * @return Gap in px.
@@ -410,15 +399,20 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     
     /**
-     * Set relative size of levels gap.
+     * Set the absolute size of gap between the nodes.
      *
-     * @param delta Delta in px.
+     * @param gapBetweenNodes Absolute gap in px.
      */
-    public void setRelativeLevelsGap(double delta) {
-        gapBetweenLevels =
-            exceedsGapBounds(gapBetweenLevels, delta) ?
-                gapBetweenLevels :
-                gapBetweenLevels + delta;
+    public void setGapBetweenNodes(double gapBetweenNodes) {
+        this.gapBetweenNodes = gapBetweenNodes;
+    }
+    
+    
+    /**
+     * Reset the size of gap between the nodes.
+     */
+    public void resetGapBetweenNodes() {
+        this.gapBetweenNodes = DEFAULT_GAP_BETWEEN_NODES;
     }
     
     
@@ -850,20 +844,15 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             return;
         }
         
-        var verticalGap =
-            isCompactLabels() ?
-                gapBetweenLevels * COMPACT_LABELS_FACTOR_VERTICAL :
-                gapBetweenLevels;
-        
-        var horizontalGap =
+        var nodesGap =
             isCompactLabels() ?
                 gapBetweenNodes * COMPACT_LABELS_FACTOR_HORIZONTAL :
                 gapBetweenNodes;
         
         var configuration =
             new DefaultConfiguration<Tree>(
-                verticalGap,
-                horizontalGap,
+                nodesGap,
+                nodesGap,
                 layoutOrientation,
                 AlignmentInLevel.AwayFromRoot
             );
