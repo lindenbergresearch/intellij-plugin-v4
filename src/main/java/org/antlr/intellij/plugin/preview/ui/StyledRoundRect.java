@@ -63,9 +63,7 @@ public class StyledRoundRect extends StyledShape {
             setForeground(getOutlineColor());
         } else {
             setForeground(
-                JBColor.isBright() ?
-                    (JBColor) getBackground().brighter() :
-                    (JBColor) getBackground().darker()
+                (JBColor) (JBColor.isBright() ? getBackground().brighter() : getBackground().darker())
             );
         }
         
