@@ -339,7 +339,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         double w =
             bounds.getWidth() +
-                DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizonal();
+                DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizontal();
         
         width = max(w, width);
         
@@ -1050,6 +1050,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      */
     public boolean isRootNode(Tree tree) {
         return tree.getParent() == null;
+    }
+    
+    
+    public boolean isTerminalNode(Tree tree) {
+        return tree instanceof TerminalNode && tree.getChildCount() == 0;
     }
     
     
