@@ -1,5 +1,8 @@
 package org.antlr.intellij.plugin.preview.ui;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ui.JBFont;
+
 import java.awt.*;
 import java.awt.geom.Point2D;
 
@@ -7,6 +10,10 @@ import java.awt.geom.Point2D;
  * Utility methods / functions / constants.
  */
 public class UIHelper {
+    
+    public static final Logger LOG =
+        Logger.getInstance("ANTLR UIHelper");
+    
     
     /**
      * Returns the "full" bounds of a given string including the descent.
@@ -75,4 +82,29 @@ public class UIHelper {
         graphics2D.drawString(s, (float) origin.x, (float) origin.y);
     }
     
+    
+    /**
+     * Load font from jar-file.
+     *
+     * @param name  Name of the font to load without '.ttf' suffix, located at: 'resources/fonts'.
+     * @param clazz The class pointing to the jar-file.
+     * @return New font object or default font.
+     */
+    public static Font createTrueType(String name, Object clazz) {
+        var fileName = "/fonts/" + name + ".ttf";
+        var is = clazz.getClass().getResourceAsStream(fileName);
+        
+        if (is != null) {
+            try {
+                return Font.createFont(Font.TRUETYPE_FONT, is);
+            } catch (Exception e) {
+                LOG.warn("Unable to load font from resources: " + fileName);
+                
+                // fallback to regular
+                return JBFont.regular();
+            }
+        }
+        
+        return JBFont.regular();
+    }
 }
