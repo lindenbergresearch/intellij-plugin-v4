@@ -1310,9 +1310,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         if (locationHitsNode(currentMousePos)) {
             Tree tree = getNodeFromLocation(currentMousePos);
             setCursor(SELECT_CURSOR);
-            //setToolTipText(getTreeTextProvider().getText(tree));
+            setToolTipText(getTreeTextProvider().getText(tree));
         } else {
             setCursor(DEFAULT_CURSOR);
+            setToolTipText("");
+            
         }
         repaint();
     }
