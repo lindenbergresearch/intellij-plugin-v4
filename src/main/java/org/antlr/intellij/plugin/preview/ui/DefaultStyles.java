@@ -16,11 +16,11 @@ public class DefaultStyles {
     /* ----- CONSTANTS ---------------------------------------*/
     
     // round rectangle diameter
-    public static final int ROUND_RECT_WIDTH = 5;
-    public static final int ROUND_RECT_HEIGHT = 5;
+    public static final int ROUND_RECT_WIDTH = 7;
+    public static final int ROUND_RECT_HEIGHT = 7;
     
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 0.90f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.833f;
     
     
     // text layout setup
@@ -33,19 +33,19 @@ public class DefaultStyles {
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_TEXT_MARGIN = new StyledElementMargin(10);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(9);
     
     public static final StyledElementMargin
         DEFAULT_MARGIN = new StyledElementMargin(0, 0, 0, 0);
     
     public static final StyledElementMargin
-        ROOT_NODE_MARGIN = new StyledElementMargin(16);
+        ROOT_NODE_MARGIN = new StyledElementMargin(13);
     
     public static final StyledElementMargin
-        EOF_NODE_MARGIN = new StyledElementMargin(12);
+        EOF_NODE_MARGIN = new StyledElementMargin(11);
     
     public static final StyledElementMargin
-        RESYNC_NODE_MARGIN = new StyledElementMargin(12);
+        RESYNC_NODE_MARGIN = new StyledElementMargin(11);
     
     public static final StyledElementMargin
         TERMINAL_NODE_MARGIN = new StyledElementMargin(10);
@@ -54,13 +54,13 @@ public class DefaultStyles {
     /* ----- FONT FACES --------------------------------------*/
     
     public static final Font BaseFont =
-        UIHelper.createTrueType("inter/Inter-SemiBold", new StyledElementMargin());
+        UIHelper.createTrueType("opensans/OpenSans-Bold", new StyledElementMargin());
     
     public static final Font BaseFontBold =
-        UIHelper.createTrueType("inter/Inter-Bold", new StyledElementMargin());
+        UIHelper.createTrueType("opensans/OpenSans-Semibold", new StyledElementMargin());
     
     public static final Font BaseFontItalic =
-        UIHelper.createTrueType("inter/Inter-Bold", new StyledElementMargin());
+        UIHelper.createTrueType("opensans/OpenSans-Semibolditalic", new StyledElementMargin());
     
     
     public static final float BASIC_FONT_SIZE =
