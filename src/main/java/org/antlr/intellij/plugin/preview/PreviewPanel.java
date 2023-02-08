@@ -311,6 +311,24 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
+        
+        ToggleAction toggleParseInfo = new ToggleAction(
+            "Parse Info",
+            "Show common parsing information in tree-viewer.",
+            ShowImportStatements
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.isShowParsingInfo();
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setShowParsingInfo(state);
+            }
+        };
+        
         /* --------------------------------------------------------------------- */
         
         ToggleAction toggleTopLayout = new ToggleAction(
@@ -470,6 +488,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         actionGroup.addSeparator();
         
         actionGroup.addAll(
+            toggleParseInfo,
             toggleCompactLabels,
             toggleObjectExplorer
         );
