@@ -597,7 +597,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private JTabbedPane createParseTreeAndProfileTabbedPanel() {
-        JBSplitter splitter = new JBSplitter();
+        var splitter = new JBSplitter();
         splitter.setShowDividerIcon(true);
         splitter.setDividerWidth(2);
         splitter.setProportion(0.8f);
@@ -612,10 +612,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             );
         
         
-        JBTabbedPane tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
-        //  tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        var tabbedPane = new JBTabbedPane(JBTabbedPane.TOP);
         
-        Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
+        var pair = createParseTreePanel();
         treeViewer = pair.a;
         setupContextMenu(treeViewer);
         
@@ -658,9 +657,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     private Pair<UberTreeViewer, JPanel> createParseTreePanel() {
         // wrap tree and slider in panel
-        JPanel treePanel = new JPanel(new BorderLayout(2, 4));
+        var treePanel = new JPanel(new BorderLayout(2, 4));
         
-        final UberTreeViewer uberTreeViewer =
+        final var uberTreeViewer =
             isTrackpadZoomSupported ?
                 new TrackpadZoomingTreeView(this) :
                 new UberTreeViewer(this);
@@ -685,6 +684,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         scrollPane.setDoubleBuffered(true);
         scrollPane.setWheelScrollingEnabled(true);
         scrollPane.setBorder(BorderFactory.createEtchedBorder());
+        scrollPane.add(uberTreeViewer.getInfoLabel());
         
         treePanel.add(buttonBarGraph.getComponent(), BorderLayout.NORTH);
         treePanel.add(scrollPane, BorderLayout.CENTER);
@@ -962,6 +962,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         if (previewState.parsingResult != null) {
             updateTreeViewer(previewState, previewState.parsingResult);
+            treeViewer.updateParseData(previewState, duration);
             profilerPanel.setProfilerData(previewState, duration);
             inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
             return;
