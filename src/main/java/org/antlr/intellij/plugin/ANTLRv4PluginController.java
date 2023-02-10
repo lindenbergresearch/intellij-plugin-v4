@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -35,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -48,7 +46,6 @@ import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -184,28 +181,29 @@ public class ANTLRv4PluginController implements ProjectComponent {
     
     public void createToolWindows() {
         LOG.info("createToolWindows " + project.getName());
-        ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+        var toolWindowManager = ToolWindowManager.getInstance(project);
         
         previewPanel = new PreviewPanel(project);
         
-        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+        var contentFactory = ContentFactory.SERVICE.getInstance();
         
         toolWindowManager.invokeLater(() -> {
-            Content content = contentFactory.createContent(previewPanel, "", false);
+            var content = contentFactory.createContent(previewPanel, "", false);
             content.setCloseable(false);
             
             previewWindow = toolWindowManager.registerToolWindow(PREVIEW_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
             previewWindow.getContentManager().addContent(content);
             previewWindow.setIcon(ANTLRv4Icons.getToolWindow());
+            previewWindow.show();
         });
         
-        TextConsoleBuilderFactory factory = TextConsoleBuilderFactory.getInstance();
-        TextConsoleBuilder consoleBuilder = factory.createBuilder(project);
+        var factory = TextConsoleBuilderFactory.getInstance();
+        var consoleBuilder = factory.createBuilder(project);
         this.console = consoleBuilder.getConsole();
         
         toolWindowManager.invokeLater(() -> {
-            JComponent consoleComponent = console.getComponent();
-            Content content = contentFactory.createContent(consoleComponent, "", false);
+            var consoleComponent = console.getComponent();
+            var content = contentFactory.createContent(consoleComponent, "", false);
             content.setCloseable(false);
             
             consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
@@ -517,7 +515,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
         final var previewState = getPreviewState(grammarFile);
         
         abortCurrentParsing();
-    
+        
         var start = System.nanoTime();
         
         // Parse text in a background thread to avoid freezing the UI if the grammar is badly written
