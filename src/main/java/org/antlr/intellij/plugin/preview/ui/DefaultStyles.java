@@ -20,7 +20,7 @@ public class DefaultStyles {
     public static final int ROUND_RECT_HEIGHT = 7;
     
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 0.833f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.85f;
     
     
     // text layout setup
@@ -64,7 +64,7 @@ public class DefaultStyles {
     
     
     public static final float BASIC_FONT_SIZE =
-        JBFont.regular().getSize2D();
+        JBFont.regular().getSize2D() + 2;
     
     public static final Font REGULAR_FONT =
         BaseFont.deriveFont(BASIC_FONT_SIZE);
@@ -147,6 +147,8 @@ public class DefaultStyles {
     public final static JBColor JB_COLOR_PINK = new JBColor(new Color(201, 85, 172), new Color(187, 66, 187));
     public final static JBColor JB_COLOR_CYAN = new JBColor(new Color(58, 167, 192), new Color(90, 199, 170));
     public final static JBColor JB_COLOR_BROWN = new JBColor(new Color(245, 176, 106), new Color(203, 85, 42));
+    
+    public final static JBColor JB_COLOR_TRANSPARENT = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
     
     public final static JBColor EDGE_COLOR_DEFAULT = JB_COLOR_GRAY;
     public final static JBColor EDGE_COLOR_SELECTED = JB_COLOR_DARK;
