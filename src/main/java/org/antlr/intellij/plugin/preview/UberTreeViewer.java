@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import org.abego.treelayout.Configuration.AlignmentInLevel;
 import org.abego.treelayout.Configuration.Location;
@@ -15,6 +16,8 @@ import org.antlr.intellij.plugin.preview.ui.treenodes.*;
 import org.antlr.v4.gui.TreeLayoutAdaptor;
 import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.*;
 import org.apache.xmlgraphics.java2d.Dimension2DDouble;
 
@@ -29,6 +32,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import static java.awt.RenderingHints.*;
@@ -82,7 +86,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     /*---- CURSOR -------------------------------------------------------------------------------*/
     public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     public static final Cursor SELECT_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-    public static final Cursor DRAG_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+    public static final Cursor DRAG_CURSOR = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
     
     /*---- COLORS -------------------------------------------------------------------------------*/
     protected JBColor edgesColor;
@@ -101,7 +105,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected boolean autoscaling;
     protected double scale;
     protected double renderTime;
+    protected double createTime;
+    protected double parseTime;
+    protected int objects;
     protected boolean compactLabels;
+    protected boolean showParsingInfo;
     protected boolean treeInvalidated;
     protected Point2D offset;
     protected Dimension viewport;
@@ -119,7 +127,15 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected TreeTextProvider treeTextProvider;
     
     public PreviewPanel previewPanel;
-    Rectangle marginBox;
+    protected Rectangle marginBox;
+    
+    protected JInfoLabel infoLabel;
+    
+    
+    protected VirtualFile grammarFile;
+    protected PreviewState previewState;
+    
+    /*|--------------------------------------------------------------------------|*/
     
     
     /**
@@ -193,6 +209,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         autoscaling = true;
         
         compactLabels = false;
+        showParsingInfo = true;
         
         // add handler for mouse events
         addMouseListener(this);
@@ -204,7 +221,143 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         setAutoscrolls(true);
         
+        //--- setup textual info box ---//
+        infoLabel = new JInfoLabel();
         
+        
+        infoLabel.addLabelElement(
+            "parse_time",
+            new InfoLabelElement<>("Parse time", "%.3fms", 0.0)
+        );
+        
+        infoLabel.addLabelElement(
+            "render_time",
+            new InfoLabelElement<>("Render time", "%.3fms", 0.0)
+        );
+        
+        infoLabel.addLabelElement(
+            "create_time",
+            new InfoLabelElement<>("Tree create time", "%.3fms", 0.0)
+        );
+        
+        infoLabel.addLabelElement(
+            "num_burden",
+            new InfoLabelElement<>("Lookahead burden", "%s")
+        );
+        
+        infoLabel.addLabelElement(
+            "num_ops",
+            new InfoLabelElement<>("DFA cache miss rate", "%s")
+        );
+        
+        infoLabel.addLabelElement(
+            "num_objects",
+            new InfoLabelElement<>("Total nodes", "%d", 0)
+        );
+        
+        infoLabel.addLabelElement(
+            "num_tokens",
+            new InfoLabelElement<>("Tokens", "%d", 0)
+        );
+        
+        infoLabel.addLabelElement(
+            "prediction_time",
+            new InfoLabelElement<>("Prediction time", "%s")
+        );
+        
+        infoLabel.addLabelElement(
+            "num_chars",
+            new InfoLabelElement<>("total chars", "%s")
+        );
+    }
+    
+    
+    /**
+     * Checks if the tree-view is showing some basic parsing info.
+     *
+     * @return True if info is shown.
+     */
+    public boolean isShowParsingInfo() {
+        return showParsingInfo;
+    }
+    
+    
+    /**
+     * Set if the tree-viewer should show common parsing-info.
+     *
+     * @param showParsingInfo Bool flag, if true info is shown.
+     */
+    public void setShowParsingInfo(boolean showParsingInfo) {
+        infoLabel.setVisible(showParsingInfo);
+        this.showParsingInfo = showParsingInfo;
+    }
+    
+    
+    /**
+     * Returns the info-label component.
+     *
+     * @return JInfoLabel
+     */
+    public JInfoLabel getInfoLabel() {
+        return infoLabel;
+    }
+    
+    
+    /**
+     * Updates all data for the parse-info labels in the tree-view.
+     *
+     * @param previewState PreviewState
+     * @param duration     Computed time needed by parser.
+     */
+    public void updateParseData() {
+        if (!showParsingInfo)
+            return;
+        
+        var duration = previewState.parseTime;
+
+//        var controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+//        var previewState = controller.getPreviewState()
+//
+        var parser = previewState.parsingResult.parser;
+        var parseInfo = parser.getParseInfo();
+        var predictionTimeMS = parseInfo.getTotalTimeInPrediction() / 10e6;
+        
+        TokenStream tokens = parser.getInputStream();
+        int numTokens = tokens.size();
+        Token lastToken = tokens.get(numTokens - 1);
+        int numChar = lastToken.getStopIndex();
+        int numLines = lastToken.getLine();
+        
+        if (lastToken.getType() == Token.EOF) {
+            if (numTokens <= 1) {
+                numLines = 0;
+            } else {
+                var secondToLastToken = tokens.get(numTokens - 2);
+                numLines = secondToLastToken.getLine();
+            }
+        }
+        
+        double look =
+            parseInfo.getTotalSLLLookaheadOps() +
+                parseInfo.getTotalLLLookaheadOps();
+        
+        double atnLook = parseInfo.getTotalATNLookaheadOps();
+        var parseTimeMS = duration / 10e6;
+        
+        var stat = String.format(Locale.ENGLISH, "%d char(s), %d line(s)", numChar, numLines);
+        var burden = String.format(Locale.ENGLISH, "%2d/2%d -> %.2f", (long) look, numTokens, look / numTokens);
+        var ops = String.format(Locale.ENGLISH, "%2d/2%d -> %.2f%%", (long) atnLook, (long) look, atnLook * 100.0 / look);
+        var ptime = String.format(Locale.ENGLISH, "%.3fms -> %3.2f%%", predictionTimeMS, 100 * (predictionTimeMS) / parseTimeMS);
+        
+        infoLabel.updateElement("parse_time", parseTimeMS);
+        infoLabel.updateElement("prediction_time", ptime);
+        infoLabel.updateElement("num_burden", burden);
+        infoLabel.updateElement("num_objects", objects);
+        infoLabel.updateElement("num_chars", stat);
+        infoLabel.updateElement("num_ops", ops);
+        infoLabel.updateElement("num_tokens", numTokens);
+        infoLabel.updateElement("render_time", this.renderTime);
+        infoLabel.updateElement("create_time", this.createTime);
     }
     
     
@@ -449,14 +602,17 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         double xRatio =
             canvasBounds.getWidth() /
-                (treeBounds.getWidth() + VIEWER_HORIZONTAL_MARGIN * 2. / scale);
+                (treeBounds.getWidth() + VIEWER_HORIZONTAL_MARGIN * 2.);
         
         double yRatio =
             canvasBounds.getHeight() /
-                (treeBounds.getHeight() + VIEWER_VERTICAL_MARGIN * 2. / scale);
+                (treeBounds.getHeight() + VIEWER_VERTICAL_MARGIN * 2.);
         
         // determine the smallest scale factor
         scale = min(xRatio, yRatio);
+        
+        // quantise
+        //  scale = Math.floor(scale * 100) / 100;
     }
     
     
@@ -581,9 +737,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             updateOffset();         // compute the offset and margin of layout
             updateStyledTreeNodes();// transform the parse-tree to styled-nodes
             updatePreferredSize();  // update the canvas size
-            treeInvalidated = false;// reset flag
         }
-        
         
         // just update scaling and offset on canvas size changes
         if (sizeChanged) {
@@ -604,22 +758,29 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // anti-alias text, default aa
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_DEFAULT);
         
-        
         // set global canvas scale
         g2.scale(scale, scale);
         
+        // update view
         if (marginBox != null) {
             scrollRectToVisible(marginBox);
             marginBox = null;
         }
         
+        // repaint nodes and connectors
         if (root != null && styledRootNode != null) {
             paintEdges(g, getTree().getRoot(), false);
             updateStyledTreeNodes();
             styledRootNode.render(g2);
         }
         
-        renderTime = ((double) System.nanoTime() - time) / 1_000_000.;
+        // Update stats and render-time on tree changed
+        if (treeInvalidated) {
+            renderTime = (double) (System.nanoTime() - time) / 1_000_000.;
+            updateParseData(); // update parsing stats for info text
+            
+            treeInvalidated = false;// reset flag
+        }
     }
     
     
@@ -684,7 +845,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * @see AltLabelTextProvider
      */
     protected String getText(Tree tree) {
-        String s = treeTextProvider.getText(tree);
+        var s = treeTextProvider.getText(tree);
         //  s = Utils.escapeWhitespace(s.trim(), false);
         
         if (isRootNode(tree))
@@ -692,23 +853,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         return s.trim();
     }
-
-
-//    /**
-//     * Returns the dimension of the tree layout
-//     *
-//     * @return Dimension of the rendered tree.
-//     */
-//    private Dimension getScaledTreeSize() {
-//        Dimension scaledTreeSize =
-//            treeLayout.getBounds().getBounds().getSize();
-//
-//        return new Dimension(
-//            (int) Math.round(scaledTreeSize.width * scale),
-//            (int) Math.round(scaledTreeSize.height * scale + VIEWER_HORIZONTAL_MARGIN)
-//        );
-//    }
-//
     
     
     /**
@@ -836,6 +980,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * Compute tree-layout based on root node.
      */
     public void doTreeLayout() {
+        var time = System.nanoTime();
         // reset if no tree instance has been passed
         if (root == null) {
             treeLayout = null;
@@ -863,6 +1008,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             configuration,
             true
         );
+        
+        createTime = (double) (System.nanoTime() - time) / 1_000_000;
     }
     
     
@@ -877,6 +1024,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             return;
         }
         
+        parseTime = previewState.parseTime;
         this.root = root;
         setTreeInvalidated(true);
     }
@@ -942,11 +1090,13 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // root node
         styledRootNode.setViewport(viewport);
         
+        objects = 0;
         // paint the boxes
         for (Tree tree : treeLayout.getNodeBounds().keySet()) {
             styledRootNode.add(
                 treeNodeToStyledElement(tree)
             );
+            objects++;
         }
     }
     

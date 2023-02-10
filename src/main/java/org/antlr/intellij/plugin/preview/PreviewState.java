@@ -41,6 +41,7 @@ public class PreviewState {
     
     public VirtualFile inputFile; // save input file when switching grammars
     public ParsingResult parsingResult;
+    protected double parseTime;
     
     private final PropertiesComponent propertiesComponent;
     

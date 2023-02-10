@@ -514,11 +514,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
         // Wipes out the console and also any error annotations
         previewPanel.inputPanel.clearParseErrors();
         
-        final PreviewState previewState = getPreviewState(grammarFile);
+        final var previewState = getPreviewState(grammarFile);
         
         abortCurrentParsing();
-        
-        long start = System.nanoTime();
+    
+        var start = System.nanoTime();
         
         // Parse text in a background thread to avoid freezing the UI if the grammar is badly written
         // and takes ages to interpret the input.
