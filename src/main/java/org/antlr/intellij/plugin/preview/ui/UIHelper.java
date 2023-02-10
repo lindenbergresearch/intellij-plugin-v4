@@ -32,7 +32,7 @@ public class UIHelper {
         
         bounds.setSize(
             fm.stringWidth(s),                  // width
-            fm.getAscent() /*+ fm.getDescent()*/    // height = ascending plus descending
+            fm.getAscent() + fm.getDescent()    // height = ascending plus descending
         );
         
         return bounds;
