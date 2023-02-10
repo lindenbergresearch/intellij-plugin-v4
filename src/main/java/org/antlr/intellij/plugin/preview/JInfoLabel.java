@@ -6,7 +6,7 @@ import org.antlr.intellij.plugin.preview.ui.UIHelper;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.awt.RenderingHints.*;
@@ -15,8 +15,8 @@ import static java.awt.RenderingHints.*;
  *
  */
 public class JInfoLabel extends JComponent {
-    public static final double LINE_HEIGHT_FACTOR = 1.26;
-    public static final double LABEL_WIDTH_FACTOR = 1.07;
+    public static final double LINE_HEIGHT_FACTOR = 1.32;
+    public static final double LABEL_WIDTH_FACTOR = 1.12;
     
     private double lineHeight = 0;
     
@@ -28,10 +28,10 @@ public class JInfoLabel extends JComponent {
     
     private float fontSize = DefaultStyles.BASIC_FONT_SIZE - 1;
     
-    private JBColor labelColor = DefaultStyles.JB_COLOR_DARK;
-    private JBColor textColor = DefaultStyles.JB_COLOR_GREEN;
+    private JBColor labelColor = DefaultStyles.JB_COLOR_GRAY;
+    private JBColor textColor = DefaultStyles.JB_COLOR_DARK;
     
-    protected final Map<String, InfoLabelElement<?>> content = new HashMap<>();
+    protected final Map<String, InfoLabelElement<?>> content = new LinkedHashMap<>();
     
     
     /*|--------------------------------------------------------------------------|*/
@@ -86,10 +86,10 @@ public class JInfoLabel extends JComponent {
     }
     
     
-    public <T> void  updateElement(String fieldName, T value) {
+    public <T> void updateElement(String fieldName, T value) {
         if (content.containsKey(fieldName)) {
             var e = content.get(fieldName);
-            ((InfoLabelElement<T>)e).setValue(value);
+            ((InfoLabelElement<T>) e).setValue(value);
         }
     }
     
