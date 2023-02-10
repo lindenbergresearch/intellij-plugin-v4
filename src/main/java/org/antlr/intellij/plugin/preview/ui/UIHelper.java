@@ -27,8 +27,8 @@ public class UIHelper {
         
         if (graphics2D == null) return new Dimension(0, 0);
         
-        FontMetrics fm = graphics2D.getFontMetrics(font);
-        Dimension bounds = new Dimension();
+        var fm = graphics2D.getFontMetrics(font);
+        var bounds = new Dimension();
         
         bounds.setSize(
             fm.stringWidth(s),                  // width
