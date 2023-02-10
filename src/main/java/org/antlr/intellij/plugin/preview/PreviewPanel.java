@@ -35,7 +35,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
 import java.util.Collections;
 
 import static com.intellij.icons.AllIcons.Actions.*;
@@ -49,6 +48,17 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
  * each grammar file it gets notified about.
  */
 public class PreviewPanel extends JPanel implements ParsingResultSelectionListener {
+    /**
+     * Readable form of current selected tab
+     */
+    enum SelectedTab {
+        TREEVIEWER,
+        HIRACHIE,
+        PROFILER,
+        TOKENLIST
+    }
+    
+    
     public static final Logger LOG =
         Logger.getInstance("ANTLR PreviewPanel");
     
@@ -71,7 +81,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     private TokenStreamViewer tokenStreamViewer;
     private JPanel leftPanel;
     private ErrorConsolePanel errorConsolePanel;
-    
+    private JTabbedPane tabbedPanel;
     /**
      * Indicates if the preview should be automatically refreshed after grammar changes.
      */
@@ -89,6 +99,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     public PreviewPanel(Project project) {
         this.project = project;
         createGUI();
+    }
+    
+    
+    protected boolean isTabSelected(SelectedTab tab) {
+        return tabbedPanel.getSelectedIndex() == tab.ordinal();
     }
     
     
@@ -129,8 +144,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 var caret = event.getCaret();
                 
                 if (scrollFromSource && caret != null) {
-                    tokenStreamViewer.onInputTextSelected(caret.getOffset());
-                    hierarchyViewer.selectNodeAtOffset(caret.getOffset());
+                    if (isTabSelected(SelectedTab.TOKENLIST))
+                        tokenStreamViewer.onInputTextSelected(caret.getOffset());
+                    
+                    if (isTabSelected(SelectedTab.HIRACHIE))
+                        hierarchyViewer.selectNodeAtOffset(caret.getOffset());
                 }
             }
         });
@@ -142,7 +160,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         // splitPaneLeft.getDivider().setBorder(BorderFactory.createLineBorder(JBColor.background().darker(), 1));
         leftPanel.add(splitPaneLeft);
         
-        JTabbedPane tabbedPanel = createParseTreeAndProfileTabbedPanel();
+        tabbedPanel = createParseTreeAndProfileTabbedPanel();
         tabbedPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         splitPane.setFirstComponent(leftPanel);
         splitPane.setSecondComponent(tabbedPanel);
@@ -785,8 +803,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      */
     private void switchToGrammar(VirtualFile grammarFile) {
         var grammarFileName = grammarFile.getPath();
-        var controller =
-            ANTLRv4PluginController.getInstance(project);
+        var controller = ANTLRv4PluginController.getInstance(project);
         
         //DEBUG LOG.info("switchToGrammar: " + grammarFileName);
         
@@ -796,9 +813,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         var previewState = controller.getPreviewState(grammarFile);
         
+        // update references in tree-viewer
+        treeViewer.grammarFile = grammarFile;
+        treeViewer.previewState = previewState;
+        
         autoSetStartRule(previewState);
         
-        showError("switchToGrammar: " + grammarFileName);
+        //  showError("switchToGrammar: " + grammarFileName);
         
         inputPanel.switchToGrammar(previewState, grammarFile);
         profilerPanel.switchToGrammar(previewState, grammarFile);
@@ -882,18 +903,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            if (result.parser instanceof PreviewParser) {
-                AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.grammar);
+            var provider = new AltLabelTextProvider(result.parser, preview.grammar);
+            
+            if (isTabSelected(SelectedTab.TREEVIEWER)) {
                 treeViewer.setTreeTextProvider(provider);
                 treeViewer.setTree(result.tree);
+            }
+            
+            if (isTabSelected(SelectedTab.HIRACHIE)) {
                 hierarchyViewer.setTreeTextProvider(provider);
                 hierarchyViewer.setTree(result.tree);
+            }
+            
+            if (result.parser instanceof PreviewParser && isTabSelected(SelectedTab.TOKENLIST)) {
                 tokenStreamViewer.setParsingResult(result.parser);
-            } else {
-                treeViewer.setRuleNames(Arrays.asList(preview.grammar.getRuleNames()));
-                treeViewer.setTree(result.tree);
-                hierarchyViewer.setRuleNames(Arrays.asList(preview.grammar.getRuleNames()));
-                hierarchyViewer.setTree(result.tree);
             }
         });
     }
@@ -978,11 +1001,17 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         cancelParserAction.setEnabled(false);
         buttonBar.updateActionsImmediately();
         buttonBarGraph.updateActionsImmediately();
+        previewState.parseTime = duration;
         
         if (previewState.parsingResult != null) {
-            updateTreeViewer(previewState, previewState.parsingResult);
-            treeViewer.updateParseData(previewState, duration);
-            profilerPanel.setProfilerData(previewState, duration);
+            if (isTabSelected(SelectedTab.TREEVIEWER)) {
+                updateTreeViewer(previewState, previewState.parsingResult);
+            }
+            
+            if (isTabSelected(SelectedTab.PROFILER)) {
+                profilerPanel.setProfilerData(previewState, duration);
+            }
+            
             inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
             return;
         }
