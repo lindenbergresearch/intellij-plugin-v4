@@ -11,6 +11,9 @@ public class Utils {
      * @return Encoded hex-string.
      */
     static public String toHexColor(Color color) {
+        if (color == null)
+            return "#000000";
+        
         var strBuilder = new StringBuilder().append('#');
         var val = Long.toHexString((long) color.getRGB() & 0xFFFFFF);
         strBuilder.append("0".repeat((6 - val.length())));
