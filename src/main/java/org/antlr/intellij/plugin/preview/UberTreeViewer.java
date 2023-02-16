@@ -61,8 +61,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     
     // auto-scale factor interval
-    public final static double MAX_AUTO_SCALE_FACTOR = 1.25;
-    public final static double MIN_AUTO_SCALE_FACTOR = 0.3;
+    public final static double MAX_AUTO_SCALE_FACTOR = 1.0;
+    public final static double MIN_AUTO_SCALE_FACTOR = 0.03;
     
     // scaling increment +/- used by zoom action
     public final static double SCALING_INCREMENT = 0.15;
@@ -223,6 +223,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         //--- setup textual info box ---//
         infoLabel = new JInfoLabel();
+        this.infoLabel.setVisible(false);
         
         
         infoLabel.addLabelElement(
@@ -689,6 +690,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             offsetX,
             offsetY
         );
+        
+        //infoLabel.setOffset(new Point(getWidth() - infoLabel.getWidth(), getHeight() - infoLabel.getHeight()));
     }
     
     
@@ -774,9 +777,10 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             styledRootNode.render(g2);
         }
         
+        renderTime = (renderTime + ((double) (System.nanoTime() - time) / 1_000_000.)) / 2.0;
+        
         // Update stats and render-time on tree changed
         if (treeInvalidated) {
-            renderTime = (double) (System.nanoTime() - time) / 1_000_000.;
             updateParseData(); // update parsing stats for info text
             
             treeInvalidated = false;// reset flag
@@ -985,7 +989,9 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         if (root == null) {
             treeLayout = null;
             styledRootNode = null;
+            this.infoLabel.setVisible(false);
             repaint();
+            
             return;
         }
         
@@ -1008,6 +1014,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             configuration,
             true
         );
+        
+        this.infoLabel.setVisible(true);
         
         createTime = (double) (System.nanoTime() - time) / 1_000_000;
     }
