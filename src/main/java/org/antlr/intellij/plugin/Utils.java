@@ -27,6 +27,20 @@ public class Utils {
     
     
     /**
+     * Converts a given Color to a hex string in the format: #RRGGBB
+     *
+     * @param color The color for encoding.
+     * @return Encoded hex-string.
+     */
+    static public String toHexJBColor(JBColor color) {
+        if (color == null)
+            return "#000000;#000000";
+        
+        return toHexColor(color) + ';' + toHexColor(color.getDarkVariant());
+    }
+    
+    
+    /**
      * Converts a given hex string to a standard Color.
      *
      * @param colorHex Hex-string: #RRGGBB
