@@ -17,6 +17,11 @@ public class Tuple2<A, B> {
     }
     
     
+    public boolean isNull() {
+        return a == null || b == null;
+    }
+    
+    
     public A first() {
         return a;
     }
