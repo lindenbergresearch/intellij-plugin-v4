@@ -6,7 +6,7 @@ package org.antlr.intellij.plugin.misc;
  * @param <A> Type for first element.
  * @param <B> Type for second element.
  */
-class Tuple2<A, B> {
+public class Tuple2<A, B> {
     public final A a;
     public final B b;
     
