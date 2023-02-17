@@ -1,6 +1,9 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.ui.JBColor;
+
 import java.awt.*;
+import java.util.regex.Pattern;
 
 public class Utils {
     
@@ -33,6 +36,30 @@ public class Utils {
     public static Color hexToColor(String colorHex) throws NumberFormatException {
         final var replace = colorHex.replace("#", "0x");
         return Color.decode(replace);
+    }
+    
+    
+    /**
+     * Converts a given formatted hex string with 2 colors to a JBColor.
+     *
+     * @param colorHex Hex-string: #RRGGBB;#RRGGBB
+     * @return Decoded color.
+     * @throws NumberFormatException Thrown if malformed format.
+     */
+    public static JBColor hexToJBColor(String colorHex, JBColor defaultColor) throws NumberFormatException {
+        final var regex = "(#[0-9a-fA-F]{6})\\s*;\\s*(#[0-9a-fA-F]{6})";
+        final var pattern = Pattern.compile(regex, Pattern.MULTILINE);
+        final var matcher = pattern.matcher(colorHex);
+        
+        // check if we have 2 color in the correct format
+        if (!matcher.find() || matcher.groupCount() != 2) {
+            return defaultColor;
+        }
+        
+        return new JBColor(
+            hexToColor(matcher.group(0)),
+            hexToColor(matcher.group(1))
+        );
     }
     
     
