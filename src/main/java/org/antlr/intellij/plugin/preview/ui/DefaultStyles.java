@@ -4,6 +4,8 @@ package org.antlr.intellij.plugin.preview.ui;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState.ColorKey;
 import org.antlr.intellij.plugin.preview.ui.StyledText.HorizontalLayout;
 import org.antlr.intellij.plugin.preview.ui.StyledText.VerticalLayout;
 
@@ -224,6 +226,20 @@ public class DefaultStyles {
             REGULAR_FONT
         );
     
+    
+    public static StyleProperties getDefaultNodeStyle() {
+        return new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_BRIGHT,
+            getColorFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            DEFAULT_STROKE,
+            REGULAR_FONT
+        );
+    }
+    
+    /*|------------------------------------------------------|*/
+    
     public static final StyleProperties ERROR_NODE_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
@@ -234,6 +250,20 @@ public class DefaultStyles {
             REGULAR_FONT
         );
     
+    
+    public static StyleProperties getDefaultErrorStyle() {
+        return new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_BRIGHT,
+            getColorFromAppSettings(ColorKey.ERROR_COLOR),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            DEFAULT_STROKE,
+            REGULAR_FONT
+        );
+    }
+    
+    /*|------------------------------------------------------|*/
+    
     public static final StyleProperties ROOT_NODE_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
@@ -243,6 +273,21 @@ public class DefaultStyles {
             DEFAULT_STROKE,
             REGULAR_FONT
         );
+    
+    
+    public static StyleProperties getDefaultRootStyle() {
+        return new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_BRIGHT,
+            getColorFromAppSettings(ColorKey.ROOT_NODE_COLOR),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            DEFAULT_STROKE,
+            REGULAR_FONT
+        );
+    }
+    
+    /*|------------------------------------------------------|*/
+    
     
     public static final StyleProperties EOF_NODE_STYLE =
         new StyleProperties(
@@ -255,6 +300,19 @@ public class DefaultStyles {
         );
     
     
+    public static StyleProperties getEOFRootStyle() {
+        return new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_DARK,
+            getColorFromAppSettings(ColorKey.EOF_NODE_COLOR),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            THIN_STROKE,
+            SMALL_ITALIC_TERMINAL_FONT
+        );
+    }
+    
+    /*|------------------------------------------------------|*/
+    
     public static final StyleProperties TERMINAL_NODE_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
@@ -265,6 +323,20 @@ public class DefaultStyles {
             SMALL_TERMINAL_FONT
         );
     
+    
+    public static StyleProperties getTerminalNodeStyle() {
+        return new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_DARK,
+            getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            THIN_STROKE,
+            SMALL_TERMINAL_FONT
+        );
+    }
+    
+    /*|------------------------------------------------------|*/
+    
     public static final StyleProperties SELECTED_NODE_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
@@ -274,4 +346,64 @@ public class DefaultStyles {
             THICK_STROKE,
             REGULAR_FONT
         );
+    
+    
+    public static StyleProperties getSelectedNodeStyle() {
+        return new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_DARK,
+            (JBColor) getColorFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND).brighter(),
+            JB_COLOR_BRIGHT,
+            THICK_STROKE,
+            REGULAR_FONT
+        );
+    }
+    
+    /* ----- DEFAULT STYLES WITH SAVED VALUES ---------------------------*/
+    
+    
+    /**
+     * Returns the default color by color-key.
+     *
+     * @param colorKey The color key to match.
+     * @return The matching JBColor.
+     */
+    public static JBColor getDefaultColor(ColorKey colorKey) {
+        switch (colorKey) {
+            case VIEWER_BACKGROUND:
+                return getConsoleBackground();
+            case TEXT_COLOR:
+                return DEFAULT_STYLE.textColor;
+            case DEFAULT_NODE_BACKGROUND:
+                return DEFAULT_STYLE.background;
+            case EOF_NODE_COLOR:
+                return EOF_NODE_STYLE.background;
+            case ROOT_NODE_COLOR:
+                return ROOT_NODE_STYLE.background;
+            case TERMINAL_NODE_COLOR:
+                return TERMINAL_NODE_STYLE.background;
+            case ERROR_COLOR:
+            case RESYNC_COLOR:
+                return ERROR_NODE_STYLE.background;
+            case CONNECTOR_COLOR:
+                return EDGE_COLOR_DEFAULT;
+            case CONNECTOR_SELECTED_COLOR:
+                return EDGE_COLOR_SELECTED;
+            
+            default:
+                return JB_COLOR_BRIGHT;
+        }
+    }
+    
+    
+    /**
+     * @param colorKey
+     * @return
+     */
+    public static JBColor getColorFromAppSettings(ColorKey colorKey) {
+        var appSettings = ANTLRv4UISettingsState.getInstance();
+        return appSettings.getColor(colorKey);
+    }
+    
+    
 }
