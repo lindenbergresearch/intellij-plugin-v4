@@ -60,19 +60,19 @@ public class Utils {
      * @return Decoded color.
      * @throws NumberFormatException Thrown if malformed format.
      */
-    public static JBColor hexToJBColor(String colorHex, JBColor defaultColor) throws NumberFormatException {
+    public static JBColor hexToJBColor(String colorHex) throws NumberFormatException {
         final var regex = "(#[0-9a-fA-F]{6})\\s*;\\s*(#[0-9a-fA-F]{6})";
         final var pattern = Pattern.compile(regex, Pattern.MULTILINE);
         final var matcher = pattern.matcher(colorHex);
         
-        // check if we have 2 color in the correct format
-        if (!matcher.find() || matcher.groupCount() != 2) {
-            return defaultColor;
+        // check if we have 2 colors in the correct format
+        if (!matcher.matches() || matcher.groupCount() != 2) {
+            throw new NumberFormatException("No valid dual hex-color string given: '" + colorHex + '\'');
         }
         
         return new JBColor(
-            hexToColor(matcher.group(0)),
-            hexToColor(matcher.group(1))
+            hexToColor(matcher.group(1)),
+            hexToColor(matcher.group(2))
         );
     }
     
@@ -90,9 +90,9 @@ public class Utils {
         if (s.length == 1)
             return s[0];
         
-        String longest = s[0];
+        var longest = s[0];
         
-        for (String str : s) {
+        for (var str : s) {
             if (str.length() > longest.length())
                 longest = str;
         }
