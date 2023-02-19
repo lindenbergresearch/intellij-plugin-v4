@@ -10,15 +10,15 @@ public class TerminalTreeNode extends BasicStyledTreeNode {
     
     
     public TerminalTreeNode(StyledElement parent, Rectangle2D viewport, boolean selected, boolean compact) {
-        super(parent, viewport, DefaultStyles.TERMINAL_NODE_STYLE, selected, compact);
+        super(parent, viewport, DefaultStyles.getTerminalNodeStyle(), selected, compact);
         shiftViewport(0, OFFSET);
         shape.setFilled(false);
         
         if (selected) {
-            shape.setOutlineColor(DefaultStyles.JB_COLOR_BLUE);
+            shape.setOutlineColor(DefaultStyles.getSelectedNodeStyle().getBackground());
             shape.setStroke(DefaultStyles.THICK_STROKE);
         } else {
-            shape.setOutlineColor(DefaultStyles.JB_COLOR_GRAY);
+            shape.setOutlineColor(DefaultStyles.getTerminalNodeStyle().getBackground());
             shape.setStroke(DefaultStyles.THIN_STROKE);
         }
         

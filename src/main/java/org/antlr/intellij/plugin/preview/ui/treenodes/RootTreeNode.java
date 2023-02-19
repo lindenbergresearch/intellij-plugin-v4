@@ -8,6 +8,6 @@ import java.awt.geom.Rectangle2D;
 public class RootTreeNode extends BasicStyledTreeNode {
     
     public RootTreeNode(StyledElement parent, Rectangle2D viewport, boolean selected, boolean compact) {
-        super(parent, viewport, DefaultStyles.ROOT_NODE_STYLE, selected, compact);
+        super(parent, viewport, DefaultStyles.getDefaultRootStyle(), selected, compact);
     }
 }
