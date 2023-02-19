@@ -341,7 +341,7 @@ public class DefaultStyles {
         new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
-            JB_COLOR_DARK,
+            JB_COLOR_GRAY,
             JB_COLOR_DARK,
             DEFAULT_STROKE,
             SMALL_TERMINAL_FONT
