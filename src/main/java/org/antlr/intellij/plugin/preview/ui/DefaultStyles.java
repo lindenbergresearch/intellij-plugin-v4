@@ -264,6 +264,30 @@ public class DefaultStyles {
     
     /*|------------------------------------------------------|*/
     
+    public static final StyleProperties RESYNC_NODE_STYLE =
+        new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_BRIGHT,
+            JB_COLOR_RED,
+            JB_COLOR_BRIGHT,
+            DEFAULT_STROKE,
+            REGULAR_FONT
+        );
+    
+    
+    public static StyleProperties getDefaultResyncStyle() {
+        return new StyleProperties(
+            DEFAULT_MARGIN,
+            JB_COLOR_BRIGHT,
+            getColorFromAppSettings(ColorKey.RESYNC_COLOR),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            DEFAULT_STROKE,
+            REGULAR_FONT
+        );
+    }
+    
+    /*|------------------------------------------------------|*/
+    
     public static final StyleProperties ROOT_NODE_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
@@ -329,7 +353,7 @@ public class DefaultStyles {
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
             getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
-            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
             THIN_STROKE,
             SMALL_TERMINAL_FONT
         );
