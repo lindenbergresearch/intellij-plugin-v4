@@ -353,7 +353,7 @@ public class DefaultStyles {
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
             getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
-            getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
             THIN_STROKE,
             SMALL_TERMINAL_FONT
         );
