@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin;
 
 import com.intellij.ui.JBColor;
+import org.antlr.intellij.plugin.misc.Tuple2;
 
 import java.awt.*;
 import java.util.regex.Pattern;
@@ -27,6 +28,30 @@ public class Utils {
     
     
     /**
+     * Deconstruct JBColor into new {@link Color} instances for bright and dark variant.
+     * This is a bit hacky because if you run the IDE in dark-mode (Darcula) it
+     * always returns the dark version of the color.
+     * So temporary it has to be turned off.
+     *
+     * @param jbColor The {@link JBColor} to deconstruct.
+     * @return Two new instances of {@link Color}
+     */
+    static public Tuple2<Color, Color> deconstructJBColor(JBColor jbColor) {
+        var isDark = !JBColor.isBright();
+        JBColor.setDark(false);
+        
+        var colorTuple = new Tuple2<>(
+            new Color(jbColor.getRGB()),
+            new Color(jbColor.getDarkVariant().getRGB())
+        );
+        
+        JBColor.setDark(isDark);
+        
+        return colorTuple;
+    }
+    
+    
+    /**
      * Converts a given Color to a hex string in the format: #RRGGBB
      *
      * @param color The color for encoding.
@@ -35,8 +60,9 @@ public class Utils {
     static public String toHexJBColor(JBColor color) {
         if (color == null)
             return "#000000;#000000";
-        
-        return toHexColor(color) + ';' + toHexColor(color.getDarkVariant());
+    
+        var colorTuple = deconstructJBColor(color);
+        return toHexColor(colorTuple.first()) + ';' + toHexColor(colorTuple.second());
     }
     
     
