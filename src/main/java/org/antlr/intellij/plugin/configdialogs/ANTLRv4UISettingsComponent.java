@@ -17,34 +17,30 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.antlr.intellij.plugin.Utils.deconstructJBColor;
+
 /**
  * Supports creating and managing a {@link JPanel} for the Settings Dialog.
  */
 public class ANTLRv4UISettingsComponent {
-    
+    // color panels stored by color-key.
     private final Map<ColorKey, Tuple2<ColorPanel, ColorPanel>> colorPanels
         = new LinkedHashMap<>();
     
     
     private JPanel mainPanel;
     
-    public ColorPanel chooseBackground;
-    public ColorPanel chooseTextColor;
-    public ColorPanel chooseConnectorColor;
-    public ColorPanel chooseRootColor;
-    
     private JCheckBox scrollToFirst;
     private JCheckBox scrollToLast;
-    private ANTLRv4UISettingsState appSettings;
+    private final ANTLRv4UISettingsState appSettings;
     
     Insets emptyInsets = new JBInsets(0);
-    Insets cpInsets = JBUI.insetsLeft(18);
+    Insets cpInsets = JBUI.insetsLeft(8);
     
     
     public ANTLRv4UISettingsComponent() {
         appSettings = ANTLRv4UISettingsState.getInstance();
         mainPanel = new JPanel(new BorderLayout());
-        
         
         var commonSettingsPanel = new JPanel();
         commonSettingsPanel.setLayout(new BoxLayout(commonSettingsPanel, BoxLayout.Y_AXIS));
@@ -53,14 +49,14 @@ public class ANTLRv4UISettingsComponent {
         
         scrollToFirst = new JCheckBox("Scroll to first?");
         scrollToLast = new JCheckBox("Scroll to last?");
-        
+        // ...
         
         commonSettingsPanel.add(scrollToFirst);
         commonSettingsPanel.add(scrollToLast);
         
-        
         mainPanel = add(mainPanel, commonSettingsPanel);
         
+        /*|--------------------------------------------------------------------------|*/
         
         var colorsPanel = new JPanel(new GridBagLayout());
         colorsPanel.setBorder(IdeBorderFactory.createTitledBorder("Parse-Tree Color Settings"));
@@ -68,8 +64,44 @@ public class ANTLRv4UISettingsComponent {
         mainPanel = add(mainPanel, colorsPanel);
         
         
-        var constraints = new GridBagConstraints(0, 0, 1, 1, 0, 0, GridBagConstraints.WEST, GridBagConstraints.NONE, emptyInsets, 0, 0);
-        int i = 0;
+        var constraints =
+            new GridBagConstraints(
+                0, 0, 1, 1, 0, 0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.NONE,
+                emptyInsets,
+                0, 0
+            );
+        
+        var i = 1;
+        
+        constraints.gridx = 0;
+        constraints.gridy = i;
+        constraints.weightx = 0.3;
+        constraints.ipady = 30;
+        constraints.insets = emptyInsets;
+        
+        var label = new JLabel("");
+        colorsPanel.add(label, constraints);
+        
+        constraints.gridx = 1;
+        constraints.gridy = i;
+        constraints.weightx = 0.1;
+        constraints.insets = emptyInsets;
+        
+        colorsPanel.add(new JLabel("IntelliJ Light"), constraints);
+        
+        
+        constraints.gridx = 2;
+        constraints.gridwidth = 2;
+        constraints.weightx = 0.2;
+        constraints.insets = emptyInsets;
+        constraints.ipady = 0;
+        
+        colorsPanel.add(new JLabel("IntelliJ Darcula"), constraints);
+        
+        i++;
+        
         addColorPanelComponent(colorsPanel, "Background", constraints, ColorKey.VIEWER_BACKGROUND, i++);
         addColorPanelComponent(colorsPanel, "Foreground", constraints, ColorKey.VIEWER_FOREGROUND, i++);
         addColorPanelComponent(colorsPanel, "Text Color", constraints, ColorKey.TEXT_COLOR, i++);
@@ -85,134 +117,55 @@ public class ANTLRv4UISettingsComponent {
         addColorPanelComponent(colorsPanel, "Connector", constraints, ColorKey.CONNECTOR_COLOR, i++);
         addColorPanelComponent(colorsPanel, "Connector Selected", constraints, ColorKey.CONNECTOR_SELECTED_COLOR, i++);
         
-        /*|--------------------------------------------------------------------------|*/
-//
-//        colorsPanel.add(new JLabel("Parse-Tree-Viewer Background"), constraints);
-//
-//        chooseBackground = new ColorPanel();
-//        chooseBackground.setSelectedColor(appSettings.getColor(ColorKey.VIEWER_BACKGROUND));
-//
-//        constraints.gridx = 1;
-//        constraints.gridy = 0;
-//        constraints.weightx = 1;
-//        constraints.insets = cpInsets;
-//        colorsPanel.add(chooseBackground, constraints);
-//
-//        /*|--------------------------------------------------------------------------|*/
-//
-//        constraints.gridx = 0;
-//        constraints.gridy = 1;
-//        constraints.weightx = 0;
-//        constraints.insets = emptyInsets;
-//        colorsPanel.add(new JLabel("Text and Labels"), constraints);
-//
-//        constraints.gridx = 1;
-//        constraints.gridy = 1;
-//        constraints.weightx = 1;
-//        constraints.insets = cpInsets;
-//
-//        chooseTextColor = new ColorPanel();
-//        chooseTextColor.setSelectedColor(appSettings.getColor(ColorKey.TEXT_COLOR));
-//        colorsPanel.add(chooseTextColor, constraints);
-//
-//        /*|--------------------------------------------------------------------------|*/
-//
-//        constraints.gridx = 0;
-//        constraints.gridy = 2;
-//        constraints.weightx = 0;
-//        constraints.insets = emptyInsets;
-//        colorsPanel.add(new JLabel("Connectors"), constraints);
-//
-//        constraints.gridx = 1;
-//        constraints.gridy = 2;
-//        constraints.weightx = 1;
-//        constraints.insets = cpInsets;
-//
-//        chooseConnectorColor = new ColorPanel();
-//        chooseConnectorColor.setSelectedColor(appSettings.getColor(ColorKey.CONNECTOR_COLOR));
-//        colorsPanel.add(chooseConnectorColor, constraints);
-//
-//        /*|--------------------------------------------------------------------------|*/
-//
-//        constraints.gridx = 0;
-//        constraints.gridy = 3;
-//        constraints.weightx = 0;
-//        constraints.insets = emptyInsets;
-//        colorsPanel.add(new JLabel("Root node"), constraints);
-//
-//        constraints.gridx = 1;
-//        constraints.gridy = 3;
-//        constraints.weightx = 1;
-//        constraints.insets = cpInsets;
-//
-//        chooseRootColor = new ColorPanel();
-//        chooseRootColor.setSelectedColor(appSettings.getColor(ColorKey.ROOT_NODE_COLOR));
-//        colorsPanel.add(chooseRootColor, constraints);
-//
-//        /*|--------------------------------------------------------------------------|*/
-//
-//        var resetButton = new JButton("Reset");
-//
-//        constraints.gridx = 0;
-//        constraints.gridy = 4;
-//        constraints.weightx = 0;
-//        constraints.insets = new JBInsets(0, -2, 0, 0);
-//        colorsPanel.add(resetButton, constraints);
-
-//        var otherPanel = new JPanel();
-//        otherPanel.setLayout(new BoxLayout(otherPanel, BoxLayout.Y_AXIS));
-//        otherPanel.setBorder(IdeBorderFactory.createTitledBorder("Other Settings Just for You"));
-//
-//
-//        otherPanel.add(new JLabel("sdfgsdfgsdfg"));
-//        otherPanel.add(new JLabel("sdfgsdfgsdfg"));
-//        otherPanel.add(new JLabel("sdfgsdfgsdfg"));
-//        otherPanel.add(new JLabel("sdfgsdfgsdfg"));
-//
-//        mainPanel = add(mainPanel, otherPanel);
-    
     }
     
     
     /**
-     * @param target
-     * @param label
-     * @param constraints
-     * @param colorKey
-     * @param row
+     * Adds a row of two {@link ColorPanel} components for a {@link JBColor} including a label.
+     *
+     * @param target      Target {@link JPanel} to be added.
+     * @param label       Text label.
+     * @param constraints Constraints used.
+     * @param colorKey    The corresponding color-key.
+     * @param row         The corresponding row.
      */
     private void addColorPanelComponent(JPanel target, String label, GridBagConstraints constraints, ColorKey colorKey, int row) {
         constraints.gridx = 0;
         constraints.gridy = row;
-        constraints.weightx = 0;
+        constraints.weightx = 0.1;
         constraints.insets = emptyInsets;
         
         target.add(new JLabel(label), constraints);
         
         constraints.gridx = 1;
         constraints.gridy = row;
-        constraints.weightx = 1;
+        constraints.weightx = 0.1;
         constraints.insets = cpInsets;
         
         var color = appSettings.getColor(colorKey);
         
         var panels = getOrCreate(colorKey);
-        panels.a.setSelectedColor(color);
-        panels.b.setSelectedColor(color.getDarkVariant());
         
-        target.add(panels.a, constraints);
+        var colorTuple = deconstructJBColor(color);
+        panels.a.setSelectedColor(colorTuple.first());
+        panels.b.setSelectedColor(colorTuple.second());
+        
+        target.add(panels.first(), constraints);
         
         constraints.gridx = 2;
-        constraints.insets = emptyInsets;
+        constraints.weightx = 0.9;
+        constraints.insets = cpInsets;
         
-        target.add(panels.b, constraints);
+        target.add(panels.second(), constraints);
     }
     
     
     /**
-     * @param panel
-     * @param component
-     * @return
+     * Adds a component to a {@link JPanel} with {@link BorderLayout} and returns a new {@link JPanel}.
+     *
+     * @param panel     The source panel.
+     * @param component The component to add.
+     * @return The new panel including the old panel and component.
      */
     private JPanel add(JPanel panel, JComponent component) {
         var p = new JPanel(new BorderLayout());
@@ -230,7 +183,6 @@ public class ANTLRv4UISettingsComponent {
      * @return The found panels or created.
      */
     private Tuple2<ColorPanel, ColorPanel> getOrCreate(ColorKey colorKey) {
-        System.out.println("getOrCreate(" + colorKey + ')');
         if (colorPanels.containsKey(colorKey))
             return colorPanels.get(colorKey);
         
@@ -246,19 +198,21 @@ public class ANTLRv4UISettingsComponent {
     
     
     /**
-     * @param colorKey
-     * @return
+     * Returns the selected colors for this color-key.
+     *
+     * @param colorKey The corresponding color-key.
+     * @return The color which has been set.
      */
     public JBColor getSelectedColors(ColorKey colorKey) {
-        System.out.println("getSelectedColors(" + colorKey + ')');
         var tuple = colorPanels.get(colorKey);
         
         if (tuple == null || tuple.isNull()) return
             DefaultStyles.getDefaultColor(colorKey);
         
+        
         return new JBColor(
-            Objects.requireNonNull(tuple.a.getSelectedColor()),
-            Objects.requireNonNull(tuple.b.getSelectedColor())
+            Objects.requireNonNull(tuple.first().getSelectedColor()),
+            Objects.requireNonNull(tuple.second().getSelectedColor())
         );
     }
     
@@ -269,7 +223,7 @@ public class ANTLRv4UISettingsComponent {
     
     
     public JComponent getPreferredFocusedComponent() {
-        return chooseBackground;
+        return mainPanel;
     }
     
 }
