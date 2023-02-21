@@ -28,6 +28,35 @@ public class Utils {
     
     
     /**
+     * Compares two given {@link Color} instances and a {@link JBColor} instance.
+     *
+     * @param color1  First color (light theme).
+     * @param color2  Second color (dark theme).
+     * @param jbColor JB Dual color.
+     * @return Returns true if the colors are matching.
+     */
+    static public boolean compareColors(Color color1, Color color2, JBColor jbColor) {
+        var dec = deconstructJBColor(jbColor);
+        return dec.first().equals(color1) && dec.second().equals(color2);
+    }
+    
+    
+    /**
+     * Compares two given {@link Color} instances wraped in a {@link Tuple2} and a {@link JBColor} instance.
+     *
+     * @param colors  {@link Tuple2<Color, Color>} Tuple holding the color instances.
+     * @param jbColor JB Dual color.
+     * @return Returns true if the colors are matching.
+     */
+    static public boolean compareColors(Tuple2<Color, Color> colors, JBColor jbColor) {
+        var dec = deconstructJBColor(jbColor);
+        
+        return dec.first().equals(colors.first()) && dec.second().equals(colors.second());
+        
+    }
+    
+    
+    /**
      * Deconstruct JBColor into new {@link Color} instances for bright and dark variant.
      * This is a bit hacky because if you run the IDE in dark-mode (Darcula) it
      * always returns the dark version of the color.
@@ -60,7 +89,7 @@ public class Utils {
     static public String toHexJBColor(JBColor color) {
         if (color == null)
             return "#000000;#000000";
-    
+        
         var colorTuple = deconstructJBColor(color);
         return toHexColor(colorTuple.first()) + ';' + toHexColor(colorTuple.second());
     }
