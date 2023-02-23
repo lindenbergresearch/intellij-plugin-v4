@@ -2,6 +2,8 @@ package org.antlr.intellij.plugin.preview.ui;
 
 
 import com.intellij.ui.JBColor;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState.ColorKey;
 
 import java.awt.*;
 
@@ -35,6 +37,38 @@ public class StyleProperties implements Cloneable {
         this.textColor = textColor;
         this.stroke = stroke;
         this.font = font;
+    }
+    
+    
+    /**
+     * Sets the background color for this style by getting it
+     * from the app setting.
+     *
+     * @param colorKey The color-key matching the style element.
+     */
+    public void setBackgroundFromColorKey(ColorKey colorKey) {
+        var appSettings = ANTLRv4UISettingsState.getInstance();
+        
+        this.setBackground(
+            new JBColor(appSettings.getColor(colorKey),
+                appSettings.getColor(colorKey))
+        );
+    }
+    
+    
+    /**
+     * Sets the text color for this style by getting it
+     * from the app setting.
+     *
+     * @param colorKey The color-key matching the style element.
+     */
+    public void setTextColorFromColorKey(ColorKey colorKey) {
+        var appSettings = ANTLRv4UISettingsState.getInstance();
+        
+        this.setTextColor(
+            new JBColor(appSettings.getColor(colorKey),
+                appSettings.getColor(colorKey))
+        );
     }
     
     
