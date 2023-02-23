@@ -17,7 +17,7 @@ public abstract class StyledTreeNode extends StyledElement {
     protected StyledShape shape;
     protected Tree node;
     protected String[] lines;
-    protected double spacing = 0.6;
+    protected double spacing = 0.68;
     protected boolean selected = false;
     protected boolean compact = false;
     
