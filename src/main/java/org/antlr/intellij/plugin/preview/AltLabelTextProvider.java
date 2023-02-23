@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class AltLabelTextProvider implements TreeTextProvider {
     // text displayed for EOF node
-    public static final String EOF_LABEL = "<EOF>\nend-of-file";
+    public static final String EOF_LABEL = "<EOF>";
     
     // max length of token label before cut shortened
     public static final int MAX_TOKEN_LENGTH = 6;
