@@ -18,11 +18,11 @@ public class DefaultStyles {
     /* ----- CONSTANTS ---------------------------------------*/
     
     // round rectangle diameter
-    public static final int ROUND_RECT_WIDTH = 7;
-    public static final int ROUND_RECT_HEIGHT = 7;
+    public static final int ROUND_RECT_WIDTH = 3;
+    public static final int ROUND_RECT_HEIGHT = 3;
     
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 0.85f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.8f;
     
     
     // text layout setup
@@ -35,22 +35,22 @@ public class DefaultStyles {
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_TEXT_MARGIN = new StyledElementMargin(9);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(8, 8, 8, 8);
     
     public static final StyledElementMargin
         DEFAULT_MARGIN = new StyledElementMargin(0, 0, 0, 0);
     
     public static final StyledElementMargin
-        ROOT_NODE_MARGIN = new StyledElementMargin(13);
+        ROOT_NODE_MARGIN = new StyledElementMargin(15, 6, 15, 6);
     
     public static final StyledElementMargin
-        EOF_NODE_MARGIN = new StyledElementMargin(11);
+        EOF_NODE_MARGIN = new StyledElementMargin(9);
     
     public static final StyledElementMargin
-        RESYNC_NODE_MARGIN = new StyledElementMargin(11);
+        RESYNC_NODE_MARGIN = new StyledElementMargin(9);
     
     public static final StyledElementMargin
-        TERMINAL_NODE_MARGIN = new StyledElementMargin(10);
+        TERMINAL_NODE_MARGIN = new StyledElementMargin(2, 5, 2, 5);
     
     
     /* ----- FONT FACES --------------------------------------*/
@@ -87,7 +87,7 @@ public class DefaultStyles {
         MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE - 2);
     
     public static final Font SMALL_ITALIC_TERMINAL_FONT =
-        MONOSPACE_FONT.deriveFont(BASIC_FONT_SIZE - 2);
+        MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE);
     
     
     /**
@@ -294,7 +294,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_CYAN,
             JB_COLOR_BRIGHT,
-            DEFAULT_STROKE,
+            THICK_STROKE,
             REGULAR_FONT
         );
     
@@ -305,7 +305,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             getColorFromAppSettings(ColorKey.ROOT_NODE_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
-            DEFAULT_STROKE,
+            THICK_STROKE,
             REGULAR_FONT
         );
     }
@@ -353,7 +353,7 @@ public class DefaultStyles {
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
             getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
-            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            (JBColor) getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR).brighter().brighter().brighter(),
             THIN_STROKE,
             SMALL_TERMINAL_FONT
         );
