@@ -4,16 +4,11 @@ import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
-import org.antlr.v4.tool.ast.AltAST;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Provides formatted text of a given Tree-Node.
@@ -39,6 +34,10 @@ public class AltLabelTextProvider implements TreeTextProvider {
     
     // text used if name, text or symbol is not available
     public static final String NOT_PRESENT_TEXT = "-";
+    
+    // chars wrapping a rule
+    public static final char RULE_WRAPPING_CHAR_R = ']';
+    public static final char RULE_WRAPPING_CHAR_L = '[';
     
     
     // use compact labels
@@ -72,15 +71,15 @@ public class AltLabelTextProvider implements TreeTextProvider {
      */
     public String[] getAltLabels(Rule r) {
         String[] altLabels = null;
-        Map<String, List<Pair<Integer, AltAST>>> altLabelsMap = r.getAltLabels();
+        var altLabelsMap = r.getAltLabels();
         
         if (altLabelsMap != null) {
             altLabels = new String[r.getOriginalNumberOfAlts() + 1];
             
-            for (String altLabel : altLabelsMap.keySet()) {
-                List<Pair<Integer, AltAST>> pairs = altLabelsMap.get(altLabel);
+            for (var altLabel : altLabelsMap.keySet()) {
+                var pairs = altLabelsMap.get(altLabel);
                 
-                for (Pair<Integer, AltAST> pair : pairs) {
+                for (var pair : pairs) {
                     altLabels[pair.a] = altLabel;
                 }
             }
@@ -98,8 +97,8 @@ public class AltLabelTextProvider implements TreeTextProvider {
      */
     public String getRuleLabel(Tree node) {
         if (node instanceof PreviewInterpreterRuleContext) {
-            String[] altLabels = getAltLabels(getRule(node));
-            int outerAltNum = getOuterAltNum(node);
+            var altLabels = getAltLabels(getRule(node));
+            var outerAltNum = getOuterAltNum(node);
             
             if (hasRuleLabel(node)) {
                 return RULE_LABEL_PREFIX + altLabels[outerAltNum];
@@ -118,8 +117,8 @@ public class AltLabelTextProvider implements TreeTextProvider {
      */
     private boolean hasRuleLabel(Tree node) {
         if (node instanceof PreviewInterpreterRuleContext) {
-            String[] altLabels = getAltLabels(getRule(node));
-            int outerAltNum = getOuterAltNum(node);
+            var altLabels = getAltLabels(getRule(node));
+            var outerAltNum = getOuterAltNum(node);
             
             if (altLabels != null) {
                 return
@@ -145,11 +144,11 @@ public class AltLabelTextProvider implements TreeTextProvider {
             return getTokenLabel(node);
         }
         
-        String text = NOT_PRESENT_TEXT;
+        var text = NOT_PRESENT_TEXT;
         if (node instanceof PreviewInterpreterRuleContext) {
-            int originalAltNums = getRule(node).getOriginalNumberOfAlts();
-            int outerAltNum = getOuterAltNum(node);
-            text = '[' + getRule(node).name + ']';
+            var originalAltNums = getRule(node).getOriginalNumberOfAlts();
+            var outerAltNum = getOuterAltNum(node);
+            text = RULE_WRAPPING_CHAR_L + getRule(node).name + RULE_WRAPPING_CHAR_R;
             
             if (hasRuleLabel(node)) {
                 if (compact) text = getRuleLabel(node);
@@ -172,7 +171,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
      * @return Name as string.
      */
     public String getSymbolicTokenName(Token token) {
-        String symName = parser.getVocabulary().getSymbolicName(token.getType());
+        var symName = parser.getVocabulary().getSymbolicName(token.getType());
         return symName == null ? NOT_PRESENT_TEXT : symName;
     }
     
@@ -184,9 +183,9 @@ public class AltLabelTextProvider implements TreeTextProvider {
      * @return Label as string.
      */
     public String getTokenLabel(Tree node) {
-        Token token = ((TerminalNode) node).getSymbol();
-        String text = token.getText();
-        String symName = parser.getVocabulary().getSymbolicName(token.getType());
+        var token = ((TerminalNode) node).getSymbol();
+        var text = token.getText();
+        var symName = parser.getVocabulary().getSymbolicName(token.getType());
         
         // prevent node label getting to long
         if (text.length() > MAX_TOKEN_LENGTH)
@@ -218,8 +217,8 @@ public class AltLabelTextProvider implements TreeTextProvider {
      * @return The Rule.
      */
     public Rule getRule(Tree node) {
-        PreviewInterpreterRuleContext inode =
-            (PreviewInterpreterRuleContext) node;
+        var inode = (PreviewInterpreterRuleContext) node;
+        
         return g.getRule(inode.getRuleIndex());
     }
     
