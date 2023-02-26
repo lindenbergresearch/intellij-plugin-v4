@@ -81,6 +81,21 @@ public class Utils {
     
     
     /**
+     * Compares if two JBColors are identical setup.
+     *
+     * @param a JBColor A.
+     * @param b JBColor B.
+     * @return True if matches.
+     */
+    static boolean compareJBColor(JBColor a, JBColor b) {
+        var colorTupleA = deconstructJBColor(a);
+        var colorTupleB = deconstructJBColor(b);
+        
+        return colorTupleA.equals(colorTupleB);
+    }
+    
+    
+    /**
      * Converts a given Color to a hex string in the format: #RRGGBB
      *
      * @param color The color for encoding.
