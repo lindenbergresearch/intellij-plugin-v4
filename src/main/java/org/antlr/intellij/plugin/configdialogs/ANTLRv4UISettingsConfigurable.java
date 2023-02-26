@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.configdialogs;
 
 
 import com.intellij.openapi.options.Configurable;
+import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState.ColorKey;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nls.Capitalization;
@@ -48,20 +49,23 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
     @Override
     public boolean isModified() {
         var settings = ANTLRv4UISettingsState.getInstance();
-        var modified = true;//!mySettingsComponent.getUserNameText().equals(settings.userId);
-//        modified |= mySettingsComponent.getIdeaUserStatus() != settings.ideaStatus;
-//        modified |= !Objects.equals(mySettingsComponent.getColor(), settings.color);
         
-        return modified;
+        for (var colorKey : ColorKey.VALUES) {
+            var selectedColor = component.getSelectedColors(colorKey);
+            var storedColor = settings.getColor(colorKey);
+            if (!Utils.compareJBColors(selectedColor, storedColor))
+                return true;
+        }
+        
+        return false;
     }
     
     
     @Override
     public void apply() {
-        System.out.println("apply()");
         var settings = ANTLRv4UISettingsState.getInstance();
-    
-        for(var colorKey : ColorKey.VALUES) {
+        
+        for (var colorKey : ColorKey.VALUES) {
             settings.setColor(colorKey, component.getSelectedColors(colorKey));
         }
     }
@@ -70,11 +74,16 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
     @Override
     public void reset() {
         System.out.println("reset()");
-        var settings = ANTLRv4UISettingsState.getInstance();
-//        settings.setColor(ColorKey.VIEWER_BACKGROUND, DefaultStyles.getConsoleBackground());
-//        settings.setColor(ColorKey.TEXT_COLOR, DefaultStyles.JB_COLOR_BRIGHT);
-//        settings.setColor(ColorKey.CONNECTOR_COLOR, DefaultStyles.EDGE_COLOR_DEFAULT);
-//        settings.setColor(ColorKey.ROOT_NODE_COLOR, DefaultStyles.ROOT_NODE_STYLE.getBackground());
+        //        for (var colorKey : ColorKey.VALUES) {
+//            var colors = Utils.deconstructJBColor(
+//                DefaultStyles.getDefaultColor(colorKey)
+//            );
+//
+//            var tuple = component.getColorPanels().get(colorKey);
+//
+//            tuple.first().setSelectedColor(colors.first());
+//            tuple.second().setSelectedColor(colors.second());
+//        }
     }
     
     
