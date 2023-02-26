@@ -57,6 +57,21 @@ public class Utils {
     
     
     /**
+     * Compares if two JBColors are identical setup.
+     *
+     * @param a JBColor A.
+     * @param b JBColor B.
+     * @return True if matches.
+     */
+    static boolean compareJBColors(JBColor a, JBColor b) {
+        var colorTupleA = deconstructJBColor(a);
+        var colorTupleB = deconstructJBColor(b);
+        
+        return colorTupleA.equals(colorTupleB);
+    }
+    
+    
+    /**
      * Deconstruct JBColor into new {@link Color} instances for bright and dark variant.
      * This is a bit hacky because if you run the IDE in dark-mode (Darcula) it
      * always returns the dark version of the color.
@@ -77,21 +92,6 @@ public class Utils {
         JBColor.setDark(isDark);
         
         return colorTuple;
-    }
-    
-    
-    /**
-     * Compares if two JBColors are identical setup.
-     *
-     * @param a JBColor A.
-     * @param b JBColor B.
-     * @return True if matches.
-     */
-    static boolean compareJBColor(JBColor a, JBColor b) {
-        var colorTupleA = deconstructJBColor(a);
-        var colorTupleB = deconstructJBColor(b);
-        
-        return colorTupleA.equals(colorTupleB);
     }
     
     
