@@ -39,8 +39,6 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
     @Nullable
     @Override
     public JComponent createComponent() {
-        System.out.println("createComponent()");
-        
         component = new ANTLRv4UISettingsComponent();
         return component.getPanel();
     }
@@ -73,17 +71,8 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
     
     @Override
     public void reset() {
-        System.out.println("reset()");
-        //        for (var colorKey : ColorKey.VALUES) {
-//            var colors = Utils.deconstructJBColor(
-//                DefaultStyles.getDefaultColor(colorKey)
-//            );
-//
-//            var tuple = component.getColorPanels().get(colorKey);
-//
-//            tuple.first().setSelectedColor(colors.first());
-//            tuple.second().setSelectedColor(colors.second());
-//        }
+        component.reloadolors();
+        component.getPanel().invalidate();
     }
     
     
