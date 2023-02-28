@@ -63,7 +63,7 @@ public class Utils {
      * @param b JBColor B.
      * @return True if matches.
      */
-    static boolean compareJBColors(JBColor a, JBColor b) {
+    public static boolean compareJBColors(JBColor a, JBColor b) {
         var colorTupleA = deconstructJBColor(a);
         var colorTupleB = deconstructJBColor(b);
         
