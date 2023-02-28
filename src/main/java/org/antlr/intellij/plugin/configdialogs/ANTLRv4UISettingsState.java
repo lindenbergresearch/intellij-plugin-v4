@@ -22,9 +22,6 @@ import java.util.Map;
     storages = @Storage(value = "ANTLRSettings.xml")
 )
 public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4UISettingsState> {
-    public static final JBColor DEFAULT_FALLBACK_COLOR = JBColor.BLUE;
-    
-    
     /**
      * Color keys corresponding to each color element.
      */
@@ -53,7 +50,7 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     
     
     /**
-     * Put a  {@link JBColor} color to storage.
+     * Put a {@link JBColor} color to storage.
      *
      * @param colorKey The corresponding color-key.
      * @param color    The color to store.
@@ -83,6 +80,15 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
             return DefaultStyles.getDefaultColor(colorKey);
         }
     }
+    
+    
+    /**
+     * Reset color storage.
+     */
+    public void reset() {
+        colors.clear();
+    }
+    
     
     /*|--------------------------------------------------------------------------|*/
     
