@@ -5,6 +5,8 @@ import com.intellij.ui.JBColor;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+import static org.antlr.intellij.plugin.preview.ui.DefaultStyles.NODE_OUTLINE_COLOR;
+
 /**
  * Round rect shape with styling attributes.
  */
@@ -63,7 +65,7 @@ public class StyledRoundRect extends StyledShape {
             setForeground(getOutlineColor());
         } else {
             setForeground(
-                (JBColor) (JBColor.isBright() ? getBackground().brighter() : getBackground().darker())
+                (JBColor) (JBColor.isBright() ? getBackground().brighter().brighter() : getBackground().darker().darker())
             );
         }
         
@@ -72,28 +74,10 @@ public class StyledRoundRect extends StyledShape {
             graphics2D.fillRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
         }
         
-        graphics2D.setColor(debug() ? getForeground().darker() : getForeground());
+        graphics2D.setColor(isFilled() ? NODE_OUTLINE_COLOR : getForeground().darker());
         graphics2D.drawRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
         
         
-        if (debug()) {
-            graphics2D.setStroke(new BasicStroke(0.77f));
-            graphics2D.setColor(JBColor.YELLOW.brighter());
-            
-            graphics2D.drawLine(
-                0,
-                (int) getCenter().y,
-                (int) getWidth(),
-                (int) getCenter().y
-            );
-            
-            graphics2D.drawLine(
-                (int) getCenter().x,
-                0,
-                (int) getCenter().x,
-                (int) getHeight()
-            );
-        }
     }
     
     /* ----- STANDARD GETTER / SETTER ----------------------------------------------------------------*/
