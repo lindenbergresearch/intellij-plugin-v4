@@ -15,13 +15,13 @@ import org.antlr.v4.tool.Rule;
  */
 public class AltLabelTextProvider implements TreeTextProvider {
     // text displayed for EOF node
-    public static final String EOF_LABEL = "<EOF>";
+    public static final String EOF_LABEL = "E·O·F";
     
     // max length of token label before cut shortened
-    public static final int MAX_TOKEN_LENGTH = 6;
+    public static final int MAX_TOKEN_LENGTH = 10;
     
     // alt label prefix
-    public static final String ALT_LABEL_TEXT = " *";
+    public static final String ALT_LABEL_TEXT = " · ";
     
     // ...
     public static final String SHORTEN_LABEL_TEXT = "\u2026";
@@ -30,14 +30,14 @@ public class AltLabelTextProvider implements TreeTextProvider {
     public static final String NL = System.lineSeparator();
     
     // prefix for rule label
-    public static final char RULE_LABEL_PREFIX = '#';
+    public static final String RULE_LABEL_PREFIX = "#";
     
     // text used if name, text or symbol is not available
     public static final String NOT_PRESENT_TEXT = "-";
     
     // chars wrapping a rule
-    public static final char RULE_WRAPPING_CHAR_R = ']';
-    public static final char RULE_WRAPPING_CHAR_L = '[';
+    public static final String RULE_WRAPPING_TEXT_R = "";
+    public static final String RULE_WRAPPING_TEXT_L = "";
     
     
     // use compact labels
@@ -148,7 +148,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
         if (node instanceof PreviewInterpreterRuleContext) {
             var originalAltNums = getRule(node).getOriginalNumberOfAlts();
             var outerAltNum = getOuterAltNum(node);
-            text = RULE_WRAPPING_CHAR_L + getRule(node).name + RULE_WRAPPING_CHAR_R;
+            text = RULE_WRAPPING_TEXT_L + getRule(node).name + RULE_WRAPPING_TEXT_R;
             
             if (hasRuleLabel(node)) {
                 if (compact) text = getRuleLabel(node);
