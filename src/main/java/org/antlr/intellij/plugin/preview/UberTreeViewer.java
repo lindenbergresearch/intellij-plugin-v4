@@ -896,6 +896,16 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     
     /**
+     * Returns the graphics-context of the viewer as {@link Graphics2D}.
+     *
+     * @return {@link Graphics2D}
+     */
+    public Graphics2D getGraphics2D() {
+        return (Graphics2D) this.getGraphics();
+    }
+    
+    
+    /**
      * Checks if the scaled tree dimension exceeds the visible viewport.
      *
      * @return True if tree-view > scrollbar dimension.
