@@ -560,6 +560,14 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     
     /**
+     * Reset gap between nodes to default value.
+     */
+    public void resetNodesGap() {
+        gapBetweenNodes = DEFAULT_GAP_BETWEEN_NODES;
+    }
+    
+    
+    /**
      * Set the absolute size of gap between the nodes.
      *
      * @param gapBetweenNodes Absolute gap in px.
@@ -1023,7 +1031,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
                 nodesGap,
                 nodesGap,
                 layoutOrientation,
-                AlignmentInLevel.AwayFromRoot
+                AlignmentInLevel.Center
             );
         
         treeLayout = new TreeLayout<>(
