@@ -1,0 +1,152 @@
+package org.antlr.intellij.plugin.preview.ui;
+
+import java.awt.*;
+import java.awt.geom.Dimension2D;
+
+/**
+ *
+ */
+public class DoubleDimension2D extends Dimension2D {
+    public final static DoubleDimension2D ZERO = new DoubleDimension2D(0, 0);
+    
+    /**
+     * Internal
+     */
+    private double width, height;
+    
+    
+    /**
+     * @param width
+     * @param height
+     */
+    public DoubleDimension2D(double width, double height) {
+        this.width = width;
+        this.height = height;
+    }
+    
+    
+    /**
+     * @return
+     */
+    public Dimension toDimension() {
+        return new Dimension(
+            Math.round((float) width),
+            Math.round((float) height)
+        );
+    }
+    
+    
+    /**
+     * @param factor
+     * @return
+     */
+    public DoubleDimension2D scale(double factor) {
+        return new DoubleDimension2D(
+            getWidth() * factor,
+            getHeight() * factor
+        );
+    }
+    
+    
+    /**
+     * @param d1
+     * @param d2
+     * @return
+     */
+    public DoubleDimension2D max(DoubleDimension2D d1, DoubleDimension2D d2) {
+        return new DoubleDimension2D(
+            Math.max(d1.width, d2.width),
+            Math.max(d1.height, d2.height)
+        );
+    }
+    
+    
+    /**
+     * @param d1
+     * @param d2
+     * @return
+     */
+    public DoubleDimension2D max(DoubleDimension2D d1) {
+        return new DoubleDimension2D(
+            Math.max(d1.width, this.width),
+            Math.max(d1.height, this.height)
+        );
+    }
+    
+    
+    /**
+     * @param d1
+     * @param d2
+     * @return
+     */
+    public DoubleDimension2D min(DoubleDimension2D d1, DoubleDimension2D d2) {
+        return new DoubleDimension2D(
+            Math.min(d1.width, d2.width),
+            Math.min(d1.height, d2.height)
+        );
+    }
+    
+    
+    /**
+     * @param d1
+     * @param d2
+     * @return
+     */
+    public DoubleDimension2D min(DoubleDimension2D d1) {
+        return new DoubleDimension2D(
+            Math.min(d1.width, this.width),
+            Math.min(d1.height, this.height)
+        );
+    }
+    
+    
+    /**
+     * @return
+     */
+    public boolean isZero() {
+        return width <= 0 && height <= 0;
+    }
+    
+    
+    /**
+     * @return
+     */
+    public boolean eitherZero() {
+        return width * height <= 0;
+    }
+    
+    
+    /**
+     * @return
+     */
+    @Override
+    public double getWidth() {
+        return width;
+    }
+    
+    
+    /**
+     * @return
+     */
+    @Override
+    public double getHeight() {
+        return height;
+    }
+    
+    
+    /**
+     * @param v
+     * @param v1
+     */
+    @Override
+    public void setSize(double v, double v1) {
+        width = v;
+        height = v1;
+    }
+    
+    
+    @Override
+    public String toString() {
+        return "Dimension2D[" + width + "px, " + height + "px]";
+    }
+}
