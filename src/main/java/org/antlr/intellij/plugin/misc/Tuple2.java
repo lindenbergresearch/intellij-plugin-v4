@@ -17,6 +17,17 @@ public class Tuple2<A, B> {
     }
     
     
+    public Tuple2(Object[] param) {
+        if (param != null && param.length == 2) {
+            a = (A) param[0];
+            b = (B) param[1];
+        } else {
+            a = null;
+            b = null;
+        }
+    }
+    
+    
     public boolean isNull() {
         return a == null || b == null;
     }
