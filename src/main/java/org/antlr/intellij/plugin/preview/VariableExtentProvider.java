@@ -33,8 +33,14 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
      */
     private final UberTreeViewer viewer;
     
-    private DoubleDimension2D fixedBoundsDimension, maxDimension;
-    private ExtentMode extentMode = ExtentMode.PRECISE_BOUNDS;
+    /** dimension holed a setup fixed size */
+    private DoubleDimension2D fixedBoundsDimension = DoubleDimension2D.ZERO;
+    
+    /** dimension holds the max. computed size */
+    private DoubleDimension2D  maxDimension = DoubleDimension2D.ZERO;
+    
+    /** extend provider mode */
+    private ExtentMode extentMode = ExtentMode.MAXIMIZED_BOUNDS;
     
     /*|--------------------------------------------------------------------------|*/
     
@@ -46,8 +52,6 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
      */
     public VariableExtentProvider(UberTreeViewer viewer) {
         this.viewer = viewer;
-        fixedBoundsDimension = DoubleDimension2D.ZERO;
-        maxDimension = DoubleDimension2D.ZERO;
     }
     
     
