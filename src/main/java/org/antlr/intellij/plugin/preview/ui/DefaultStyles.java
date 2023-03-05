@@ -68,7 +68,10 @@ public class DefaultStyles {
     public static final float BASIC_FONT_SIZE =
         JBFont.regular().getSize2D() + 2;
     
-    public static final Font REGULAR_FONT =
+    public static final float BASIC_LABEL_SIZE =
+        BASIC_FONT_SIZE * LABEL_FOOTER_FONT_SCALE;
+    
+    public static final Font BASIC_FONT =
         BaseFont.deriveFont(BASIC_FONT_SIZE);
     
     public static final Font SMALL_FONT =
@@ -80,6 +83,9 @@ public class DefaultStyles {
     public static final Font ITALIC_FONT =
         BaseFontItalic.deriveFont(Font.ITALIC, BASIC_FONT_SIZE);
     
+    public static final Font LABEL_FONT =
+        BaseFont.deriveFont(BASIC_LABEL_SIZE);
+    
     public static final Font MONOSPACE_FONT =
         new Font("Monospaced", Font.PLAIN, (int) BASIC_FONT_SIZE);
     
@@ -87,7 +93,7 @@ public class DefaultStyles {
         MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE - 2);
     
     public static final Font SMALL_ITALIC_TERMINAL_FONT =
-        MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE);
+        MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE - 2);
     
     
     /**
@@ -155,6 +161,8 @@ public class DefaultStyles {
     public final static JBColor EDGE_COLOR_DEFAULT = JB_COLOR_GRAY;
     public final static JBColor EDGE_COLOR_SELECTED = JB_COLOR_DARK;
     
+    public final static JBColor NODE_OUTLINE_COLOR = new JBColor(new Color(255, 255, 255, 120), new Color(0, 0, 0, 120));
+    
     
     /**
      * Default console background color.
@@ -193,7 +201,7 @@ public class DefaultStyles {
     
     public static final Stroke HUGE_STROKE =
         new BasicStroke(
-            3.1f,
+            3.5f,
             BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND
         );
@@ -223,7 +231,7 @@ public class DefaultStyles {
             JB_COLOR_BLUE,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     
     
@@ -234,7 +242,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     }
     
@@ -247,7 +255,7 @@ public class DefaultStyles {
             JB_COLOR_RED,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     
     
@@ -258,7 +266,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.ERROR_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     }
     
@@ -271,7 +279,7 @@ public class DefaultStyles {
             JB_COLOR_RED,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     
     
@@ -282,7 +290,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.RESYNC_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     }
     
@@ -294,8 +302,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_CYAN,
             JB_COLOR_BRIGHT,
-            THICK_STROKE,
-            REGULAR_FONT
+            HUGE_STROKE,
+            BASIC_FONT
         );
     
     
@@ -305,8 +313,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             getColorFromAppSettings(ColorKey.ROOT_NODE_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
-            THICK_STROKE,
-            REGULAR_FONT
+            HUGE_STROKE,
+            BASIC_FONT
         );
     }
     
@@ -368,7 +376,7 @@ public class DefaultStyles {
             (JBColor) JB_COLOR_BLUE.brighter(),
             JB_COLOR_BRIGHT,
             THICK_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     
     
@@ -379,7 +387,7 @@ public class DefaultStyles {
             (JBColor) getColorFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND).brighter(),
             JB_COLOR_BRIGHT,
             THICK_STROKE,
-            REGULAR_FONT
+            BASIC_FONT
         );
     }
     
