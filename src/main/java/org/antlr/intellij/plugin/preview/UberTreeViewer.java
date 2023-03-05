@@ -472,13 +472,13 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * Returns the maximum with in pixels needed by a tree-node, and
      * it's sub-nodes, based on the given root tree-node.
      *
-     * @return Text width in pixel.
+     * @return The maximum dimension found in pixel.
      */
-    public double getMaximumTextWith() {
-        if (treeLayout == null || getTree() == null || getTree().getRoot() == null || extentProvider == null)
-            return 0;
+    public DoubleDimension2D getMaximumTextWith() {
+        if (root == null || extentProvider == null)
+            return DoubleDimension2D.ZERO;
         
-        return getRecursiveMaxTextWidth(getTree().getRoot(), 0);
+        return getRecursiveMaxTextWidth(root, DoubleDimension2D.ZERO);
     }
     
     
@@ -486,30 +486,18 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * Returns the maximum with in pixels needed by a tree-node, and
      * it's sub-nodes, based on the given root tree-node.
      *
-     * @param tree    The tree-node to examine.
-     * @param current The current width.
-     * @return The max width.
+     * @param tree   The tree-node to examine.
+     * @param maxDim The current maximum.
+     * @return The current maximum dimension in pixel.
      */
-    private double getRecursiveMaxTextWidth(Tree tree, double current) {
-        var width = current;
-        
-        var s = getText(tree);
-        var bounds = UIHelper.getFullStringBounds(
-            (Graphics2D) getGraphics(),
-            s,
-            DefaultStyles.getDefaultNodeStyle().getFont()
-        );
-        
-        var w = bounds.getWidth() + DefaultStyles.DEFAULT_TEXT_MARGIN.getHorizontal();
-        
-        width = max(w, width);
+    private DoubleDimension2D getRecursiveMaxTextWidth(Tree tree, DoubleDimension2D maxDim) {
+        var currMaxDim = extentProvider.getNodeDimension(tree).max(maxDim);
         
         for (var i = 0; i < tree.getChildCount(); i++) {
-            var n = getRecursiveMaxTextWidth(tree.getChild(i), width);
-            width = max(n, width);
+            currMaxDim.max(getRecursiveMaxTextWidth(tree.getChild(i), currMaxDim));
         }
         
-        return width;
+        return currMaxDim;
     }
     
     
@@ -848,7 +836,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * @return Bounds as {@code Rectangle2D}.
      */
     protected Rectangle2D.Double getBoundsOfNode(Tree node) {
-        Rectangle2D.Double bounds = treeLayout.getNodeBounds().get(node);
+        var bounds = treeLayout.getNodeBounds().get(node);
         return new Rectangle2D.Double(
             bounds.x + offset.getX(),
             bounds.y + offset.getY(),
