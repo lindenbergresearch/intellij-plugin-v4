@@ -9,7 +9,10 @@ import org.abego.treelayout.TreeForTreeLayout;
 import org.abego.treelayout.TreeLayout;
 import org.abego.treelayout.util.DefaultConfiguration;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState.ColorKey;
-import org.antlr.intellij.plugin.preview.ui.*;
+import org.antlr.intellij.plugin.preview.ui.BasicStyledElement;
+import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
+import org.antlr.intellij.plugin.preview.ui.PathRenderer;
+import org.antlr.intellij.plugin.preview.ui.StyledElement;
 import org.antlr.intellij.plugin.preview.ui.treenodes.*;
 import org.antlr.v4.gui.TreeLayoutAdaptor;
 import org.antlr.v4.gui.TreeTextProvider;
@@ -201,8 +204,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         edgesColor = JBColor.BLACK;
         edgesStrokeWidth = 1.5f;
         
-        minCellWidth = 50;
-        minCellHeight = 30;
+        minCellWidth = 20;
+        minCellHeight = 20;
         gapBetweenNodes = DEFAULT_GAP_BETWEEN_NODES;
         
         scale = 1.f;
@@ -270,6 +273,12 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             "num_chars",
             new InfoLabelElement<>("total chars", "%s")
         );
+        
+        infoLabel.addLabelElement(
+            "max_text_width",
+            new InfoLabelElement<>("max. text width", "%spx")
+        );
+        
     }
     
     
@@ -359,6 +368,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         infoLabel.updateElement("num_tokens", numTokens);
         infoLabel.updateElement("render_time", this.renderTime);
         infoLabel.updateElement("create_time", this.createTime);
+        infoLabel.updateElement("max_text_width", extentProvider.computeMaxDimension().toString());
     }
     
     
@@ -465,39 +475,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             
             paintEdges(g, child, sel);
         }
-    }
-    
-    
-    /**
-     * Returns the maximum with in pixels needed by a tree-node, and
-     * it's sub-nodes, based on the given root tree-node.
-     *
-     * @return The maximum dimension found in pixel.
-     */
-    public DoubleDimension2D getMaximumTextWith() {
-        if (root == null || extentProvider == null)
-            return DoubleDimension2D.ZERO;
-        
-        return getRecursiveMaxTextWidth(root, DoubleDimension2D.ZERO);
-    }
-    
-    
-    /**
-     * Returns the maximum with in pixels needed by a tree-node, and
-     * it's sub-nodes, based on the given root tree-node.
-     *
-     * @param tree   The tree-node to examine.
-     * @param maxDim The current maximum.
-     * @return The current maximum dimension in pixel.
-     */
-    private DoubleDimension2D getRecursiveMaxTextWidth(Tree tree, DoubleDimension2D maxDim) {
-        var currMaxDim = extentProvider.getNodeDimension(tree).max(maxDim);
-        
-        for (var i = 0; i < tree.getChildCount(); i++) {
-            currMaxDim.max(getRecursiveMaxTextWidth(tree.getChild(i), currMaxDim));
-        }
-        
-        return currMaxDim;
     }
     
     
@@ -1045,6 +1022,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             this.root = null;
             return;
         }
+        
+        extentProvider.onUpdateParseTree(root);
         
         parseTime = previewState.parseTime;
         this.root = root;
