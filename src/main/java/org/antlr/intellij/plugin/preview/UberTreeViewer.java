@@ -810,7 +810,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * Returns the bounds of a tree node including the offset vector.
      *
      * @param node The tree node.
-     * @return Bounds as {@code Rectangle2D}.
+     * @return Bounds as {@link Rectangle2D}.
      */
     protected Rectangle2D.Double getBoundsOfNode(Tree node) {
         var bounds = treeLayout.getNodeBounds().get(node);
@@ -818,6 +818,26 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             bounds.x + offset.getX(),
             bounds.y + offset.getY(),
             bounds.width, bounds.height
+        );
+    }
+    
+    
+    /**
+     * Returns the precise bounds which takes care of the precise
+     * node bounds if layout mode is fixed- or maximized dimension.
+     *
+     * @param node The tree node.
+     * @return Bounds as {@link Rectangle2D}.
+     */
+    protected Rectangle2D.Double getPreciseBoundsOfNode(Tree node) {
+        var bounds = treeLayout.getNodeBounds().get(node);
+        var nodeDim = extentProvider.getNodeDimension(node);
+        
+        
+        return new Rectangle2D.Double(
+            bounds.x + offset.getX() + (bounds.getWidth() - nodeDim.getWidth()) / 2,
+            bounds.y + offset.getY() + (bounds.getHeight() - nodeDim.getHeight()) / 2,
+            nodeDim.getWidth(), nodeDim.getHeight()
         );
     }
     
@@ -831,7 +851,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      */
     protected String getText(Tree tree) {
         var s = treeTextProvider.getText(tree);
-        //  s = Utils.escapeWhitespace(s.trim(), false);
         
         if (isRootNode(tree))
             s += "\nstart-rule";
@@ -1109,7 +1128,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
      * @return The corresponding StyledElement.
      */
     public StyledElement treeNodeToStyledElement(Tree tree) {
-        var bounds = getBoundsOfNode(tree);
+        var bounds = getPreciseBoundsOfNode(tree);
         
         StyledTreeNode node =
             new BasicStyledTreeNode(
