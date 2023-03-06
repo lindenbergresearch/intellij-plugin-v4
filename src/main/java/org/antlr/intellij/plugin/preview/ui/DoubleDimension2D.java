@@ -107,6 +107,57 @@ public class DoubleDimension2D extends Dimension2D {
         return width <= 0 && height <= 0;
     }
     
+    /*|--------------------------------------------------------------------------|*/
+    
+    
+    public DoubleDimension2D plus(double other) {
+        return new DoubleDimension2D(width + other, height + other);
+    }
+    
+    
+    public DoubleDimension2D plus(DoubleDimension2D other) {
+        return new DoubleDimension2D(width + other.width, height + other.height);
+    }
+    
+    
+    public DoubleDimension2D minus(double other) {
+        return new DoubleDimension2D(width - other, height - other);
+    }
+    
+    
+    public DoubleDimension2D minus(DoubleDimension2D other) {
+        return new DoubleDimension2D(width - other.width, height - other.height);
+    }
+    
+    
+    public DoubleDimension2D mul(double other) {
+        return new DoubleDimension2D(width * other, height * other);
+    }
+    
+    
+    public DoubleDimension2D mul(DoubleDimension2D other) {
+        return new DoubleDimension2D(width * other.width, height * other.height);
+    }
+    
+    
+    public DoubleDimension2D div(double other) {
+        return new DoubleDimension2D(width / other, height / other);
+    }
+    
+    
+    public DoubleDimension2D div(DoubleDimension2D other) {
+        return new DoubleDimension2D(width / other.width, height / other.height);
+    }
+    
+    
+    public DoubleDimension2D half() {
+        return new DoubleDimension2D(width / 2, height / 2);
+    }
+    
+    
+    
+    /*|--------------------------------------------------------------------------|*/
+    
     
     /**
      * @return
