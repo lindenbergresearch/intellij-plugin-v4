@@ -49,20 +49,37 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     private static final Logger LOG =
         Logger.getInstance("ANTLR UberTreeViewer");
     
+    /*---- ENUMS --------------------------------------------------------------------------------*/
+    
+    
+    /**
+     * Describes the way connectors are drawn between nodes.
+     */
+    enum EdgesPainType {
+        DIRECT_LINE,
+        RECTIFIED_LINE,
+        CUBIC_LINE
+    }
+    
+    
     /*---- CONSTANTS ----------------------------------------------------------------------------*/
     // manual scaling factor interval
     public final static double MAX_SCALE_FACTOR = 2.0;
     public final static double MIN_SCALE_FACTOR = 0.1;
     
-    // range for the gap between nodes
+    // range for the gap between nodes in the tree
     public final static double MAX_NODES_GAP = 60;
     public final static double MIN_NODES_GAP = 5;
     public final static double NODE_GAP_INCREMENT = 5;
-    public static final int DEFAULT_GAP_BETWEEN_NODES = 25;
+    public static final int DEFAULT_GAP_BETWEEN_NODES = 35;
+    public static final int DEFAULT_GAP_BETWEEN_LEVELS = 35;
     
+    // minimum node dimensions
+    public static final int MIN_CELL_WIDTH = 50;
+    public static final int MIN_CELL_HEIGHT = 20;
     
     // auto-scale factor interval
-    public final static double MAX_AUTO_SCALE_FACTOR = 2.0;
+    public final static double MAX_AUTO_SCALE_FACTOR = 1.12;
     public final static double MIN_AUTO_SCALE_FACTOR = 0.01;
     
     // scaling increment +/- used by zoom action
@@ -88,6 +105,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public static final Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     public static final Cursor SELECT_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     public static final Cursor DRAG_CURSOR = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+    
     
     /*---- COLORS -------------------------------------------------------------------------------*/
     protected JBColor edgesColor;
@@ -117,11 +135,13 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     protected Dimension viewport;
     protected Tree selectedTreeNode;
     protected BasicStyledElement styledRootNode;
+    protected EdgesPainType edgesPaintType;
     
     protected Font font;
     boolean useCurvedEdges;
     
     protected double gapBetweenNodes;
+    protected double gapBetweenLevels;
     
     
     protected TreeLayout<Tree> treeLayout;
@@ -136,6 +156,9 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     protected VirtualFile grammarFile;
     protected PreviewState previewState;
+    
+    long renderCount = 0;
+    long renderNCount = 0;
     
     /*|--------------------------------------------------------------------------|*/
     
@@ -200,19 +223,19 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         font = DefaultStyles.BOLD_FONT;
         
         /* edges setup */
-        useCurvedEdges = false;
+        edgesPaintType = EdgesPainType.RECTIFIED_LINE;
         edgesColor = JBColor.BLACK;
         edgesStrokeWidth = 1.5f;
         
-        minCellWidth = 20;
-        minCellHeight = 20;
+        minCellWidth = MIN_CELL_WIDTH;
+        minCellHeight = MIN_CELL_HEIGHT;
         gapBetweenNodes = DEFAULT_GAP_BETWEEN_NODES;
+        gapBetweenLevels = DEFAULT_GAP_BETWEEN_LEVELS;
         
         scale = 1.f;
         autoscaling = true;
         
         compactLabels = false;
-        showParsingInfo = true;
         
         // add handler for mouse events
         addMouseListener(this);
@@ -226,7 +249,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         //--- setup textual info box ---//
         infoLabel = new JInfoLabel();
-        this.infoLabel.setVisible(false);
+        infoLabel.setVisible(false);
         
         
         infoLabel.addLabelElement(
@@ -237,6 +260,17 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         infoLabel.addLabelElement(
             "render_time",
             new InfoLabelElement<>("Render time", "%.3fms", 0.0)
+        );
+        
+        
+        infoLabel.addLabelElement(
+            "render_count",
+            new InfoLabelElement<>("Render Count", "%d", 0)
+        );
+        
+        infoLabel.addLabelElement(
+            "render_ncount",
+            new InfoLabelElement<>("Render NCount", "%d", 0)
         );
         
         infoLabel.addLabelElement(
@@ -279,6 +313,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             new InfoLabelElement<>("max. text width", "%spx")
         );
         
+        setShowParsingInfo(false);
     }
     
     
@@ -367,6 +402,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         infoLabel.updateElement("num_ops", ops);
         infoLabel.updateElement("num_tokens", numTokens);
         infoLabel.updateElement("render_time", this.renderTime);
+        infoLabel.updateElement("render_count", this.renderCount);
+        infoLabel.updateElement("render_ncount", this.renderNCount);
         infoLabel.updateElement("create_time", this.createTime);
         infoLabel.updateElement("max_text_width", extentProvider.computeMaxDimension().toString());
     }
@@ -452,25 +489,30 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             
             g.setColor(sel ? selectedColor : connectorColor);
             
-            if (useCurvedEdges) {
-                CubicCurve2D c = new CubicCurve2D.Double();
-                var ctrly1 = (y1 + y2) / 2;
-                c.setCurve(x1, y1, x1, ctrly1, x2, y1, x2, y2);
-                ((Graphics2D) g).draw(c);
-            } else {
-                var p1 = new Point2D.Double(x1, y1);
-                var p2 = new Point2D.Double(x2, y2);
-                var ly2 = -(y2 - y1) / 2.0; // vertical half-length
-                
-                var halfDelta = new Point2D.Double((x2 - x1) / 2., (y2 - y1) / 2.);
-                var middle = new Point2D.Double(p1.x + halfDelta.x, p1.y + halfDelta.y);
-                var p22 = new Point2D.Double(p1.x, p1.y + halfDelta.y);
-                var p11 = new Point2D.Double(p2.x, p2.y - halfDelta.y);
-                
-                var plr = new PathRenderer(p1, p22, middle, p11, p2);
-                plr.render((Graphics2D) g, true);
-                
-                //g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
+            
+            switch (edgesPaintType) {
+                case DIRECT_LINE:
+                    g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
+                    break;
+                case RECTIFIED_LINE:
+                    var p1 = new Point2D.Double(x1, y1);
+                    var p2 = new Point2D.Double(x2, y2);
+                    var ly2 = -(y2 - y1) / 2.0; // vertical half-length
+                    
+                    var halfDelta = new Point2D.Double((x2 - x1) / 2., (y2 - y1) / 2.);
+                    var middle = new Point2D.Double(p1.x + halfDelta.x, p1.y + halfDelta.y);
+                    var p22 = new Point2D.Double(p1.x, p1.y + halfDelta.y);
+                    var p11 = new Point2D.Double(p2.x, p2.y - halfDelta.y);
+                    
+                    var plr = new PathRenderer(p1, p22, middle, p11, p2);
+                    plr.render((Graphics2D) g, true);
+                    break;
+                case CUBIC_LINE:
+                    CubicCurve2D c = new CubicCurve2D.Double();
+                    var ctrly1 = (y1 + y2) / 2;
+                    
+                    c.setCurve(x1, y1, x1, ctrly1, x2, y1, x2, y2);
+                    ((Graphics2D) g).draw(c);
             }
             
             paintEdges(g, child, sel);
@@ -700,6 +742,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         
         // capture timestamp
         var time = System.nanoTime();
+        renderNCount++;
         
         // detect any canvas size change
         var sizeChanged =
@@ -758,10 +801,11 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             styledRootNode.render(g2);
         }
         
-        renderTime = (renderTime + ((double) (System.nanoTime() - time) / 1_000_000.)) / 2.0;
         
         // Update stats and render-time on tree changed
         if (treeInvalidated) {
+            renderTime = (renderTime + ((double) (System.nanoTime() - time) / 1_000_000.)) / 2.0;
+            renderCount++;
             updateParseData(); // update parsing stats for info text
             
             treeInvalidated = false;// reset flag
@@ -1005,18 +1049,22 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             return;
         }
         
-        var nodesGap =
-            isCompactLabels() ?
-                gapBetweenNodes * COMPACT_LABELS_FACTOR_HORIZONTAL :
-                gapBetweenNodes;
+        // set nodes gap, take care of compact mode
+        var nodesGap = isCompactLabels() ?
+            gapBetweenNodes * COMPACT_LABELS_FACTOR_HORIZONTAL :
+            gapBetweenNodes;
         
-        var configuration =
-            new DefaultConfiguration<Tree>(
-                nodesGap,
-                nodesGap,
-                layoutOrientation,
-                AlignmentInLevel.Center
-            );
+        // set levels gap, take care of compact mode
+        var levelsGap = isCompactLabels() ?
+            gapBetweenLevels * COMPACT_LABELS_FACTOR_HORIZONTAL :
+            gapBetweenLevels;
+        
+        var configuration = new DefaultConfiguration<Tree>(
+            levelsGap,
+            nodesGap,
+            layoutOrientation,
+            AlignmentInLevel.Center
+        );
         
         treeLayout = new TreeLayout<>(
             getTreeLayoutAdaptor(root),
@@ -1024,8 +1072,6 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
             configuration,
             true
         );
-        
-        this.infoLabel.setVisible(true);
         
         createTime = (double) (System.nanoTime() - time) / 1_000_000;
     }
