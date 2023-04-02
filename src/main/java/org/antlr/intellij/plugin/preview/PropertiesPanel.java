@@ -73,6 +73,9 @@ public class PropertiesPanel extends JPanel {
         for (var infoLabelElement : infoLabel.getContent().values()) {
             addProperty(infoLabelElement.getLabel(), infoLabelElement.getDisplayText());
         }
+        
+        invalidate();
+        repaint();
     }
     
     
