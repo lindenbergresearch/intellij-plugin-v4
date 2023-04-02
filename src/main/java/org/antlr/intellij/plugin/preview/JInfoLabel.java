@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
+import org.antlr.intellij.plugin.preview.ui.StyledElementMargin;
 import org.antlr.intellij.plugin.preview.ui.UIHelper;
 
 import javax.swing.*;
@@ -17,19 +18,35 @@ import static java.awt.RenderingHints.*;
 public class JInfoLabel extends JComponent {
     public static final double LINE_HEIGHT_FACTOR = 1.32;
     public static final double LABEL_WIDTH_FACTOR = 1.12;
+    public static final int OUTLINE_STROKE_WIDTH = 1;
+    public static final int BOX_ROUNDNESS = 10;
+    
+    public static final JBColor BACKGROUND_FILL_COLOR =
+        new JBColor(
+            new Color(0.12f, 0.12f, 0.12f, 0.75f),
+            new Color(0.12f, 0.12f, 0.12f, 0.75f)
+        );
+    
+    public static final JBColor BACKGROUND_OUTLINE_COLOR =
+        new JBColor(
+            new Color(0.32f, 0.32f, 0.32f, 0.5f),
+            new Color(0.32f, 0.32f, 0.32f, 0.5f)
+        );
     
     private double lineHeight = 0;
     
     private Dimension labelSize;
     private Dimension textSize;
-    
+    private Dimension infoSize;
+    private final StyledElementMargin margin;
     
     private Point offset = new Point(10, 10);
     
-    private float fontSize = DefaultStyles.BASIC_FONT_SIZE - 1;
+    private float fontSize = DefaultStyles.BASIC_FONT_SIZE - 5;
     
     private JBColor labelColor = DefaultStyles.JB_COLOR_GRAY;
     private JBColor textColor = DefaultStyles.JB_COLOR_DARK;
+    private boolean headless = false;
     
     protected final Map<String, InfoLabelElement<?>> content = new LinkedHashMap<>();
     
@@ -44,6 +61,7 @@ public class JInfoLabel extends JComponent {
         setOpaque(false);
         setBackground(DefaultStyles.JB_COLOR_TRANSPARENT);
         setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(fontSize));
+        margin = DefaultStyles.DEFAULT_TEXT_MARGIN;
     }
     
     /*|--------------------------------------------------------------------------|*/
@@ -73,6 +91,7 @@ public class JInfoLabel extends JComponent {
     
     public void setOffset(Point offset) {
         this.offset = offset;
+        this.setLocation(offset);
     }
     
     
@@ -155,9 +174,9 @@ public class JInfoLabel extends JComponent {
         );
         
         
-        var infoSize = new Dimension(
-            labelSize.width + textSize.width,
-            (int) (lineHeight * content.size())
+        infoSize = new Dimension(
+            labelSize.width + textSize.width + (int) margin.getHorizontal(),
+            (int) (lineHeight * content.size() + margin.getVertical())
         );
         
         
@@ -170,6 +189,10 @@ public class JInfoLabel extends JComponent {
      */
     @Override
     public void paint(Graphics g) {
+        /* don't draw if operating in headless mode */
+        if (headless)
+            return;
+        
         super.paint(g);
         var g2 = (Graphics2D) g;
         
@@ -183,17 +206,21 @@ public class JInfoLabel extends JComponent {
         // anti-alias text, default aa
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_DEFAULT);
         
-        //   g2.setFont(font);
-        
         updateMetrics(g2);
-
-//            g2.setColor(labelColor);
-//            g2.drawRect(0, 0, (int) infoWidth-1, (int) infoHeight-1);
         
-        var yOffset = lineHeight;
+        g2.setStroke(new BasicStroke(OUTLINE_STROKE_WIDTH));
+        
+        g2.setColor(BACKGROUND_FILL_COLOR);
+        g2.fillRoundRect(0, 0, infoSize.width, infoSize.height, BOX_ROUNDNESS, BOX_ROUNDNESS);
+        
+        g2.setColor(BACKGROUND_OUTLINE_COLOR);
+        g2.drawRoundRect(1, 1, infoSize.width - OUTLINE_STROKE_WIDTH - 1, infoSize.height - OUTLINE_STROKE_WIDTH - 1, BOX_ROUNDNESS, BOX_ROUNDNESS);
+        
+        
+        var yOffset = fontSize + margin.getTop();
         for (var infoLabelElement : content.values()) {
             g2.setColor(labelColor);
-            g2.drawString(infoLabelElement.getLabel(), 0, (int) yOffset);
+            g2.drawString(infoLabelElement.getLabel(), (int) margin.getLeft(), (int) yOffset);
             
             g2.setColor(textColor);
             g2.drawString(infoLabelElement.getDisplayText(), labelSize.width, (int) yOffset);
