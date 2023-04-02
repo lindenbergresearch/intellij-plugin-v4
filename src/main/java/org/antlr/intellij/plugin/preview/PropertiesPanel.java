@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
@@ -47,8 +48,8 @@ public class PropertiesPanel extends JPanel {
         
         // AllIcons.Debugger.Watch,
         var caption = new JLabel(
-            "Node Explorer",
-            // AllIcons.Debugger.Watch,
+            "Object Explorer",
+            AllIcons.Debugger.Watch,
             SwingConstants.CENTER
         );
         
@@ -61,7 +62,22 @@ public class PropertiesPanel extends JPanel {
     
     
     /**
-     * Collects information to be shown in object explorer.
+     * Collects common information to be shown in object explorer.
+     *
+     * @param infoLabel {@link JInfoLabel} instance from viewer
+     *                  holding the current common parsing data.
+     */
+    public void setInfoLabel(JInfoLabel infoLabel) {
+        clear(); // cleanup properties panel
+        
+        for (var infoLabelElement : infoLabel.getContent().values()) {
+            addProperty(infoLabelElement.getLabel(), infoLabelElement.getDisplayText());
+        }
+    }
+    
+    
+    /**
+     * Collects information to be shown in object explorer relating selected tree-nodes.
      *
      * @param tree                 The parse-tree node to examine.
      * @param altLabelTextProvider The current used Text-provider.
@@ -147,7 +163,7 @@ public class PropertiesPanel extends JPanel {
             addProperty("rule-name", '[' + ruleName + ']');
             addProperty("parent-rule", '[' + parent + ']');
             addProperty("label", label);
-            addProperty("text", '\u00AB' + text + '\u00BB');
+            addProperty("text", '"' + text + '"');
             addProperty("length", length);
             addProperty("child-count", childNum);
             addProperty("alternatives", altNum);
@@ -176,8 +192,6 @@ public class PropertiesPanel extends JPanel {
                 addProperty("stop-token", "-");
             }
         }
-        
-        
     }
     
     
