@@ -18,11 +18,11 @@ public class DefaultStyles {
     /* ----- CONSTANTS ---------------------------------------*/
     
     // round rectangle diameter
-    public static final int ROUND_RECT_WIDTH = 3;
-    public static final int ROUND_RECT_HEIGHT = 3;
+    public static final int ROUND_RECT_WIDTH = 7;
+    public static final int ROUND_RECT_HEIGHT = 7;
     
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 0.8f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 2.8f;
     
     
     // text layout setup
@@ -35,41 +35,50 @@ public class DefaultStyles {
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_TEXT_MARGIN = new StyledElementMargin(8, 8, 8, 8);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(0);
     
     public static final StyledElementMargin
-        DEFAULT_MARGIN = new StyledElementMargin(0, 0, 0, 0);
+        DEFAULT_MARGIN = new StyledElementMargin(0);
     
     public static final StyledElementMargin
-        ROOT_NODE_MARGIN = new StyledElementMargin(15, 6, 15, 6);
+        ROOT_NODE_MARGIN = new StyledElementMargin(19, 6, 19, 6);
     
     public static final StyledElementMargin
-        EOF_NODE_MARGIN = new StyledElementMargin(9);
+        EOF_NODE_MARGIN = new StyledElementMargin(0);
     
     public static final StyledElementMargin
-        RESYNC_NODE_MARGIN = new StyledElementMargin(9);
+        RESYNC_NODE_MARGIN = new StyledElementMargin(0);
     
     public static final StyledElementMargin
-        TERMINAL_NODE_MARGIN = new StyledElementMargin(2, 5, 2, 5);
+        TERMINAL_NODE_MARGIN = new StyledElementMargin(0);
     
     
     /* ----- FONT FACES --------------------------------------*/
     
     public static final Font BaseFont =
-        UIHelper.createTrueType("opensans/OpenSans-Bold", new StyledElementMargin());
+        UIHelper.createTrueType("inter/Inter-Medium", new StyledElementMargin());
     
     public static final Font BaseFontBold =
-        UIHelper.createTrueType("opensans/OpenSans-Semibold", new StyledElementMargin());
+        UIHelper.createTrueType("inter/Inter-Bold", new StyledElementMargin());
     
     public static final Font BaseFontItalic =
-        UIHelper.createTrueType("opensans/OpenSans-Semibolditalic", new StyledElementMargin());
+        UIHelper.createTrueType("inter/Inter-Italic", new StyledElementMargin());
     
+    // --- common font-sizes
     
     public static final float BASIC_FONT_SIZE =
         JBFont.regular().getSize2D() + 2;
     
-    public static final float BASIC_LABEL_SIZE =
+    public static final float BASIC_LABEL_FONT_SIZE =
         BASIC_FONT_SIZE * LABEL_FOOTER_FONT_SCALE;
+    
+    public static final float BASIC_TERMINAL_FONT_SIZE =
+        BASIC_FONT_SIZE - 2;
+    
+    public static final float BASIC_TERMINAL_LABEL_FONT_SIZE =
+        BASIC_TERMINAL_FONT_SIZE * LABEL_FOOTER_FONT_SCALE;
+    
+    // --- fonts
     
     public static final Font BASIC_FONT =
         BaseFont.deriveFont(BASIC_FONT_SIZE);
@@ -84,13 +93,16 @@ public class DefaultStyles {
         BaseFontItalic.deriveFont(Font.ITALIC, BASIC_FONT_SIZE);
     
     public static final Font LABEL_FONT =
-        BaseFont.deriveFont(BASIC_LABEL_SIZE);
+        BaseFont.deriveFont(BASIC_LABEL_FONT_SIZE);
     
     public static final Font MONOSPACE_FONT =
         new Font("Monospaced", Font.PLAIN, (int) BASIC_FONT_SIZE);
     
-    public static final Font SMALL_TERMINAL_FONT =
-        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_FONT_SIZE - 2);
+    public static final Font TERMINAL_FONT =
+        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_TERMINAL_FONT_SIZE);
+    
+    public static final Font TERMINAL_LABEL_FONT =
+        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_TERMINAL_LABEL_FONT_SIZE);
     
     public static final Font SMALL_ITALIC_TERMINAL_FONT =
         MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE - 2);
@@ -137,7 +149,7 @@ public class DefaultStyles {
      * @return Derived font scaled by factor.
      */
     public static Font getScaledFont(Font font, float factor) {
-        float size = ((float) font.getSize()) * factor;
+        var size = ((float) font.getSize()) * factor;
         return font.deriveFont(size);
     }
     
@@ -187,7 +199,7 @@ public class DefaultStyles {
     
     public static final Stroke THIN_STROKE =
         new BasicStroke(
-            0.75f,
+            0.85f,
             BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND
         );
@@ -328,7 +340,7 @@ public class DefaultStyles {
             JB_COLOR_BROWN,
             JB_COLOR_BRIGHT,
             THIN_STROKE,
-            SMALL_ITALIC_TERMINAL_FONT
+            TERMINAL_FONT
         );
     
     
@@ -339,7 +351,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.EOF_NODE_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             THIN_STROKE,
-            SMALL_ITALIC_TERMINAL_FONT
+            TERMINAL_FONT
         );
     }
     
@@ -352,7 +364,7 @@ public class DefaultStyles {
             JB_COLOR_GRAY,
             JB_COLOR_DARK,
             DEFAULT_STROKE,
-            SMALL_TERMINAL_FONT
+            TERMINAL_FONT
         );
     
     
@@ -363,7 +375,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
             (JBColor) getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR).brighter().brighter().brighter(),
             THIN_STROKE,
-            SMALL_TERMINAL_FONT
+            TERMINAL_FONT
         );
     }
     
@@ -436,6 +448,4 @@ public class DefaultStyles {
         var appSettings = ANTLRv4UISettingsState.getInstance();
         return appSettings.getColor(colorKey);
     }
-    
-    
 }
