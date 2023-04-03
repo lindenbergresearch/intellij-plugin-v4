@@ -10,7 +10,7 @@ public class DoubleDimension2D extends Dimension2D {
     public final static DoubleDimension2D ZERO = new DoubleDimension2D(0, 0);
     
     /**
-     * Internal
+     * Internal vars.
      */
     private double width, height;
     
@@ -53,7 +53,7 @@ public class DoubleDimension2D extends Dimension2D {
      * @param d2
      * @return
      */
-    public DoubleDimension2D max(DoubleDimension2D d1, DoubleDimension2D d2) {
+    public static DoubleDimension2D max(DoubleDimension2D d1, DoubleDimension2D d2) {
         return new DoubleDimension2D(
             Math.max(d1.width, d2.width),
             Math.max(d1.height, d2.height)
@@ -66,11 +66,9 @@ public class DoubleDimension2D extends Dimension2D {
      * @param d2
      * @return
      */
-    public DoubleDimension2D max(DoubleDimension2D d1) {
-        return new DoubleDimension2D(
-            Math.max(d1.width, this.width),
-            Math.max(d1.height, this.height)
-        );
+    public void max(DoubleDimension2D d1) {
+        width = Math.max(d1.width, this.width);
+        height = Math.max(d1.height, this.height);
     }
     
     
@@ -79,7 +77,7 @@ public class DoubleDimension2D extends Dimension2D {
      * @param d2
      * @return
      */
-    public DoubleDimension2D min(DoubleDimension2D d1, DoubleDimension2D d2) {
+    public static DoubleDimension2D min(DoubleDimension2D d1, DoubleDimension2D d2) {
         return new DoubleDimension2D(
             Math.min(d1.width, d2.width),
             Math.min(d1.height, d2.height)
@@ -92,11 +90,9 @@ public class DoubleDimension2D extends Dimension2D {
      * @param d2
      * @return
      */
-    public DoubleDimension2D min(DoubleDimension2D d1) {
-        return new DoubleDimension2D(
-            Math.min(d1.width, this.width),
-            Math.min(d1.height, this.height)
-        );
+    public void min(DoubleDimension2D d1) {
+        width = Math.min(d1.width, this.width);
+        height = Math.min(d1.height, this.height);
     }
     
     
@@ -155,40 +151,26 @@ public class DoubleDimension2D extends Dimension2D {
     }
     
     
-    
     /*|--------------------------------------------------------------------------|*/
     
     
-    /**
-     * @return
-     */
     public boolean eitherZero() {
         return width * height <= 0;
     }
     
     
-    /**
-     * @return
-     */
     @Override
     public double getWidth() {
         return width;
     }
     
     
-    /**
-     * @return
-     */
     @Override
     public double getHeight() {
         return height;
     }
     
     
-    /**
-     * @param v
-     * @param v1
-     */
     @Override
     public void setSize(double v, double v1) {
         width = v;
@@ -198,6 +180,6 @@ public class DoubleDimension2D extends Dimension2D {
     
     @Override
     public String toString() {
-        return "Dimension2D[" + width + "px, " + height + "px]";
+        return "[" + width + "px, " + height + "px]";
     }
 }
