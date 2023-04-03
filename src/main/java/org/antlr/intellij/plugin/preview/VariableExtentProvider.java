@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.preview;
 import org.abego.treelayout.NodeExtentProvider;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.antlr.intellij.plugin.preview.ui.DoubleDimension2D;
+import org.antlr.intellij.plugin.preview.ui.StyledElementMargin;
 import org.antlr.intellij.plugin.preview.ui.UIHelper;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.Tree;
@@ -33,13 +34,19 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
      */
     private final UberTreeViewer viewer;
     
-    /** dimension holed a setup fixed size */
+    /**
+     * dimension holed a setup fixed size
+     */
     private DoubleDimension2D fixedBoundsDimension = DoubleDimension2D.ZERO;
     
-    /** dimension holds the max. computed size */
-    private DoubleDimension2D  maxDimension = DoubleDimension2D.ZERO;
+    /**
+     * dimension holds the max. computed size
+     */
+    private DoubleDimension2D maxDimension = DoubleDimension2D.ZERO;
     
-    /** extend provider mode */
+    /**
+     * extend provider mode
+     */
     private ExtentMode extentMode = ExtentMode.MAXIMIZED_BOUNDS;
     
     /*|--------------------------------------------------------------------------|*/
@@ -95,21 +102,41 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
      * @return The width in pixel.
      */
     private double getWidthText(Tree tree) {
-        var lines = viewer.getText(tree).trim().split(System.lineSeparator());
         Dimension bounds;
+        var lines = viewer.getText(tree).trim().split(System.lineSeparator());
+        var isValidMultiline = lines.length > 1 && lines[0].length() > 0 && lines[1].length() > 0;
+        
+        var margin = DefaultStyles.DEFAULT_TEXT_MARGIN;
+        var header = BASIC_FONT;
+        var footer = LABEL_FONT;
+        
+        if (viewer.isRootNode(tree)) {
+            margin = ROOT_NODE_MARGIN;
+        } else if (viewer.isEOFNode(tree)) {
+            margin = EOF_NODE_MARGIN;
+            header = TERMINAL_NODE_STYLE.getFont();
+            footer = TERMINAL_LABEL_FONT;
+        } else if (viewer.isReSyncedNode(tree)) {
+            margin = new StyledElementMargin(55);
+        } else if (viewer.isTerminalNode(tree)) {
+            margin = TERMINAL_NODE_MARGIN;
+            header = TERMINAL_NODE_STYLE.getFont();
+            footer = TERMINAL_LABEL_FONT;
+        }
+        
         
         // if string consists of two lines, compute the biggest
-        if (lines.length > 1 && lines[0].length() > 0 && lines[1].length() > 0) {
+        if (isValidMultiline) {
             var boundsTitle = UIHelper.getFullStringBounds(
                 viewer.getGraphics2D(),
                 lines[0],
-                BASIC_FONT
+                header
             );
             
             var boundsLabel = UIHelper.getFullStringBounds(
                 viewer.getGraphics2D(),
                 lines[1],
-                LABEL_FONT
+                footer
             );
             
             if (boundsTitle.getWidth() > boundsLabel.getWidth())
@@ -122,28 +149,14 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
             bounds = UIHelper.getFullStringBounds(
                 viewer.getGraphics2D(),
                 lines[0],
-                BASIC_FONT
+                header
             );
         }
         
-        var margin = DefaultStyles.DEFAULT_TEXT_MARGIN;
         
-        if (viewer.isRootNode(tree))
-            margin = ROOT_NODE_MARGIN;
+        var w = bounds.getWidth() + margin.getHorizontal();
         
-        else if (viewer.isEOFNode(tree))
-            margin = EOF_NODE_MARGIN;
-        
-        else if (viewer.isReSyncedNode(tree))
-            margin = RESYNC_NODE_MARGIN;
-        
-        else if (viewer.isTerminalNode(tree))
-            margin = TERMINAL_NODE_MARGIN;
-        
-        var w = bounds.getWidth() +
-            margin.getHorizontal();
-        
-        return max(w, lines.length == 1 ? viewer.minCellWidth / 2.f : viewer.minCellWidth);
+        return w;//max(w, viewer.minCellWidth);
     }
     
     
@@ -177,7 +190,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         var h = bounds.getHeight() +
             margin.getVertical();
         
-        return max(h + (lines.length - 1) * bounds.getHeight(), viewer.minCellHeight);
+        return max(h + (lines.length - 1) * bounds.getHeight() * 1.0, viewer.minCellHeight);
     }
     
     
@@ -290,6 +303,4 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     public DoubleDimension2D getNodeDimension(Tree tree) {
         return new DoubleDimension2D(getWidthText(tree), getHeightText(tree));
     }
-    
-    
 }
