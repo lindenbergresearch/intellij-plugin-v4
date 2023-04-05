@@ -561,6 +561,7 @@ public class InputPanel {
         startRuleLabel.setText(labelGrammar);
     }
     
+    
     void setupStartRuleLabelUI() {
         startRuleLabel.setForeground(JBColor.foreground());
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
@@ -575,8 +576,8 @@ public class InputPanel {
         startRuleLabel2.setBorder(
             BorderFactory.createEmptyBorder(0, 10, 0, 7)
         );
-        
     }
+    
     
     public void resetStartRuleLabel() {
         var grammarName = "???";
@@ -767,23 +768,30 @@ public class InputPanel {
     }
     
     
-    public void highlightAndOfferHint(
-        Editor editor, int offset,
-        Interval sourceInterval,
-        JBColor color,
-        EffectType effectType, String hintText
-    ) {
-        CaretModel caretModel = editor.getCaretModel();
-        final TextAttributes attr = new TextAttributes();
-        attr.setForegroundColor(color);
-        attr.setEffectColor(color);
-        attr.setEffectType(effectType);
-        MarkupModel markupModel = editor.getMarkupModel();
+    /**
+     * Highlight a part of the text in the input panel editor and show a hint.
+     *
+     * @param editor         The target editor instance.
+     * @param offset         The offset-interval.
+     * @param sourceInterval Interval of text.
+     * @param color          Color to highlight with.
+     * @param effectType     Effect-type to highlight with.
+     * @param hintText       The text displayed as hint.
+     */
+    public void highlightAndOfferHint(Editor editor, int offset, Interval sourceInterval, JBColor color, EffectType effectType, String hintText) {
+        var caretModel = editor.getCaretModel();
+        
+        final var textAttributes = new TextAttributes();
+        textAttributes.setForegroundColor(color);
+        textAttributes.setEffectColor(color);
+        textAttributes.setEffectType(effectType);
+        
+        var markupModel = editor.getMarkupModel();
         markupModel.addRangeHighlighter(
             sourceInterval.a,
             sourceInterval.b,
             InputPanel.TOKEN_INFO_LAYER, // layer
-            attr,
+            textAttributes,
             HighlighterTargetArea.EXACT_RANGE
         );
         
@@ -794,6 +802,37 @@ public class InputPanel {
         // HINT
         caretModel.moveToOffset(offset); // info tooltip only shows at cursor :(
         HintManager.getInstance().showInformationHint(editor, hintText);
+    }
+    
+    
+    /**
+     * Highlight a specific range of text in the current input-editor.
+     *
+     * @param textAttributes The text attributes to set for the highlighting.
+     * @param startOffset    The start-index.
+     * @param endOffset      The stop-index.
+     * @param layer          The layer to be used.
+     */
+    public void highlightRange(TextAttributes textAttributes, int startOffset, int endOffset, int layer) {
+        var editor = getInputEditor();
+        
+        // invalid parameters
+        if (textAttributes == null || startOffset < 0 || endOffset < 0)
+            return;
+        
+        if (endOffset < startOffset) {
+            var n = endOffset;
+            endOffset = startOffset;
+            startOffset = n;
+        }
+        
+        editor.getMarkupModel().addRangeHighlighter(
+            startOffset,
+            endOffset,
+            layer,
+            textAttributes,
+            HighlighterTargetArea.EXACT_RANGE
+        );
     }
     
     
