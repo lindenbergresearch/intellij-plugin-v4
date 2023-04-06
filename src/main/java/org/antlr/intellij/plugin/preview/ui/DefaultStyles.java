@@ -17,9 +17,9 @@ import java.awt.*;
 public class DefaultStyles {
     /* ----- CONSTANTS ---------------------------------------*/
     
-    // round rectangle diameter
-    public static final int ROUND_RECT_WIDTH = 7;
-    public static final int ROUND_RECT_HEIGHT = 7;
+    // round rectangle arc diameter
+    public static final int DEFAULT_ARC_DIAMETER = 7;
+    
     
     // scale factor for footer in labels
     public static final float LABEL_FOOTER_FONT_SCALE = 0.8f;
@@ -250,7 +250,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
             BASIC_FONT,
-            ELEMENT_FILLED
+            ELEMENT_FILLED,
+            DEFAULT_ARC_DIAMETER
         );
     
     
@@ -262,7 +263,8 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
             BASIC_FONT,
-            getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND)
+            getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND),
+            DEFAULT_ARC_DIAMETER
         
         );
     }
@@ -277,7 +279,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
             BASIC_FONT,
-            ELEMENT_OUTLINED_ONLY
+            ELEMENT_OUTLINED_ONLY,
+            DEFAULT_ARC_DIAMETER
         );
     
     
@@ -289,7 +292,8 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
             BASIC_FONT,
-            getCheckBoxStateFromAppSettings(ColorKey.ERROR_COLOR)
+            getCheckBoxStateFromAppSettings(ColorKey.ERROR_COLOR),
+            DEFAULT_ARC_DIAMETER
         
         );
     }
@@ -304,7 +308,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
             BASIC_FONT,
-            ELEMENT_OUTLINED_ONLY
+            ELEMENT_OUTLINED_ONLY,
+            DEFAULT_ARC_DIAMETER
         );
     
     
@@ -316,7 +321,8 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
             BASIC_FONT,
-            getCheckBoxStateFromAppSettings(ColorKey.RESYNC_COLOR)
+            getCheckBoxStateFromAppSettings(ColorKey.RESYNC_COLOR),
+            DEFAULT_ARC_DIAMETER
         
         );
     }
@@ -331,7 +337,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             HUGE_STROKE,
             BASIC_FONT,
-            ELEMENT_FILLED
+            ELEMENT_FILLED,
+            DEFAULT_ARC_DIAMETER
         );
     
     
@@ -343,7 +350,8 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             HUGE_STROKE,
             BASIC_FONT,
-            getCheckBoxStateFromAppSettings(ColorKey.ROOT_NODE_COLOR)
+            getCheckBoxStateFromAppSettings(ColorKey.ROOT_NODE_COLOR),
+            DEFAULT_ARC_DIAMETER
         
         );
     }
@@ -358,7 +366,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
             TERMINAL_FONT,
-            ELEMENT_FILLED
+            ELEMENT_FILLED,
+            DEFAULT_ARC_DIAMETER
         );
     
     
@@ -370,7 +379,8 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
             TERMINAL_FONT,
-            getCheckBoxStateFromAppSettings(ColorKey.EOF_NODE_COLOR)
+            getCheckBoxStateFromAppSettings(ColorKey.EOF_NODE_COLOR),
+            DEFAULT_ARC_DIAMETER
         
         );
     }
@@ -385,7 +395,8 @@ public class DefaultStyles {
             JB_COLOR_DARK,
             DEFAULT_STROKE,
             TERMINAL_FONT,
-            ELEMENT_OUTLINED_ONLY
+            ELEMENT_OUTLINED_ONLY,
+            DEFAULT_ARC_DIAMETER
         );
     
     
@@ -397,7 +408,8 @@ public class DefaultStyles {
             (JBColor) getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR).brighter().brighter().brighter(),
             THIN_STROKE,
             TERMINAL_FONT,
-            getCheckBoxStateFromAppSettings(ColorKey.TERMINAL_NODE_COLOR)
+            getCheckBoxStateFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
+            DEFAULT_ARC_DIAMETER
         
         );
     }
@@ -412,7 +424,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             THICK_STROKE,
             BASIC_FONT,
-            ELEMENT_FILLED
+            ELEMENT_FILLED,
+            DEFAULT_ARC_DIAMETER
         );
     
     
@@ -424,7 +437,8 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             THICK_STROKE,
             BASIC_FONT,
-            getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND)
+            getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND),
+            DEFAULT_ARC_DIAMETER
         );
     }
     
