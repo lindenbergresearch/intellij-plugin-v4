@@ -22,7 +22,11 @@ public class DefaultStyles {
     public static final int ROUND_RECT_HEIGHT = 7;
     
     // scale factor for footer in labels
-    public static final float LABEL_FOOTER_FONT_SCALE = 2.8f;
+    public static final float LABEL_FOOTER_FONT_SCALE = 0.8f;
+    
+    // filled flags
+    public static final Boolean ELEMENT_FILLED = true;
+    public static final Boolean ELEMENT_OUTLINED_ONLY = false;
     
     
     // text layout setup
@@ -35,22 +39,22 @@ public class DefaultStyles {
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_TEXT_MARGIN = new StyledElementMargin(0);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(5);
     
     public static final StyledElementMargin
         DEFAULT_MARGIN = new StyledElementMargin(0);
     
     public static final StyledElementMargin
-        ROOT_NODE_MARGIN = new StyledElementMargin(19, 6, 19, 6);
+        ROOT_NODE_MARGIN = new StyledElementMargin(9);
     
     public static final StyledElementMargin
-        EOF_NODE_MARGIN = new StyledElementMargin(0);
+        EOF_NODE_MARGIN = new StyledElementMargin(9);
     
     public static final StyledElementMargin
-        RESYNC_NODE_MARGIN = new StyledElementMargin(0);
+        RESYNC_NODE_MARGIN = new StyledElementMargin(5);
     
     public static final StyledElementMargin
-        TERMINAL_NODE_MARGIN = new StyledElementMargin(0);
+        TERMINAL_NODE_MARGIN = new StyledElementMargin(5);
     
     
     /* ----- FONT FACES --------------------------------------*/
@@ -236,6 +240,8 @@ public class DefaultStyles {
     
     /* ----- DEFAULT STYLES ----------------------------------*/
     
+    /*|--- DEFAULT NODES ---|*/
+    
     public static final StyleProperties DEFAULT_STYLE =
         new StyleProperties(
             DEFAULT_MARGIN,
@@ -243,7 +249,8 @@ public class DefaultStyles {
             JB_COLOR_BLUE,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            ELEMENT_FILLED
         );
     
     
@@ -254,11 +261,13 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND)
+        
         );
     }
     
-    /*|------------------------------------------------------|*/
+    /*|--- ERROR NODES ---|*/
     
     public static final StyleProperties ERROR_NODE_STYLE =
         new StyleProperties(
@@ -267,7 +276,8 @@ public class DefaultStyles {
             JB_COLOR_RED,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            ELEMENT_OUTLINED_ONLY
         );
     
     
@@ -278,11 +288,13 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.ERROR_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            getCheckBoxStateFromAppSettings(ColorKey.ERROR_COLOR)
+        
         );
     }
     
-    /*|------------------------------------------------------|*/
+    /*|--- RESYNC NODES ---|*/
     
     public static final StyleProperties RESYNC_NODE_STYLE =
         new StyleProperties(
@@ -291,7 +303,8 @@ public class DefaultStyles {
             JB_COLOR_RED,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            ELEMENT_OUTLINED_ONLY
         );
     
     
@@ -302,11 +315,13 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.RESYNC_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             DEFAULT_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            getCheckBoxStateFromAppSettings(ColorKey.RESYNC_COLOR)
+        
         );
     }
     
-    /*|------------------------------------------------------|*/
+    /*|--- ROOT NODES ---|*/
     
     public static final StyleProperties ROOT_NODE_STYLE =
         new StyleProperties(
@@ -315,7 +330,8 @@ public class DefaultStyles {
             JB_COLOR_CYAN,
             JB_COLOR_BRIGHT,
             HUGE_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            ELEMENT_FILLED
         );
     
     
@@ -326,12 +342,13 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.ROOT_NODE_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             HUGE_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            getCheckBoxStateFromAppSettings(ColorKey.ROOT_NODE_COLOR)
+        
         );
     }
     
-    /*|------------------------------------------------------|*/
-    
+    /*|--- END OF FILE NODES ---|*/
     
     public static final StyleProperties EOF_NODE_STYLE =
         new StyleProperties(
@@ -339,23 +356,26 @@ public class DefaultStyles {
             JB_COLOR_DARK,
             JB_COLOR_BROWN,
             JB_COLOR_BRIGHT,
-            THIN_STROKE,
-            TERMINAL_FONT
+            DEFAULT_STROKE,
+            TERMINAL_FONT,
+            ELEMENT_FILLED
         );
     
     
-    public static StyleProperties getEOFRootStyle() {
+    public static StyleProperties getEOFNodeStyle() {
         return new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
             getColorFromAppSettings(ColorKey.EOF_NODE_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
-            THIN_STROKE,
-            TERMINAL_FONT
+            DEFAULT_STROKE,
+            TERMINAL_FONT,
+            getCheckBoxStateFromAppSettings(ColorKey.EOF_NODE_COLOR)
+        
         );
     }
     
-    /*|------------------------------------------------------|*/
+    /*|--- TERMINAL NODES ---|*/
     
     public static final StyleProperties TERMINAL_NODE_STYLE =
         new StyleProperties(
@@ -364,7 +384,8 @@ public class DefaultStyles {
             JB_COLOR_GRAY,
             JB_COLOR_DARK,
             DEFAULT_STROKE,
-            TERMINAL_FONT
+            TERMINAL_FONT,
+            ELEMENT_OUTLINED_ONLY
         );
     
     
@@ -375,11 +396,13 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
             (JBColor) getColorFromAppSettings(ColorKey.TERMINAL_NODE_COLOR).brighter().brighter().brighter(),
             THIN_STROKE,
-            TERMINAL_FONT
+            TERMINAL_FONT,
+            getCheckBoxStateFromAppSettings(ColorKey.TERMINAL_NODE_COLOR)
+        
         );
     }
     
-    /*|------------------------------------------------------|*/
+    /*|--- SELECTED NODES ---|*/
     
     public static final StyleProperties SELECTED_NODE_STYLE =
         new StyleProperties(
@@ -388,7 +411,8 @@ public class DefaultStyles {
             (JBColor) JB_COLOR_BLUE.brighter(),
             JB_COLOR_BRIGHT,
             THICK_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            ELEMENT_FILLED
         );
     
     
@@ -399,7 +423,8 @@ public class DefaultStyles {
             (JBColor) getColorFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND).brighter(),
             JB_COLOR_BRIGHT,
             THICK_STROKE,
-            BASIC_FONT
+            BASIC_FONT,
+            getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND)
         );
     }
     
@@ -440,10 +465,32 @@ public class DefaultStyles {
     }
     
     
-    /**
-     * @param colorKey
-     * @return
-     */
+    public static Boolean getDefaultCheckBoxState(ColorKey colorKey) {
+        switch (colorKey) {
+            case DEFAULT_NODE_BACKGROUND:
+                return DEFAULT_STYLE.filled;
+            case EOF_NODE_COLOR:
+                return EOF_NODE_STYLE.filled;
+            case ROOT_NODE_COLOR:
+                return ROOT_NODE_STYLE.filled;
+            case TERMINAL_NODE_COLOR:
+                return TERMINAL_NODE_STYLE.filled;
+            case ERROR_COLOR:
+            case RESYNC_COLOR:
+                return ERROR_NODE_STYLE.filled;
+            
+            default:
+                return false;
+        }
+    }
+    
+    
+    public static Boolean getCheckBoxStateFromAppSettings(ColorKey colorKey) {
+        var appSettings = ANTLRv4UISettingsState.getInstance();
+        return appSettings.getCheckBoxState(colorKey);
+    }
+    
+    
     public static JBColor getColorFromAppSettings(ColorKey colorKey) {
         var appSettings = ANTLRv4UISettingsState.getInstance();
         return appSettings.getColor(colorKey);
