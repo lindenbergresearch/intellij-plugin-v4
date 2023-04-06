@@ -18,25 +18,52 @@ public class StyleProperties implements Cloneable {
     // basic color setup
     protected JBColor foreground;
     protected JBColor background;
+    protected JBColor outlineColor;
     protected JBColor textColor;
+    protected JBColor labelColor;
+    
+    // flags
+    protected boolean filled;
     
     // stroke properties
     protected Stroke stroke;
     
     // font-face
-    protected Font font;
+    protected Font textFont;
+    protected Font labelFont;
     
+    // round corner - horizontal arc diameter
+    protected int arcDiameter;
     
     /* ----- CONSTRUCTOR -----------------------------------------------------------------------------*/
     
     
-    public StyleProperties(StyledElementMargin margin, JBColor foreground, JBColor background, JBColor textColor, Stroke stroke, Font font) {
+    public StyleProperties(StyledElementMargin margin, JBColor foreground, JBColor background, JBColor textColor, Stroke stroke, Font textFont, boolean filled, int arcDiameter) {
         this.margin = margin;
+        this.filled = filled;
         this.foreground = foreground;
         this.background = background;
         this.textColor = textColor;
+        this.labelColor = textColor;
         this.stroke = stroke;
-        this.font = font;
+        this.outlineColor = (JBColor) background.brighter();
+        this.textFont = textFont;
+        this.labelFont = textFont;
+        this.arcDiameter = arcDiameter;
+    }
+    
+    
+    public StyleProperties(StyledElementMargin margin, JBColor foreground, JBColor background, JBColor outlineColor, JBColor textColor, JBColor labelColor, boolean filled, Stroke stroke, Font textFont, Font labelFont) {
+        this.margin = margin;
+        this.foreground = foreground;
+        this.background = background;
+        this.outlineColor = outlineColor;
+        this.textColor = textColor;
+        this.labelColor = labelColor;
+        this.filled = filled;
+        this.stroke = stroke;
+        this.textFont = textFont;
+        this.labelFont = labelFont;
     }
     
     
@@ -105,6 +132,36 @@ public class StyleProperties implements Cloneable {
     }
     
     
+    public JBColor getOutlineColor() {
+        return outlineColor;
+    }
+    
+    
+    public void setOutlineColor(JBColor outlineColor) {
+        this.outlineColor = outlineColor;
+    }
+    
+    
+    public JBColor getLabelColor() {
+        return labelColor;
+    }
+    
+    
+    public void setLabelColor(JBColor labelColor) {
+        this.labelColor = labelColor;
+    }
+    
+    
+    public boolean isFilled() {
+        return filled;
+    }
+    
+    
+    public void setFilled(boolean filled) {
+        this.filled = filled;
+    }
+    
+    
     public JBColor getTextColor() {
         return textColor;
     }
@@ -125,13 +182,33 @@ public class StyleProperties implements Cloneable {
     }
     
     
-    public Font getFont() {
-        return font;
+    public Font getTextFont() {
+        return textFont;
     }
     
     
-    public void setFont(Font font) {
-        this.font = font;
+    public void setTextFont(Font textFont) {
+        this.textFont = textFont;
+    }
+    
+    
+    public Font getLabelFont() {
+        return labelFont;
+    }
+    
+    
+    public void setLabelFont(Font labelFont) {
+        this.labelFont = labelFont;
+    }
+    
+    
+    public int getArcDiameter() {
+        return arcDiameter;
+    }
+    
+    
+    public void setArcDiameter(int arcDiameter) {
+        this.arcDiameter = arcDiameter;
     }
     
     /* ----- FACTORY METHODS -------------------------------------------------------------------------*/
@@ -144,7 +221,9 @@ public class StyleProperties implements Cloneable {
             styles.background,
             styles.textColor,
             styles.stroke,
-            styles.font
+            styles.textFont,
+            styles.filled,
+            styles.arcDiameter
         );
     }
     
@@ -153,7 +232,7 @@ public class StyleProperties implements Cloneable {
     public StyleProperties clone() {
         try {
             StyleProperties clone = (StyleProperties) super.clone();
-            clone.setFont(getFont().deriveFont((float) getFont().getSize()));
+            clone.setTextFont(getTextFont().deriveFont((float) getTextFont().getSize()));
             // TODO: copy mutable state here, so the clone can't change the internals of the original
             return clone;
         } catch (CloneNotSupportedException e) {
