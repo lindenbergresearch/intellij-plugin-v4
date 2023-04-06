@@ -157,7 +157,7 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
      * @param graphics2D Graphic context.
      */
     public void applyStyle(Graphics2D graphics2D) {
-        if (getFont() != null) graphics2D.setFont(getFont());
+        if (getTextFont() != null) graphics2D.setFont(getTextFont());
         if (getStroke() != null) graphics2D.setStroke(getStroke());
         if (getForeground() != null) graphics2D.setColor(getForeground());
     }
@@ -268,7 +268,7 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
                 getStyleProperties().getMargin().getLeft() +
                 getStyleProperties().getMargin().getRight();
         
-         return getViewport().getWidth();
+        return getViewport().getWidth();
     }
     
     
@@ -285,6 +285,8 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
         
         return getViewport().getHeight();
     }
+    
+    /*|--------------------------------------------------------------------------|*/
     
     
     public JBColor getForeground() {
@@ -326,6 +328,32 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     }
     
     
+    public JBColor getOutlineColor() {
+        if (getStyleProperties().getOutlineColor() == null && parent != null)
+            return parent.getOutlineColor();
+        
+        return getStyleProperties().getOutlineColor();
+    }
+    
+    
+    public void setOutlineColor(JBColor outlineColor) {
+        this.getStyleProperties().setOutlineColor(outlineColor);
+    }
+    
+    
+    public JBColor getLabelColor() {
+        if (getStyleProperties().getLabelColor() == null && parent != null)
+            return parent.getLabelColor();
+        
+        return getStyleProperties().getOutlineColor();
+    }
+    
+    
+    public void setLabelColor(JBColor labelColor) {
+        this.getStyleProperties().setLabelColor(labelColor);
+    }
+    
+    
     public Stroke getStroke() {
         if (getStyleProperties().getStroke() == null && parent != null)
             return parent.getStroke();
@@ -339,22 +367,42 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     }
     
     
-    public boolean hasParent() {
-        return parent != null;
-    }
-    
-    
-    public Font getFont() {
-        if (getStyleProperties().getFont() == null && parent != null)
-            return parent.getFont();
+    public Font getTextFont() {
+        if (getStyleProperties().getTextFont() == null && parent != null)
+            return parent.getTextFont();
         
-        return getStyleProperties().getFont();
+        return getStyleProperties().getTextFont();
     }
     
     
-    public void setFont(Font font) {
-        this.getStyleProperties().setFont(font);
+    public void setTextFont(Font font) {
+        this.getStyleProperties().setTextFont(font);
     }
+    
+    
+    public Font getLabelFont() {
+        if (getStyleProperties().getLabelFont() == null && parent != null)
+            return parent.getLabelFont();
+        
+        return getStyleProperties().getLabelFont();
+    }
+    
+    
+    public void setLabelFont(Font font) {
+        this.getStyleProperties().setLabelFont(font);
+    }
+    
+    
+    public boolean isFilled() {
+        return getStyleProperties().isFilled();
+    }
+    
+    
+    public void setFilled(boolean filled) {
+        this.getStyleProperties().setFilled(filled);
+    }
+    
+    /*|--------------------------------------------------------------------------|*/
     
     
     public StyledElementMargin getMargin() {
@@ -371,6 +419,11 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     }
     
     
+    public boolean hasParent() {
+        return parent != null;
+    }
+    
+    
     public StyledElement getParent() {
         return parent;
     }
@@ -379,6 +432,8 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     public void setParent(StyledElement parent) {
         this.parent = parent;
     }
+    
+    /*|--------------------------------------------------------------------------|*/
     
     
     public boolean isEnabled() {
@@ -408,6 +463,8 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
     public List<StyledElement> getElements() {
         return elements;
     }
+    
+    /*|--------------------------------------------------------------------------|*/
     
     
     public boolean debug() {
