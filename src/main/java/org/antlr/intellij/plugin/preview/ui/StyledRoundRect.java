@@ -1,11 +1,7 @@
 package org.antlr.intellij.plugin.preview.ui;
 
-import com.intellij.ui.JBColor;
-
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-
-import static org.antlr.intellij.plugin.preview.ui.DefaultStyles.NODE_OUTLINE_COLOR;
 
 /**
  * Round rect shape with styling attributes.
@@ -61,52 +57,24 @@ public class StyledRoundRect extends StyledShape {
      */
     @Override
     public void draw(Graphics2D graphics2D) {
-        if (hasOutlineColor()) {
-            setForeground(getOutlineColor());
-        } else {
-            setForeground(
-                (JBColor) (JBColor.isBright() ? getBackground().brighter().brighter() : getBackground().darker().darker())
-            );
-        }
-        
         if (isFilled()) {
-            graphics2D.setColor(debug() ? getBackground().darker() : getBackground());
-            graphics2D.fillRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
+            graphics2D.setColor(getBackground());
+            graphics2D.fillRoundRect(0, 0, (int) getWidth(), (int) getHeight(), getArcWidth(), getArcHeight());
         }
         
-        graphics2D.setColor(isFilled() ? NODE_OUTLINE_COLOR : getForeground().darker());
-        graphics2D.drawRoundRect(0, 0, (int) getWidth(), (int) getHeight(), arcWidth, arcHeight);
-        
-        
+        graphics2D.setColor(getOutlineColor());
+        graphics2D.drawRoundRect(0, 0, (int) getWidth(), (int) getHeight(), getArcWidth(), getArcHeight());
     }
     
     /* ----- STANDARD GETTER / SETTER ----------------------------------------------------------------*/
     
     
     public int getArcWidth() {
-        return arcWidth;
-    }
-    
-    
-    public void setArcWidth(int arcWidth) {
-        this.arcWidth = arcWidth;
+        return styleProperties.getArcDiameter();
     }
     
     
     public int getArcHeight() {
-        return arcHeight;
+        return styleProperties.getArcDiameter();
     }
-    
-    
-    public void setArcHeight(int arcHeight) {
-        this.arcHeight = arcHeight;
-    }
-    
-    
-    public void setArc(Dimension pair) {
-        setArcWidth(pair.width);
-        setArcHeight(pair.height);
-    }
-    
-    
 }
