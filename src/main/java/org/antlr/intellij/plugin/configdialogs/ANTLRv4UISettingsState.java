@@ -44,13 +44,16 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     
     
     // color storage
-    public final Map<ColorKey, String> colors = new LinkedHashMap<>();
+    private final Map<ColorKey, String> colors = new LinkedHashMap<>();
+    
+    // checkbox storage
+    private final Map<ColorKey, Boolean> checkBoxes = new LinkedHashMap<>();
     
     /*|--------------------------------------------------------------------------|*/
     
     
     /**
-     * Put a {@link JBColor} color to storage.
+     * Puts a {@link JBColor} color to storage.
      *
      * @param colorKey The corresponding color-key.
      * @param color    The color to store.
@@ -83,11 +86,38 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     
     
     /**
+     * Puts a state check-box flag to storage.
+     *
+     * @param colorKey The referring color-key.
+     * @param state    The state to put.
+     */
+    public void setCheckBoxState(ColorKey colorKey, Boolean state) {
+        checkBoxes.put(colorKey, state);
+    }
+    
+    
+    /**
+     * Get a check-box state from storage.
+     *
+     * @param colorKey The referring color-key.
+     * @return The state as bool flag.
+     */
+    public Boolean getCheckBoxState(ColorKey colorKey) {
+        if (!checkBoxes.containsKey(colorKey))
+            return DefaultStyles.getDefaultCheckBoxState(colorKey);
+        
+        return checkBoxes.get(colorKey);
+    }
+    
+    
+    /**
      * Reset color storage.
      */
     public void reset() {
         colors.clear();
     }
+    
+    
     
     
     /*|--------------------------------------------------------------------------|*/
@@ -109,5 +139,4 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     public void loadState(@NotNull ANTLRv4UISettingsState state) {
         XmlSerializerUtil.copyBean(state, this);
     }
-    
 }
