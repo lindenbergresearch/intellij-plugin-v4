@@ -44,9 +44,9 @@ public class StyleProperties implements Cloneable {
         this.foreground = foreground;
         this.background = background;
         this.textColor = textColor;
-        this.labelColor = textColor;
+        this.labelColor = (JBColor) textColor.darker();
         this.stroke = stroke;
-        this.outlineColor = (JBColor) background.brighter();
+        this.outlineColor = (JBColor) background.darker();
         this.textFont = textFont;
         this.labelFont = textFont;
         this.arcDiameter = arcDiameter;
