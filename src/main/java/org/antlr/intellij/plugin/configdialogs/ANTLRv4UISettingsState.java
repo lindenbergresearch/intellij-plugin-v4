@@ -29,6 +29,7 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
         VIEWER_BACKGROUND,
         VIEWER_FOREGROUND,
         TEXT_COLOR,
+        LABEL_COLOR,
         DEFAULT_NODE_FOREGROUND,
         DEFAULT_NODE_BACKGROUND,
         ROOT_NODE_COLOR,
@@ -44,10 +45,10 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     
     
     // color storage
-    private final Map<ColorKey, String> colors = new LinkedHashMap<>();
+    public final Map<ColorKey, String> colors = new LinkedHashMap<>();
     
     // checkbox storage
-    private final Map<ColorKey, Boolean> checkBoxes = new LinkedHashMap<>();
+    public final Map<ColorKey, Boolean> checkBoxes = new LinkedHashMap<>();
     
     /*|--------------------------------------------------------------------------|*/
     
