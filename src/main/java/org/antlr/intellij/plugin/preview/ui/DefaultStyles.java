@@ -237,6 +237,36 @@ public class DefaultStyles {
         );
     
     
+    public static final Stroke DASHED_DEFAULT_STROKE =
+        new BasicStroke(
+            1.f,
+            BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL,
+            0,
+            new float[]{2},
+            0
+        );
+    
+    public static final Stroke DASHED_THIN_STROKE =
+        new BasicStroke(
+            0.85f,
+            BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL,
+            0,
+            new float[]{2},
+            0
+        );
+    
+    public static final Stroke DASHED_THICK_STROKE =
+        new BasicStroke(
+            2.1f,
+            BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL,
+            0,
+            new float[]{2},
+            0
+        );
+    
     
     /* ----- DEFAULT STYLES ----------------------------------*/
     
