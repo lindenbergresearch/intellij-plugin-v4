@@ -487,6 +487,8 @@ public class DefaultStyles {
                 return getConsoleBackground();
             case TEXT_COLOR:
                 return DEFAULT_STYLE.textColor;
+            case LABEL_COLOR:
+                return DEFAULT_STYLE.labelColor;
             case DEFAULT_NODE_BACKGROUND:
                 return DEFAULT_STYLE.background;
             case EOF_NODE_COLOR:
