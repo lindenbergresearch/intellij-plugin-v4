@@ -56,12 +56,12 @@ public abstract class StyledText extends StyledElement {
     
     
     public void setBold() {
-        setFont(getFont().deriveFont(Font.BOLD));
+        setTextFont(getTextFont().deriveFont(Font.BOLD));
     }
     
     
     public void setItalic() {
-        setFont(getFont().deriveFont(Font.ITALIC));
+        setTextFont(getTextFont().deriveFont(Font.ITALIC));
     }
     
     
@@ -88,8 +88,8 @@ public abstract class StyledText extends StyledElement {
     public void draw(Graphics2D graphics2D) {
         if (text == null) text = "null";
         
-        Dimension bounds =
-            UIHelper.getFullStringBounds(graphics2D, text, getFont());
+        var bounds =
+            UIHelper.getFullStringBounds(graphics2D, text, getTextFont());
         
         double x;
         switch (horizontalTextLayout) {
@@ -169,6 +169,4 @@ public abstract class StyledText extends StyledElement {
     
     
     /* ----- STANDARD GETTER / SETTER ----------------------------------------------------------------*/
-    
-    
 }
