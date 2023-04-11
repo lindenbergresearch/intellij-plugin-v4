@@ -8,21 +8,15 @@ import java.awt.geom.Rectangle2D;
  */
 public class StyledRoundRect extends StyledShape {
     
-    protected int arcWidth;
-    protected int arcHeight;
-    
-    
     /* ----- CONSTRUCTOR -----------------------------------------------------------------------------*/
     
     
     /**
      * Empty constructor (properties may inherit by getter/setter).
      */
-    public StyledRoundRect(StyledElement parent, int arcWidth, int arcHeight) {
+    public StyledRoundRect(StyledElement parent) {
         super();
         this.parent = parent;
-        this.arcWidth = arcWidth;
-        this.arcHeight = arcHeight;
     }
     
     
@@ -33,10 +27,8 @@ public class StyledRoundRect extends StyledShape {
      * @param viewport The elements' area to draw to.
      * @param styles   The style-properties of the element.
      */
-    public StyledRoundRect(StyledElement parent, Rectangle2D viewport, StyleProperties styles, int arcWidth, int arcHeight) {
+    public StyledRoundRect(StyledElement parent, Rectangle2D viewport, StyleProperties styles) {
         super(parent, viewport, styles);
-        this.arcWidth = arcWidth;
-        this.arcHeight = arcHeight;
     }
     
     /* ----- RENDERING / EVENTS ----------------------------------------------------------------------*/
