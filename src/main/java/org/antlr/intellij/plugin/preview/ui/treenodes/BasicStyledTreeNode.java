@@ -55,26 +55,21 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      */
     @Override
     public void setup() {
-        shape = new StyledRoundRect(
-            this,
-            ROUND_RECT_WIDTH,
-            ROUND_RECT_HEIGHT
-        );
+        shape = new StyledRoundRect(this);
         
         add(shape);
         
         label = new StyledLabel(this);
+        label.setTextFont(bold(label.getTextFont()));
         add(label);
         
         footer = new StyledLabel(this);
-        footer.setFont(
+        footer.setTextFont(
             getScaledFont(
-                footer.getFont(),
+                footer.getTextFont(),
                 LABEL_FOOTER_FONT_SCALE
             )
         );
-        
-        label.setFont(bold(label.getFont()));
         
         add(footer);
     }
@@ -90,7 +85,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
             shape.setEnabled(false);
         
         label.setTextColor((JBColor) shape.getBackground().brighter());
-        label.setFont(label.getFont().deriveFont((float)label.getFont().getSize()));
+        label.setTextFont(label.getTextFont().deriveFont((float) label.getTextFont().getSize()));
         footer.setTextColor(label.getTextColor());
     }
     
