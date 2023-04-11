@@ -3,7 +3,6 @@ package org.antlr.intellij.plugin.preview;
 import org.abego.treelayout.NodeExtentProvider;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.antlr.intellij.plugin.preview.ui.DoubleDimension2D;
-import org.antlr.intellij.plugin.preview.ui.StyledElementMargin;
 import org.antlr.intellij.plugin.preview.ui.UIHelper;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.Tree;
@@ -114,13 +113,13 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
             margin = ROOT_NODE_MARGIN;
         } else if (viewer.isEOFNode(tree)) {
             margin = EOF_NODE_MARGIN;
-            header = TERMINAL_NODE_STYLE.getFont();
+            header = TERMINAL_NODE_STYLE.getTextFont();
             footer = TERMINAL_LABEL_FONT;
         } else if (viewer.isReSyncedNode(tree)) {
-            margin = new StyledElementMargin(55);
+            margin = RESYNC_NODE_MARGIN;
         } else if (viewer.isTerminalNode(tree)) {
             margin = TERMINAL_NODE_MARGIN;
-            header = TERMINAL_NODE_STYLE.getFont();
+            header = TERMINAL_NODE_STYLE.getTextFont();
             footer = TERMINAL_LABEL_FONT;
         }
         
@@ -156,13 +155,15 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         
         var w = bounds.getWidth() + margin.getHorizontal();
         
-        return w;//max(w, viewer.minCellWidth);
+        return max(w, viewer.minCellWidth);
     }
     
     
     /**
-     * @param tree
-     * @return
+     * Computes the height of the nodes text based on it's content.
+     *
+     * @param tree The tree-node to measure.
+     * @return The height in pixel.
      */
     private double getHeightText(Tree tree) {
         var text = viewer.getText(tree);
@@ -217,10 +218,10 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
      * @return The current maximum dimension in pixel.
      */
     private DoubleDimension2D computeRecMaxDimension(ParseTree tree, DoubleDimension2D maxDim) {
-        var currMaxDim = getNodeDimension(tree).max(maxDim);
+        var currMaxDim = DoubleDimension2D.max(getNodeDimension(tree), maxDim);
         
         for (var i = 0; i < tree.getChildCount(); i++) {
-            currMaxDim.max(computeRecMaxDimension(tree.getChild(i), currMaxDim));
+            currMaxDim = DoubleDimension2D.max(computeRecMaxDimension(tree.getChild(i), currMaxDim), currMaxDim);
         }
         
         return currMaxDim;
