@@ -13,7 +13,7 @@ import java.awt.geom.Rectangle2D;
  * Abstract tree-node with style attributes.
  */
 public abstract class StyledTreeNode extends StyledElement {
-    protected StyledText label, footer;
+    protected StyledText header, footer;
     protected StyledShape shape;
     protected Tree node;
     protected String[] lines;
@@ -43,7 +43,7 @@ public abstract class StyledTreeNode extends StyledElement {
     
     
     public String getText() {
-        return label.getText();
+        return header.getText();
     }
     
     
@@ -61,10 +61,10 @@ public abstract class StyledTreeNode extends StyledElement {
         lines = text.split(System.lineSeparator());
         
         if (lines.length > 1) {
-            label.setText(lines[0]);
+            header.setText(lines[0]);
             footer.setText(lines[1]);
         } else {
-            label.setText(text);
+            header.setText(text);
         }
         
         updateLayout();
@@ -98,24 +98,24 @@ public abstract class StyledTreeNode extends StyledElement {
                 
                 );
             
-            label.setViewport(upper);
+            header.setViewport(upper);
             footer.setViewport(lower);
             
             return;
         }
         
-        label.setViewport(viewport);
+        header.setViewport(viewport);
         footer.setViewport(viewport);
     }
     
     
-    public StyledText getLabel() {
-        return label;
+    public StyledText getHeader() {
+        return header;
     }
     
     
-    public void setLabel(StyledText label) {
-        this.label = label;
+    public void setHeader(StyledText header) {
+        this.header = header;
     }
     
     
