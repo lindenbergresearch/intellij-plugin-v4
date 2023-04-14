@@ -38,17 +38,17 @@ public class StyleProperties implements Cloneable {
     /* ----- CONSTRUCTOR -----------------------------------------------------------------------------*/
     
     
-    public StyleProperties(StyledElementMargin margin, JBColor foreground, JBColor background, JBColor textColor, Stroke stroke, Font textFont, boolean filled, int arcDiameter) {
+    public StyleProperties(StyledElementMargin margin, JBColor foreground, JBColor background, JBColor textColor, JBColor labelColor, Stroke stroke, Font textFont, boolean filled, int arcDiameter) {
         this.margin = margin;
         this.filled = filled;
         this.foreground = foreground;
         this.background = background;
         this.textColor = textColor;
-        this.labelColor = (JBColor) textColor.darker();
+        this.labelColor = labelColor;
         this.stroke = stroke;
         this.outlineColor = (JBColor) background.darker();
         this.textFont = textFont;
-        this.labelFont = textFont;
+        this.labelFont = textFont.deriveFont(DefaultStyles.BASIC_LABEL_FONT_SIZE);
         this.arcDiameter = arcDiameter;
     }
     
@@ -220,6 +220,7 @@ public class StyleProperties implements Cloneable {
             styles.foreground,
             styles.background,
             styles.textColor,
+            styles.labelColor,
             styles.stroke,
             styles.textFont,
             styles.filled,
