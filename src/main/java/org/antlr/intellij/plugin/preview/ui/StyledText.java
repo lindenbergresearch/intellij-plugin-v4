@@ -34,6 +34,7 @@ public abstract class StyledText extends StyledElement {
     protected VerticalLayout verticalTextLayout;
     protected HorizontalLayout horizontalTextLayout;
     protected String text;
+    protected boolean isLabel = false;
     
     
     /**
@@ -65,6 +66,16 @@ public abstract class StyledText extends StyledElement {
     }
     
     
+    public boolean isLabel() {
+        return isLabel;
+    }
+    
+    
+    public void setLabel(boolean label) {
+        isLabel = label;
+    }
+    
+    
     /**
      * Constructs a new StyledElement with its basic setup.
      *
@@ -88,8 +99,10 @@ public abstract class StyledText extends StyledElement {
     public void draw(Graphics2D graphics2D) {
         if (text == null) text = "null";
         
+        graphics2D.setFont(isLabel ? getLabelFont() : getTextFont());
+        
         var bounds =
-            UIHelper.getFullStringBounds(graphics2D, text, getTextFont());
+            UIHelper.getFullStringBounds(graphics2D, text, isLabel ? getLabelFont() : getTextFont());
         
         double x;
         switch (horizontalTextLayout) {
@@ -161,7 +174,7 @@ public abstract class StyledText extends StyledElement {
             );
         }
         
-        graphics2D.setColor(getTextColor());
+        graphics2D.setColor(isLabel ? getLabelColor() : getTextColor());
         graphics2D.drawString(text, (float) x, (float) y);
     }
     
