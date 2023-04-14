@@ -345,7 +345,7 @@ public abstract class StyledElement implements StyleRendering, StyleSetup {
         if (getStyleProperties().getLabelColor() == null && parent != null)
             return parent.getLabelColor();
         
-        return getStyleProperties().getOutlineColor();
+        return getStyleProperties().getLabelColor();
     }
     
     
