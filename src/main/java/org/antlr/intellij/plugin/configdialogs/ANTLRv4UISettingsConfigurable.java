@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nls.Capitalization;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Objects;
 
 
 /**
@@ -53,6 +54,9 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
             var storedColor = settings.getColor(colorKey);
             if (!Utils.compareJBColors(selectedColor, storedColor))
                 return true;
+            
+            if (!Objects.equals(component.getSelectedState(colorKey), settings.getCheckBoxState(colorKey)))
+                return true;
         }
         
         return false;
@@ -65,13 +69,14 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
         
         for (var colorKey : ColorKey.VALUES) {
             settings.setColor(colorKey, component.getSelectedColors(colorKey));
+            settings.setCheckBoxState(colorKey, component.getSelectedState(colorKey));
         }
     }
     
     
     @Override
     public void reset() {
-        component.reloadolors();
+        component.updateColorPanels();
         component.getPanel().invalidate();
     }
     
@@ -80,5 +85,4 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
     public void disposeUIResources() {
         component = null;
     }
-    
 }
