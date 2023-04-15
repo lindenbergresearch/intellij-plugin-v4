@@ -17,6 +17,15 @@ public class ANTLRv4Icons {
     public static final Icon MODE =
         IconLoader.getIcon("/icons/org/antlr/intellij/plugin/mode.svg", ANTLRv4Icons.class);
     
+    public static final Icon DIRECT_EDGES =
+        IconLoader.getIcon("/icons/org/antlr/intellij/plugin/DirectEdges.svg", ANTLRv4Icons.class);
+    
+    public static final Icon ROUND_EDGES =
+        IconLoader.getIcon("/icons/org/antlr/intellij/plugin/RoundEdges.svg", ANTLRv4Icons.class);
+    
+    public static final Icon RECT_EDGES =
+        IconLoader.getIcon("/icons/org/antlr/intellij/plugin/RectEdges.svg", ANTLRv4Icons.class);
+    
     
     public static Icon getToolWindow() {
         return IconLoader.getIcon("/icons/org/antlr/intellij/plugin/toolWindowAntlr.svg", ANTLRv4Icons.class);
