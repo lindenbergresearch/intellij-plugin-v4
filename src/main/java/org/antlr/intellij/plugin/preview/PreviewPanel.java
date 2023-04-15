@@ -16,10 +16,12 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import org.abego.treelayout.Configuration.Location;
+import org.antlr.intellij.plugin.ANTLRv4Icons;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
+import org.antlr.intellij.plugin.preview.UberTreeViewer.EdgesConnectorStyle;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -53,7 +55,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
      */
     enum SelectedTab {
         TREEVIEWER,
-        HIRACHIE,
+        HIERARCHY,
         PROFILER,
         TOKENLIST
     }
@@ -66,11 +68,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     // perhaps in a few more years they will get around to backport whatever it was they fixed.
     // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
     private static final boolean isTrackpadZoomSupported =
-        SystemInfo.isMac &&
-            (
-                SystemInfo.JAVA_VERSION.startsWith("1.6") ||
-                    SystemInfo.JAVA_VERSION.startsWith("1.9")
-            );
+        SystemInfo.isMac && !SystemInfo.JAVA_VERSION.startsWith("1.7");
     
     public Project project;
     public InputPanel inputPanel;
@@ -147,7 +145,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                     if (isTabSelected(SelectedTab.TOKENLIST))
                         tokenStreamViewer.onInputTextSelected(caret.getOffset());
                     
-                    if (isTabSelected(SelectedTab.HIRACHIE))
+                    if (isTabSelected(SelectedTab.HIERARCHY))
                         hierarchyViewer.selectNodeAtOffset(caret.getOffset());
                 }
             }
@@ -162,6 +160,23 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         tabbedPanel = createParseTreeAndProfileTabbedPanel();
         tabbedPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        
+        // update on changing tab
+        tabbedPanel.addChangeListener(
+            changeEvent -> {
+                var controller = ANTLRv4PluginController.getInstance(project);
+                var editor = inputPanel.getInputEditor();
+                
+                if (editor == null || controller == null)
+                    return;
+                
+                var grammarFile = controller.getCurrentGrammarFile();
+                var input = editor.getDocument().getText();
+                
+                controller.parseText(grammarFile, input);
+            });
+        
+        
         splitPane.setFirstComponent(leftPanel);
         splitPane.setSecondComponent(tabbedPanel);
         
@@ -192,7 +207,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 treeViewer.autoscaling = state;
                 treeViewer.setTreeInvalidated(true);
-                
             }
         };
         
@@ -257,7 +271,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             public void actionPerformed(@NotNull AnActionEvent e) {
                 treeViewer.setRelativeScaling(UberTreeViewer.SCALING_INCREMENT);
                 treeViewer.setTreeInvalidated(true);
-                
             }
         };
         
@@ -329,27 +342,67 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
+        /* --------------------------------------------------------------------- */
         
-        ToggleAction toggleParseInfo = new ToggleAction(
-            "Parse Info",
-            "Show common parsing information in tree-viewer.",
-            ShowImportStatements
+        
+        var setDirectEdgeStyle = new ToggleAction(
+            "Direct Edges Connector",
+            "Connect nodes directly via line",
+            ANTLRv4Icons.DIRECT_EDGES
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
-                return treeViewer.isShowParsingInfo();
+                return treeViewer.getEdgesPaintType() == EdgesConnectorStyle.DIRECT_LINE;
             }
             
             
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                treeViewer.setShowParsingInfo(state);
+                treeViewer.setEdgesPaintType(EdgesConnectorStyle.DIRECT_LINE);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        var setRectEdgeStyle = new ToggleAction(
+            "Rectified Edges Connector",
+            "Connect nodes via rectangle lines",
+            ANTLRv4Icons.RECT_EDGES
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.getEdgesPaintType() == EdgesConnectorStyle.RECTIFIED_LINE;
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setEdgesPaintType(EdgesConnectorStyle.RECTIFIED_LINE);
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
+        
+        var setRoundEdgeStyle = new ToggleAction(
+            "Rounded Edges Connector",
+            "Connect nodes via rounded lines",
+            ANTLRv4Icons.ROUND_EDGES
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.getEdgesPaintType() == EdgesConnectorStyle.ROUND_LINE;
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setEdgesPaintType(EdgesConnectorStyle.ROUND_LINE);
+                treeViewer.setTreeInvalidated(true);
             }
         };
         
         /* --------------------------------------------------------------------- */
         
-        ToggleAction toggleTopLayout = new ToggleAction(
+        var toggleTopLayout = new ToggleAction(
             "Top-Down Layout",
             "Layout orientation from top to bottom.",
             Chooser.Bottom
@@ -367,7 +420,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
-        ToggleAction toggleBottomLayout = new ToggleAction(
+        var toggleBottomLayout = new ToggleAction(
             "Bottom-Up Layout",
             "Layout orientation from bottom to top.",
             Chooser.Top
@@ -386,7 +439,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
         
         
-        ToggleAction toggleLeftLayout = new ToggleAction(
+        var toggleLeftLayout = new ToggleAction(
             "Left-Right Layout",
             "Layout orientation from left to right.",
             Chooser.Right
@@ -404,7 +457,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             }
         };
         
-        ToggleAction toggleRightLayout = new ToggleAction(
+        var toggleRightLayout = new ToggleAction(
             "Right-Left Layout",
             "Layout orientation from right to left.",
             Chooser.Left
@@ -423,7 +476,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         };
         /*|--------------------------------------------------------------------------|*/
         
-        final AnAction decNodesGap = new AnAction(
+        final var decNodesGap = new AnAction(
             "Decrease Gap Between Nodes",
             null,
             Collapseall
@@ -481,7 +534,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                treeViewer.setRelativeNodesGap(UberTreeViewer.NODE_GAP_INCREMENT);
+                treeViewer.resetNodesGap();
                 treeViewer.setTreeInvalidated(true);
             }
         };
@@ -506,9 +559,16 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         actionGroup.addSeparator();
         
         actionGroup.addAll(
-            toggleParseInfo,
             toggleCompactLabels,
             toggleObjectExplorer
+        );
+        
+        actionGroup.addSeparator();
+        
+        actionGroup.addAll(
+            setDirectEdgeStyle,
+            setRectEdgeStyle,
+            setRoundEdgeStyle
         );
         
         actionGroup.addSeparator();
@@ -592,8 +652,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 highlightSource = state;
             }
-            
-            
         };
         
         /* --------------------------------------------------------------------- */
@@ -667,6 +725,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         hierarchyViewer = new HierarchyViewer(null);
         hierarchyViewer.addParsingResultSelectionListener(this);
+        
         tabbedPane.addTab("Hierarchy", ShowAsTree, hierarchyViewer);
         
         profilerPanel = new ProfilerPanel(project, this);
@@ -674,7 +733,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         tokenStreamViewer = new TokenStreamViewer();
         tokenStreamViewer.addParsingResultSelectionListener(this);
-        tabbedPane.addTab("Tokens", ShowHiddens, tokenStreamViewer);
+        tabbedPane.addTab("Tokens", ObjectBrowser.AbbreviatePackageNames, tokenStreamViewer);
         
         return tabbedPane;
     }
@@ -841,6 +900,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         //DEBUG LOG.info("switchToGrammar has valid grammar? " + previewState.hasValidGrammar());
         
         setEnabled(previewState.hasValidGrammar());
+        
+        if (controller.getPreviewWindow() != null)
+            controller.getPreviewWindow().show();
     }
     
     
@@ -868,7 +930,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     private void setEnabledRecursive(Component component, boolean enabled) {
         if (component instanceof Container) {
-            for (Component child : ((Container) component).getComponents()) {
+            for (var child : ((Container) component).getComponents()) {
                 child.setEnabled(enabled);
                 setEnabledRecursive(child, enabled);
             }
@@ -910,7 +972,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 treeViewer.setTree(result.tree);
             }
             
-            if (isTabSelected(SelectedTab.HIRACHIE)) {
+            if (isTabSelected(SelectedTab.HIERARCHY)) {
                 hierarchyViewer.setTreeTextProvider(provider);
                 hierarchyViewer.setTree(result.tree);
             }
@@ -1012,7 +1074,19 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 profilerPanel.setProfilerData(previewState, duration);
             }
             
+            
             inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
+
+//            var tokenStream = (BufferedTokenStream) previewState.parsingResult.parser.getTokenStream();
+//            List<? extends Token> tokens = tokenStream.getTokens();
+//            System.out.println("---------------");
+//
+//            for (var token : tokens) {
+//                System.out.println(token);
+//                markTokenAtInputPanel(token, JBColor.GREEN, EffectType.ROUNDED_BOX, token.getText());
+//            }
+//            System.out.println("---------------");
+            
             return;
         }
         
@@ -1041,6 +1115,28 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     public PropertiesPanel getPropertiesPanel() {
         return propertiesPanel;
+    }
+    
+    
+    /**
+     * Mark a specific token at the input-panel.
+     *
+     * @param token      The token to mark.
+     * @param color      The color which marks.
+     * @param effectType The effect-type used.
+     * @param hintText   The hint showed upon marking.
+     */
+    public void markTokenAtInputPanel(Token token, JBColor color, EffectType effectType, String hintText) {
+        //  inputPanel.clearInputEditorHighlighters();
+        if (token == null || color == null || effectType == null || hintText == null) return;
+        
+        
+        var startIndex = token.getStartIndex();
+        var stopIndex = token.getStopIndex();
+        
+        var editor = inputPanel.getInputEditor();
+        var sourceInterval = Interval.of(startIndex, stopIndex + 1);
+        inputPanel.highlightAndOfferHint(editor, 0, sourceInterval, color, effectType, hintText);
     }
     
     
@@ -1102,5 +1198,4 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             inputPanel.highlightAndOfferHint(editor, startIndex, sourceInterval, (JBColor) JBColor.MAGENTA, EffectType.ROUNDED_BOX, msg);
         }
     }
-    
 }
