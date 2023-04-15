@@ -39,7 +39,7 @@ public class DefaultStyles {
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_TEXT_MARGIN = new StyledElementMargin(5);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(10, 5, 10, 5);
     
     public static final StyledElementMargin
         DEFAULT_MARGIN = new StyledElementMargin(0);
@@ -59,19 +59,16 @@ public class DefaultStyles {
     
     /* ----- FONT FACES --------------------------------------*/
     
-    public static final Font BaseFont =
-        UIHelper.createTrueType("inter/Inter-Medium", new StyledElementMargin());
+    public static final Font BaseFont = JBFont.regular();
     
-    public static final Font BaseFontBold =
-        UIHelper.createTrueType("inter/Inter-Bold", new StyledElementMargin());
+    public static final Font BaseFontBold = BaseFont.deriveFont(Font.BOLD);
     
-    public static final Font BaseFontItalic =
-        UIHelper.createTrueType("inter/Inter-Italic", new StyledElementMargin());
+    public static final Font BaseFontItalic = BaseFont.deriveFont(Font.ITALIC);
     
     // --- common font-sizes
     
     public static final float BASIC_FONT_SIZE =
-        JBFont.regular().getSize2D() + 2;
+        JBFont.regular().getSize2D() + 4;
     
     public static final float BASIC_LABEL_FONT_SIZE =
         BASIC_FONT_SIZE * LABEL_FOOTER_FONT_SCALE;
@@ -372,7 +369,7 @@ public class DefaultStyles {
             JB_COLOR_CYAN,
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
-            HUGE_STROKE,
+            THICK_STROKE,
             BASIC_FONT,
             ELEMENT_FILLED,
             DEFAULT_ARC_DIAMETER
@@ -386,7 +383,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.ROOT_NODE_COLOR),
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
-            HUGE_STROKE,
+            THICK_STROKE,
             BASIC_FONT,
             getCheckBoxStateFromAppSettings(ColorKey.ROOT_NODE_COLOR),
             DEFAULT_ARC_DIAMETER
