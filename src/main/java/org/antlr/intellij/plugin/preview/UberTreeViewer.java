@@ -75,8 +75,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     public static final int DEFAULT_GAP_BETWEEN_LEVELS = 35;
     
     // minimum node dimensions
-    public static final int MIN_CELL_WIDTH = 50;
-    public static final int MIN_CELL_HEIGHT = 20;
+    public static final int MIN_CELL_WIDTH = 40;
+    public static final int MIN_CELL_HEIGHT = 40;
     
     // auto-scale factor interval
     public final static double MAX_AUTO_SCALE_FACTOR = 1.12;
@@ -490,8 +490,8 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
                     g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
                     break;
                 case RECTIFIED_LINE:
-                    var p1 = new Point2D.Double(x1, y1 - 6);
-                    var p2 = new Point2D.Double(x2, y2 + 10);
+                    var p1 = new Point2D.Double(x1, y1);
+                    var p2 = new Point2D.Double(x2, y2);
                     var ly2 = -(y2 - y1) / 2.0; // vertical half-length
                     
                     var halfDelta = new Point2D.Double((x2 - x1) / 2., (y2 - y1) / 2.);
@@ -1304,7 +1304,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         // do nothing on an invalid tree
         if (treeLayout == null || treeLayout.getLevelCount() == 0) return;
         
-        var node = getNodeFromLocation(p);
+        var node = getNodeFromLocation(p, true);
         
         if (node != null) {
             // set selected node
@@ -1380,15 +1380,17 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     /**
      * Try to find a node at the given location.
      *
-     * @param p XY coordinate
+     * @param p          XY coordinate.
+     * @param usePrecise Indicates the usage of the actual bounds of the node.
      * @return An instance of Tree if the location matches a node, NULL otherwise.
      */
-    private Tree getNodeFromLocation(Point2D p) {
+    private Tree getNodeFromLocation(Point2D p, boolean usePrecise) {
         // do nothing on an invalid tree
         if (treeLayout == null || treeLayout.getLevelCount() == 0) return null;
         
-        for (Tree tree : treeLayout.getNodeBounds().keySet()) {
-            Rectangle2D.Double box = getBoundsOfNode(tree);
+        for (var tree : treeLayout.getNodeBounds().keySet()) {
+            var box = usePrecise ? getPreciseBoundsOfNode(tree) : getBoundsOfNode(tree);
+            
             if (box.contains(p.getX() / scale, p.getY() / scale)) {
                 return tree;
             }
@@ -1399,13 +1401,24 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     
     /**
+     * Returns the info string related to this node.
+     *
+     * @param tree The tree-node.
+     * @return The string with tooltip information.
+     */
+    public String getTooltipForNode(Tree tree) {
+        return "default";
+    }
+    
+    
+    /**
      * Checks if a given location hits a node.
      *
      * @param p Location as Pout2D.
      * @return True if hits a node.
      */
     private boolean locationHitsNode(Point2D p) {
-        return getNodeFromLocation(p) != null;
+        return getNodeFromLocation(p, true) != null;
     }
     
     
@@ -1524,17 +1537,18 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
         currentMousePos = mouseEvent.getPoint();
         // check if there is a node under the mouse cursor
         if (locationHitsNode(currentMousePos)) {
-            var tree = getNodeFromLocation(currentMousePos);
+            var tree = getNodeFromLocation(currentMousePos, true);
             setCursor(SELECT_CURSOR);
+
+//            var b = getBoundsOfNode(tree);
+//            var b2 = getPreciseBoundsOfNode(tree);
+//            var s = "pos=[" + (int) b.x + ", " + (int) b.y +
+//                "] size=[" + (int) b.width + ", " + (int) b.height +
+//                "] prec=[" + (int) b2.width + ", " + (int) b2.height +
+//                "] max=[" + (int) extentProvider.getMaxDimension().getWidth() + ", " + (int) extentProvider.getMaxDimension().getHeight() + "].";
             
-            var b = getBoundsOfNode(tree);
-            var b2 = getPreciseBoundsOfNode(tree);
-            var s = "pos=[" + (int) b.x + ", " + (int) b.y +
-                "] size=[" + (int) b.width + ", " + (int) b.height +
-                "] prec=[" + (int) b2.width + ", " + (int) b2.height +
-                "] max=[" + (int) extentProvider.getMaxDimension().getWidth() + ", " + (int) extentProvider.getMaxDimension().getHeight() + "].";
-            
-            setToolTipText(s);
+            // set tooltip on mouseover
+            setToolTipText(getTooltipForNode(tree));
         } else {
             setCursor(DEFAULT_CURSOR);
             setToolTipText("");
