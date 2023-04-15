@@ -27,11 +27,9 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -810,7 +808,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         if (previewState.grammar != null && previewState.startRuleName != null) {
             updateParseTreeFromDoc(previewState.grammarFile, true);
         } else {
-            clearTabs(null); // blank tree
+            clearTabs(); // blank tree
         }
         
         if (previewState.hasValidGrammar()) {
@@ -894,7 +892,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         } else {
             //DEBUG LOG.info("switchToGrammar -> BAD GRAMMAR: " + grammarFileName);
             showError("Error while parsing grammar." + "See ANTLR Tool Output for more information.");
-            clearTabs(null); // blank tree
+            clearTabs(); // blank tree
         }
         
         //DEBUG LOG.info("switchToGrammar has valid grammar? " + previewState.hasValidGrammar());
@@ -952,10 +950,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
     
     
-    private void clearTabs(@Nullable ParseTree tree) {
+    private void clearTabs() {
         ApplicationManager.getApplication().invokeLater(() -> {
             treeViewer.setRuleNames(Collections.emptyList());
-            treeViewer.setTree(tree);
+            treeViewer.setTree(null);
             hierarchyViewer.setRuleNames(Collections.emptyList());
             hierarchyViewer.setTree(null);
             tokenStreamViewer.clear();
@@ -966,6 +964,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
         ApplicationManager.getApplication().invokeLater(() -> {
             var provider = new AltLabelTextProvider(result.parser, preview.grammar);
+            
+            /* handle different tabs for optimization */
+            
+            if (isTabSelected(SelectedTab.PROFILER)) {
+                profilerPanel.setProfilerData(preview, (long) preview.parseTime);
+            }
             
             if (isTabSelected(SelectedTab.TREEVIEWER)) {
                 treeViewer.setTreeTextProvider(provider);
@@ -985,7 +989,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     void clearParseTree() {
-        clearTabs(null);
+        clearTabs();
         errorConsolePanel.clear();
     }
     
@@ -996,7 +1000,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private void showError(String message) {
-        clearTabs(null);
+        clearTabs();
         errorConsolePanel.add(message);
     }
     
@@ -1066,32 +1070,15 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         previewState.parseTime = duration;
         
         if (previewState.parsingResult != null) {
-            if (isTabSelected(SelectedTab.TREEVIEWER)) {
-                updateTreeViewer(previewState, previewState.parsingResult);
-            }
-            
-            if (isTabSelected(SelectedTab.PROFILER)) {
-                profilerPanel.setProfilerData(previewState, duration);
-            }
-            
-            
+            updateTreeViewer(previewState, previewState.parsingResult);
             inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
-
-//            var tokenStream = (BufferedTokenStream) previewState.parsingResult.parser.getTokenStream();
-//            List<? extends Token> tokens = tokenStream.getTokens();
-//            System.out.println("---------------");
-//
-//            for (var token : tokens) {
-//                System.out.println(token);
-//                markTokenAtInputPanel(token, JBColor.GREEN, EffectType.ROUNDED_BOX, token.getText());
-//            }
-//            System.out.println("---------------");
             
             return;
         }
         
         if (previewState.startRuleName == null) {
             indicateNoStartRuleInParseTreePane();
+            
             return;
         }
         
