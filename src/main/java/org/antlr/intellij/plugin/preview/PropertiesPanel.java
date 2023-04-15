@@ -4,7 +4,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
-import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
@@ -33,10 +32,10 @@ public class PropertiesPanel extends JPanel {
         propertiesTable.setFillsViewportHeight(true);
         propertiesTable.getEmptyText().appendLine("Select a node to display");
         propertiesTable.getEmptyText().appendLine("its properties.");
-        //  propertiesTable.setStriped(true);
+        //propertiesTable.setStriped(true);
         propertiesTable.setShowVerticalLines(true);
-        //   propertiesTable.setBackground(DefaultStyles.getConsoleBackground());
-        propertiesTable.setFont(DefaultStyles.SMALL_FONT);
+        //propertiesTable.setBackground(DefaultStyles.getConsoleBackground());
+        //propertiesTable.setFont(DefaultStyles.SMALL_FONT);
         
         var scrollPane = new JBScrollPane(
             propertiesTable,
