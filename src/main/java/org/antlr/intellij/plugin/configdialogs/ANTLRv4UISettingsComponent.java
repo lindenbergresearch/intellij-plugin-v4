@@ -5,6 +5,8 @@ package org.antlr.intellij.plugin.configdialogs;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState.ColorKey;
@@ -27,32 +29,37 @@ public class ANTLRv4UISettingsComponent {
     private final Map<ColorKey, Tuple2<ColorPanel, ColorPanel>> colorPanels
         = new LinkedHashMap<>();
     
+    private final Map<ColorKey, Checkbox> stateCheckBoxes
+        = new LinkedHashMap<>();
     
     private JPanel mainPanel;
     
-    private JCheckBox scrollToFirst;
-    private JCheckBox scrollToLast;
+    private final JCheckBox checkBox1;
+    private final JCheckBox checkBox2;
     private final ANTLRv4UISettingsState appSettings;
     
     Insets emptyInsets = new JBInsets(0);
     Insets cpInsets = JBUI.insetsLeft(8);
     
     
+    /**
+     *
+     */
     public ANTLRv4UISettingsComponent() {
         appSettings = ANTLRv4UISettingsState.getInstance();
         mainPanel = new JPanel(new BorderLayout());
         
         var commonSettingsPanel = new JPanel();
         commonSettingsPanel.setLayout(new BoxLayout(commonSettingsPanel, BoxLayout.Y_AXIS));
-        commonSettingsPanel.setBorder(IdeBorderFactory.createTitledBorder("Parse-Tree Color Settings"));
+        commonSettingsPanel.setBorder(IdeBorderFactory.createTitledBorder("Common Viewer Settings"));
         
         
-        scrollToFirst = new JCheckBox("Scroll to first?");
-        scrollToLast = new JCheckBox("Scroll to last?");
+        checkBox1 = new JBCheckBox("Automatically bring preview window in front when switching a grammar.");
+        checkBox2 = new JBCheckBox("This is a second option.");
         // ...
         
-        commonSettingsPanel.add(scrollToFirst);
-        commonSettingsPanel.add(scrollToLast);
+        commonSettingsPanel.add(checkBox1);
+        commonSettingsPanel.add(checkBox2);
         
         mainPanel = add(mainPanel, commonSettingsPanel);
         
@@ -81,42 +88,107 @@ public class ANTLRv4UISettingsComponent {
         constraints.ipady = 30;
         constraints.insets = emptyInsets;
         
-        var label = new JLabel("");
+        var label = new JBLabel("");
         colorsPanel.add(label, constraints);
         
         constraints.gridx = 1;
-        constraints.gridy = i;
         constraints.weightx = 0.1;
         constraints.insets = emptyInsets;
         
-        colorsPanel.add(new JLabel("IntelliJ Light"), constraints);
+        var l1 = new JBLabel("IntelliJ light");
+        colorsPanel.add(l1, constraints);
+        l1.invalidate();
         
         
         constraints.gridx = 2;
-        constraints.gridwidth = 2;
-        constraints.weightx = 0.2;
+        constraints.gridwidth = 1;
+        constraints.weightx = 0.1;
         constraints.insets = emptyInsets;
         constraints.ipady = 0;
         
-        colorsPanel.add(new JLabel("IntelliJ Darcula"), constraints);
+        var l2 = new JBLabel("IntelliJ darcula");
+        colorsPanel.add(l2, constraints);
+        l2.invalidate();
+        
+        constraints.gridx = 3;
+        constraints.gridwidth = 2;
+        constraints.weightx = 1;
+        constraints.insets = emptyInsets;
+        constraints.ipady = 0;
+        
+        var l3 = new JBLabel("Node is filled");
+        colorsPanel.add(l3, constraints);
+        l3.invalidate();
         
         i++;
         
-        addColorPanelComponent(colorsPanel, "Background", constraints, ColorKey.VIEWER_BACKGROUND, i++);
-        addColorPanelComponent(colorsPanel, "Foreground", constraints, ColorKey.VIEWER_FOREGROUND, i++);
-        addColorPanelComponent(colorsPanel, "Text Color", constraints, ColorKey.TEXT_COLOR, i++);
+        addColorPanelComponent(colorsPanel, "Background", constraints, ColorKey.VIEWER_BACKGROUND, i++, true);
+        addColorPanelComponent(colorsPanel, "Foreground", constraints, ColorKey.VIEWER_FOREGROUND, i++, true);
+        addColorPanelComponent(colorsPanel, "Text Color", constraints, ColorKey.TEXT_COLOR, i++, true);
+        addColorPanelComponent(colorsPanel, "Label Color", constraints, ColorKey.LABEL_COLOR, i++, true);
         
-        addColorPanelComponent(colorsPanel, "Default Node", constraints, ColorKey.DEFAULT_NODE_BACKGROUND, i++);
-        addColorPanelComponent(colorsPanel, "Root Node", constraints, ColorKey.ROOT_NODE_COLOR, i++);
-        addColorPanelComponent(colorsPanel, "Terminal Node", constraints, ColorKey.TERMINAL_NODE_COLOR, i++);
-        addColorPanelComponent(colorsPanel, "EOF Node", constraints, ColorKey.EOF_NODE_COLOR, i++);
+        addColorPanelComponent(colorsPanel, "Default Node", constraints, ColorKey.DEFAULT_NODE_BACKGROUND, i++, false);
+        addColorPanelComponent(colorsPanel, "Root Node", constraints, ColorKey.ROOT_NODE_COLOR, i++, false);
+        addColorPanelComponent(colorsPanel, "Terminal Node", constraints, ColorKey.TERMINAL_NODE_COLOR, i++, false);
+        addColorPanelComponent(colorsPanel, "EOF Node", constraints, ColorKey.EOF_NODE_COLOR, i++, false);
         
-        addColorPanelComponent(colorsPanel, "ERROR Node", constraints, ColorKey.ERROR_COLOR, i++);
-        addColorPanelComponent(colorsPanel, "Resync Node", constraints, ColorKey.RESYNC_COLOR, i++);
+        addColorPanelComponent(colorsPanel, "ERROR Node", constraints, ColorKey.ERROR_COLOR, i++, false);
+        addColorPanelComponent(colorsPanel, "Resync Node", constraints, ColorKey.RESYNC_COLOR, i++, false);
         
-        addColorPanelComponent(colorsPanel, "Connector", constraints, ColorKey.CONNECTOR_COLOR, i++);
-        addColorPanelComponent(colorsPanel, "Connector Selected", constraints, ColorKey.CONNECTOR_SELECTED_COLOR, i++);
+        addColorPanelComponent(colorsPanel, "Connector", constraints, ColorKey.CONNECTOR_COLOR, i++, true);
+        addColorPanelComponent(colorsPanel, "Connector Selected", constraints, ColorKey.CONNECTOR_SELECTED_COLOR, i++, true);
         
+        constraints.gridx = 0;
+        constraints.gridy = i;
+        constraints.gridwidth = 2;
+        constraints.weightx = 0.2;
+        constraints.insets = emptyInsets;
+        constraints.ipady = 2;
+        
+        var resetButton = new JButton("Reset Colors");
+        resetButton.addActionListener(e -> {
+            setDefaultColors();
+            mainPanel.invalidate();
+        });
+        
+        colorsPanel.add(resetButton, constraints);
+    }
+    
+    
+    /**
+     * Reload colors from app-settings.
+     */
+    public void updateColorPanels() {
+        for (var colorKey : colorPanels.keySet()) {
+            var color = appSettings.getColor(colorKey);
+            var panels = colorPanels.get(colorKey);
+            
+            if (color == null || panels == null)
+                continue;
+            
+            var colorTuple = deconstructJBColor(color);
+            panels.a.setSelectedColor(colorTuple.first());
+            panels.b.setSelectedColor(colorTuple.second());
+        }
+    }
+    
+    
+    /**
+     * Obtain all colors from the app-settings and update
+     * the color-picker components.
+     */
+    void setDefaultColors() {
+        for (var colorKey : colorPanels.keySet()) {
+            var color = DefaultStyles.getDefaultColor(colorKey);
+            var panels = colorPanels.get(colorKey);
+            
+            if (color == null || panels == null)
+                continue;
+            
+            var colorTuple = deconstructJBColor(color);
+            panels.a.setSelectedColor(colorTuple.first());
+            panels.b.setSelectedColor(colorTuple.second());
+        }
     }
     
     
@@ -129,13 +201,13 @@ public class ANTLRv4UISettingsComponent {
      * @param colorKey    The corresponding color-key.
      * @param row         The corresponding row.
      */
-    private void addColorPanelComponent(JPanel target, String label, GridBagConstraints constraints, ColorKey colorKey, int row) {
+    private void addColorPanelComponent(JPanel target, String label, GridBagConstraints constraints, ColorKey colorKey, int row, boolean filledLocked) {
         constraints.gridx = 0;
         constraints.gridy = row;
         constraints.weightx = 0.1;
         constraints.insets = emptyInsets;
         
-        target.add(new JLabel(label), constraints);
+        target.add(new JBLabel(label), constraints);
         
         constraints.gridx = 1;
         constraints.gridy = row;
@@ -153,10 +225,25 @@ public class ANTLRv4UISettingsComponent {
         target.add(panels.first(), constraints);
         
         constraints.gridx = 2;
-        constraints.weightx = 0.9;
+        constraints.weightx = 0.1;
         constraints.insets = cpInsets;
         
         target.add(panels.second(), constraints);
+        
+        constraints.gridx = 3;
+        constraints.weightx = 0.1;
+        constraints.insets = cpInsets;
+        
+        var state = appSettings.getCheckBoxState(colorKey);
+        var cb = new Checkbox("");
+        stateCheckBoxes.put(colorKey, cb);
+        cb.setState(state);
+        target.add(cb, constraints);
+        
+        if (filledLocked) {
+            cb.setState(false);
+            cb.setEnabled(false);
+        }
     }
     
     
@@ -173,6 +260,16 @@ public class ANTLRv4UISettingsComponent {
         p.add(panel, BorderLayout.NORTH);
         
         return p;
+    }
+    
+    
+    /**
+     * Return the color panel data.
+     *
+     * @return The map containing the selected color data.
+     */
+    public Map<ColorKey, Tuple2<ColorPanel, ColorPanel>> getColorPanels() {
+        return colorPanels;
     }
     
     
@@ -194,6 +291,21 @@ public class ANTLRv4UISettingsComponent {
         colorPanels.put(colorKey, panels);
         
         return panels;
+    }
+    
+    
+    /**
+     * Returns the state for the check-box relating to the given color-key.
+     *
+     * @param colorKey The color-key the check-box is associated.
+     * @return The state of the check-box component.
+     */
+    public Boolean getSelectedState(ColorKey colorKey) {
+        if (stateCheckBoxes.containsKey(colorKey)) {
+            return stateCheckBoxes.get(colorKey).getState();
+        } else {
+            return DefaultStyles.getDefaultCheckBoxState(colorKey);
+        }
     }
     
     
@@ -225,5 +337,4 @@ public class ANTLRv4UISettingsComponent {
     public JComponent getPreferredFocusedComponent() {
         return mainPanel;
     }
-    
 }
