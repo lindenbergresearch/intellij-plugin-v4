@@ -1,9 +1,9 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
@@ -13,24 +13,21 @@ import org.antlr.intellij.plugin.actions.AnnotationIntentActionsFactory;
 import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.intellij.plugin.validation.GrammarIssuesCollector;
 import org.antlr.runtime.ANTLRFileStream;
-import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
-import org.antlr.v4.tool.ErrorSeverity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<GrammarIssue>> {
     public static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
     
     
     static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue, PsiFile file) {
-        TextRange textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
-        Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType(), file);
-        intentionAction.ifPresent(annotation::registerFix);
+        var textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
+        var intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType(), file);
+        intentionAction.ifPresent(fix -> annotation.registerFix(fix));
     }
     
     
@@ -60,59 +57,66 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
      * Called 3rd
      */
     @Override
-    public void apply(
-        @NotNull PsiFile file,
-        List<GrammarIssue> issues,
-        @NotNull AnnotationHolder holder
-    ) {
-        for (GrammarIssue issue : issues) {
+    public void apply(@NotNull PsiFile file, List<GrammarIssue> issues, @NotNull AnnotationHolder holder) {
+        for (var issue : issues) {
             if (issue.getOffendingTokens().isEmpty()) {
                 annotateFileIssue(file, holder, issue);
             } else {
                 annotateIssue(file, holder, issue);
             }
         }
-        
-        final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(file.getProject());
-//      Why? It just causes unnecessary reloads and re-parsing the grammar.
-//        if (controller != null && !ApplicationManager.getApplication().isUnitTestMode()) {
-//           controller.getPreviewPanel().autoRefreshPreview(file.getVirtualFile());
-//        }
     }
     
     
     private void annotateFileIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
-        Annotation annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
+        var annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
         annotation.setFileLevelAnnotation(true);
     }
     
     
     private void annotateIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
-        for (Token t : issue.getOffendingTokens()) {
+        for (var t : issue.getOffendingTokens()) {
             if (t instanceof CommonToken && tokenBelongsToFile(t, file)) {
-                TextRange range = getTokenRange((CommonToken) t, file);
-                ErrorSeverity severity = getIssueSeverity(issue);
+                var range = getTokenRange((CommonToken) t, file);
+                var severity = getIssueSeverity(issue);
+                var fix = AnnotationIntentActionsFactory.getFix(range, issue.getMsg().getErrorType(), file);
                 
-                Optional<Annotation> annotation = annotate(holder, issue, range, severity);
-                annotation.ifPresent(a -> registerFixForAnnotation(a, issue, file));
+                holder.newAnnotation(severity, issue.getAnnotation()).range(range).create();
+                fix.ifPresent(intentionAction ->
+                    holder.newAnnotation(severity, issue.getAnnotation()).
+                        newFix(intentionAction).
+                        registerFix().
+                        create()
+                );
             }
         }
     }
     
     
-    private ErrorSeverity getIssueSeverity(GrammarIssue issue) {
-        if (issue.getMsg().getErrorType() != null) {
-            return issue.getMsg().getErrorType().severity;
-        }
+    private HighlightSeverity getIssueSeverity(GrammarIssue issue) {
+        var errorType = issue.getMsg().getErrorType();
         
-        return ErrorSeverity.INFO;
+        if (errorType == null)
+            return HighlightSeverity.WEAK_WARNING;
+        
+        switch (errorType.severity) {
+            case ERROR:
+            case ERROR_ONE_OFF:
+            case FATAL:
+                return HighlightSeverity.ERROR;
+            case WARNING:
+            case WARNING_ONE_OFF:
+                return HighlightSeverity.WARNING;
+            default:
+                return HighlightSeverity.WEAK_WARNING;
+        }
     }
     
     
     @NotNull
     private TextRange getTokenRange(CommonToken ct, @NotNull PsiFile file) {
-        int startIndex = ct.getStartIndex();
-        int stopIndex = ct.getStopIndex();
+        var startIndex = ct.getStartIndex();
+        var stopIndex = ct.getStopIndex();
         
         if (startIndex >= file.getTextLength()) {
             // can happen in case of a 'mismatched input EOF' error
@@ -129,37 +133,8 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
     
     
     private boolean tokenBelongsToFile(Token t, @NotNull PsiFile file) {
-        CharStream inputStream = t.getInputStream();
-        if (inputStream instanceof ANTLRFileStream) {
-            // Not equal if the token belongs to an imported grammar
-            return inputStream.getSourceName().equals(file.getVirtualFile().getCanonicalPath());
-        }
-        
-        return true;
+        var inputStream = t.getInputStream();
+        // Not equal if the token belongs to an imported grammar
+        return !(inputStream instanceof ANTLRFileStream) || inputStream.getSourceName().equals(file.getVirtualFile().getCanonicalPath());
     }
-    
-    
-    private Optional<Annotation> annotate(@NotNull AnnotationHolder holder, GrammarIssue issue, TextRange range, ErrorSeverity severity) {
-        switch (severity) {
-            case ERROR:
-            case ERROR_ONE_OFF:
-            case FATAL:
-                return Optional.of(holder.createErrorAnnotation(range, issue.getAnnotation()));
-            
-            case WARNING:
-                return Optional.of(holder.createWarningAnnotation(range, issue.getAnnotation()));
-            
-            case WARNING_ONE_OFF:
-            case INFO:
-            /* When trying to remove the deprecation warning, you will need something like this:
-            AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WEAK_WARNING, issue.getAnnotation()).range(range);
-             */
-                return Optional.of(holder.createWeakWarningAnnotation(range, issue.getAnnotation()));
-            
-            default:
-                break;
-        }
-        return Optional.empty();
-    }
-    
 }
