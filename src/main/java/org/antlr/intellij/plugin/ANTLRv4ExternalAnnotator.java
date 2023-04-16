@@ -25,8 +25,10 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
     
     
     static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue, PsiFile file) {
-        var textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
-        var intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType(), file);
+        var range = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
+        var intentionAction = AnnotationIntentActionsFactory.getFix(range, issue.getMsg().getErrorType(), file);
+        
+        //TODO: replace deprecated methods
         intentionAction.ifPresent(fix -> annotation.registerFix(fix));
     }
     
