@@ -62,7 +62,7 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
         
         var ruleLabelMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(RULE_LABEL);
         ruleLabelMatcher.addPremise(
-            element -> isTokenElement(element, ANTLRv4Lexer.RULE_REF),
+            element -> isTokenElement(element, ANTLRv4Lexer.RULE_REF) || isTokenElement(element, ANTLRv4Lexer.TOKEN_REF),
             element -> element.getParent() != null && element.getParent().getParent() != null,
             element -> isRuleElement(element.getParent().getParent(), ANTLRv4Parser.RULE_labeledAlt
             )
@@ -85,7 +85,7 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
             element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_tokensSpec
             )
         );
-    
+        
         var lexerRuleSpecMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(LEXER_RULE_DECL);
         lexerRuleSpecMatcher.addPremise(
             element -> isTokenElement(element, ANTLRv4Lexer.TOKEN_REF),
@@ -136,5 +136,4 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
             }
         }
     }
-    
 }
