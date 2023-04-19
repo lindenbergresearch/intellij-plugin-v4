@@ -81,7 +81,7 @@ public class BasicStyledTreeNode extends StyledTreeNode {
         
         header.setTextColor((JBColor) shape.getBackground().brighter());
         header.setTextFont(header.getTextFont().deriveFont((float) header.getTextFont().getSize()));
-        footer.setTextColor(header.getTextColor());
+        footer.setLabelColor(header.getTextColor());
     }
     
     
@@ -89,8 +89,14 @@ public class BasicStyledTreeNode extends StyledTreeNode {
      * Adapt style properties for selected tree-node.
      */
     protected void setSelected() {
-        shape.setStroke(THICK_STROKE);
-        shape.setBackground((JBColor) shape.getBackground().brighter());
+        
+        if (isFilled()) {
+            shape.setStroke(THICK_STROKE);
+            shape.setBackground((JBColor) shape.getBackground().brighter());
+        } else {
+            shape.setStroke(THICK_STROKE);
+            shape.setOutlineColor((JBColor) shape.getBackground().brighter());
+        }
     }
     
     
