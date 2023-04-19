@@ -18,7 +18,9 @@ public class DefaultStyles {
     /* ----- CONSTANTS ---------------------------------------*/
     
     // round rectangle arc diameter
-    public static final int DEFAULT_ARC_DIAMETER = 7;
+    public static final int DEFAULT_ARC_DIAMETER = 8;
+    public static final int NO_ARC_DIAMETER = 0;
+    public static final int ROUND_ARC_DIAMETER = 25;
     
     
     // scale factor for footer in labels
@@ -54,7 +56,7 @@ public class DefaultStyles {
         RESYNC_NODE_MARGIN = new StyledElementMargin(5);
     
     public static final StyledElementMargin
-        TERMINAL_NODE_MARGIN = new StyledElementMargin(5);
+        TERMINAL_NODE_MARGIN = new StyledElementMargin(7);
     
     
     /* ----- FONT FACES --------------------------------------*/
@@ -83,6 +85,9 @@ public class DefaultStyles {
     
     public static final Font BASIC_FONT =
         BaseFont.deriveFont(BASIC_FONT_SIZE);
+    
+    public static final Font HEADLINE_FONT =
+        BaseFont.deriveFont(BASIC_FONT_SIZE + 2);
     
     public static final Font SMALL_FONT =
         BaseFont.deriveFont(BASIC_FONT_SIZE - 2);
@@ -157,6 +162,7 @@ public class DefaultStyles {
     /* ----- COLORS ------------------------------------------*/
     
     public final static JBColor JB_COLOR_BRIGHT = new JBColor(new Color(232, 232, 233), new Color(1, 2, 3));
+    public final static JBColor JB_COLOR_LIGHT_GRAY = new JBColor(Gray._142, new Color(130, 132, 143));
     public final static JBColor JB_COLOR_GRAY = new JBColor(Gray._122, new Color(100, 102, 103));
     public final static JBColor JB_COLOR_DARK_GRAY = new JBColor(Gray._50, new Color(60, 87, 63));
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
@@ -207,7 +213,7 @@ public class DefaultStyles {
     
     public static final Stroke THICK_STROKE =
         new BasicStroke(
-            2.1f,
+            2.f,
             BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND
         );
@@ -370,9 +376,9 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
             THICK_STROKE,
-            BASIC_FONT,
+            HEADLINE_FONT,
             ELEMENT_FILLED,
-            DEFAULT_ARC_DIAMETER
+            NO_ARC_DIAMETER
         );
     
     
@@ -384,9 +390,9 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
             THICK_STROKE,
-            BASIC_FONT,
+            HEADLINE_FONT,
             getCheckBoxStateFromAppSettings(ColorKey.ROOT_NODE_COLOR),
-            DEFAULT_ARC_DIAMETER
+            NO_ARC_DIAMETER
         
         );
     }
@@ -428,13 +434,13 @@ public class DefaultStyles {
         new StyleProperties(
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
-            JB_COLOR_GRAY,
+            JB_COLOR_LIGHT_GRAY,
             JB_COLOR_DARK,
             JB_COLOR_DARK,
             DEFAULT_STROKE,
             TERMINAL_FONT,
             ELEMENT_OUTLINED_ONLY,
-            DEFAULT_ARC_DIAMETER
+            ROUND_ARC_DIAMETER
         );
     
     
@@ -448,7 +454,7 @@ public class DefaultStyles {
             THIN_STROKE,
             TERMINAL_FONT,
             getCheckBoxStateFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
-            DEFAULT_ARC_DIAMETER
+            ROUND_ARC_DIAMETER
         
         );
     }
