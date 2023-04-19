@@ -81,7 +81,9 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
         }
         
         if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.POUND))) {
-            return pack(TOKENNAME);
+            // give the pound sign the same color as the semantic highlighting for alz labels
+            // is configured. This is a mix of both highlighter.
+            return pack(ANTLRv4SemanticHighlighter.RULE_LABEL);
         }
         
         if (Objects.equals(tokenType, TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF))) {
