@@ -38,6 +38,9 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
     public static final TextAttributesKey RULE_LABEL =
         createTextAttributesKey("ANTLRv4_RULE_LABEL", DefaultLanguageHighlighterColors.CONSTANT);
     
+    public static final TextAttributesKey ELEMENT_LABEL =
+        createTextAttributesKey("ANTLRv4_ELEMENT_LABEL", DefaultLanguageHighlighterColors.LABEL);
+    
     public static final TextAttributesKey OPTIONS_SPEC =
         createTextAttributesKey("ANTLRv4_OPTIONS_SPEC", DefaultLanguageHighlighterColors.METADATA);
     
@@ -51,12 +54,14 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
     
     
     static {
+        
+        /* --- initialise semantic highlighting rules ------------------------------- **/
+        
         var ruleDeclMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(RULE_DECL);
         ruleDeclMatcher.addPremise(
             element -> isTokenElement(element, ANTLRv4Lexer.RULE_REF),
             element -> element.getParent() != null,
-            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_parserRuleSpec
-            )
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_parserRuleSpec)
         );
         
         
@@ -64,8 +69,14 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
         ruleLabelMatcher.addPremise(
             element -> isTokenElement(element, ANTLRv4Lexer.RULE_REF) || isTokenElement(element, ANTLRv4Lexer.TOKEN_REF),
             element -> element.getParent() != null && element.getParent().getParent() != null,
-            element -> isRuleElement(element.getParent().getParent(), ANTLRv4Parser.RULE_labeledAlt
-            )
+            element -> isRuleElement(element.getParent().getParent(), ANTLRv4Parser.RULE_labeledAlt)
+        );
+        
+        var labledElementMacher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(ELEMENT_LABEL);
+        labledElementMacher.addPremise(
+            element -> isTokenElement(element, ANTLRv4Lexer.RULE_REF),
+            element -> element.getParent() != null && element.getParent().getParent() != null,
+            element -> isRuleElement(element.getParent().getParent(), ANTLRv4Parser.RULE_labeledElement)
         );
         
         
@@ -73,8 +84,7 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
         optionsSpecMatcher.addPremise(
             element -> isTokenElement(element, ANTLRv4Lexer.OPTIONS),
             element -> element.getParent() != null,
-            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_optionsSpec
-            )
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_optionsSpec)
         );
         
         
@@ -82,18 +92,17 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
         tokensSpecMatcher.addPremise(
             element -> isTokenElement(element, ANTLRv4Lexer.TOKENS),
             element -> element.getParent() != null,
-            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_tokensSpec
-            )
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_tokensSpec)
         );
         
         var lexerRuleSpecMatcher = new PsiTreeMatcher<PsiElement, TextAttributesKey>(LEXER_RULE_DECL);
         lexerRuleSpecMatcher.addPremise(
             element -> isTokenElement(element, ANTLRv4Lexer.TOKEN_REF),
             element -> element.getParent() != null,
-            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_lexerRule
-            )
+            element -> isRuleElement(element.getParent(), ANTLRv4Parser.RULE_lexerRule)
         );
         
+        matchers.add(labledElementMacher);
         matchers.add(optionsSpecMatcher);
         matchers.add(ruleLabelMatcher);
         matchers.add(ruleDeclMatcher);
@@ -107,7 +116,7 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
     /**
      * Helper method for adding an annotation.
      *
-     * @param psiTreeMatcher The tree-macher.
+     * @param psiTreeMatcher The tree-matcher.
      * @param element        The PsiElement.
      * @param holder         The holder.
      */
