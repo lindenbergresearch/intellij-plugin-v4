@@ -962,6 +962,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     
     private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
+        if (result == null) return;
+        
         ApplicationManager.getApplication().invokeLater(() -> {
             var provider = new AltLabelTextProvider(result.parser, preview.grammar);
             
