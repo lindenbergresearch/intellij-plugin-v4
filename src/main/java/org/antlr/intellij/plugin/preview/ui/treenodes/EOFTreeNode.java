@@ -8,6 +8,6 @@ import java.awt.geom.Rectangle2D;
 public class EOFTreeNode extends BasicStyledTreeNode {
     
     public EOFTreeNode(StyledElement parent, Rectangle2D viewport, boolean selected, boolean compact) {
-        super(parent, viewport, DefaultStyles.getEOFRootStyle(), selected, compact);
+        super(parent, viewport, DefaultStyles.getEOFNodeStyle(), selected, compact);
     }
 }
