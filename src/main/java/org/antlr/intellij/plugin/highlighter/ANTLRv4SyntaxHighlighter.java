@@ -26,10 +26,10 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
     
     
     public static final TextAttributesKey RULENAME =
-        createTextAttributesKey("ANTLRv4_RULENAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
+        createTextAttributesKey("ANTLRv4_RULENAME", DefaultLanguageHighlighterColors.CLASS_NAME);
     
     public static final TextAttributesKey TOKENNAME =
-        createTextAttributesKey("ANTLRv4_TOKENNAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
+        createTextAttributesKey("ANTLRv4_TOKENNAME", DefaultLanguageHighlighterColors.CONSTANT);
     
     public static final TextAttributesKey STRING =
         createTextAttributesKey("ANTLRv4_STRING", DefaultLanguageHighlighterColors.STRING);

@@ -33,13 +33,13 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
     /*|--------------------------------------------------------------------------|*/
     
     public static final TextAttributesKey RULE_DECL =
-        createTextAttributesKey("ANTLRv4_RULE_DECL", DefaultLanguageHighlighterColors.CLASS_REFERENCE);
+        createTextAttributesKey("ANTLRv4_RULE_DECL", DefaultLanguageHighlighterColors.CLASS_NAME);
     
     public static final TextAttributesKey RULE_LABEL =
-        createTextAttributesKey("ANTLRv4_RULE_LABEL", DefaultLanguageHighlighterColors.CONSTANT);
+        createTextAttributesKey("ANTLRv4_RULE_LABEL", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
     
     public static final TextAttributesKey ELEMENT_LABEL =
-        createTextAttributesKey("ANTLRv4_ELEMENT_LABEL", DefaultLanguageHighlighterColors.LABEL);
+        createTextAttributesKey("ANTLRv4_ELEMENT_LABEL", DefaultLanguageHighlighterColors.INSTANCE_METHOD);
     
     public static final TextAttributesKey OPTIONS_SPEC =
         createTextAttributesKey("ANTLRv4_OPTIONS_SPEC", DefaultLanguageHighlighterColors.METADATA);
@@ -49,7 +49,7 @@ public class ANTLRv4SemanticHighlighter implements Annotator {
     
     
     public static final TextAttributesKey LEXER_RULE_DECL =
-        createTextAttributesKey("ANTLRv4_LEXER_RULE_DECL", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
+        createTextAttributesKey("ANTLRv4_LEXER_RULE_DECL", DefaultLanguageHighlighterColors.CONSTANT);
     /*|--------------------------------------------------------------------------|*/
     
     
