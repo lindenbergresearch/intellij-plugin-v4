@@ -31,9 +31,9 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
         new AttributesDescriptor("Lexer rule", ANTLRv4SemanticHighlighter.LEXER_RULE_DECL),
         new AttributesDescriptor("Parser rule", ANTLRv4SemanticHighlighter.RULE_DECL),
         new AttributesDescriptor("Rule label", ANTLRv4SemanticHighlighter.RULE_LABEL),
+        new AttributesDescriptor("Labeled element", ANTLRv4SemanticHighlighter.ELEMENT_LABEL),
         new AttributesDescriptor("Options block", ANTLRv4SemanticHighlighter.OPTIONS_SPEC),
         new AttributesDescriptor("Tokens block", ANTLRv4SemanticHighlighter.TOKENS_SPEC),
-        
     };
     
     
@@ -59,7 +59,7 @@ public class ANTLRv4ColorsPage implements ColorSettingsPage {
                 "\n/* block comment */" + "\n\n" +
                 "compilationUnit\n" +
                 "   : STUFF EOF #Stuff\n" +
-                "   | otherRule #Other;\n" +
+                "   | label=otherRule #Other;\n" +
                 ";\n\n" +
                 "STUFF : 'stuff' -> pushMode(OTHER_MODE);\n" +
                 "WS : [ \\t]+ -> channel(HIDDEN);\n" +
