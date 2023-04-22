@@ -47,7 +47,7 @@ public class DefaultStyles {
         DEFAULT_MARGIN = new StyledElementMargin(0);
     
     public static final StyledElementMargin
-        ROOT_NODE_MARGIN = new StyledElementMargin(9);
+        ROOT_NODE_MARGIN = new StyledElementMargin(13, 9, 13, 9);
     
     public static final StyledElementMargin
         EOF_NODE_MARGIN = new StyledElementMargin(9);
@@ -70,7 +70,7 @@ public class DefaultStyles {
     // --- common font-sizes
     
     public static final float BASIC_FONT_SIZE =
-        JBFont.regular().getSize2D() + 4;
+        JBFont.regular().getSize2D() + 2;
     
     public static final float BASIC_LABEL_FONT_SIZE =
         BASIC_FONT_SIZE * LABEL_FOOTER_FONT_SCALE;
@@ -162,7 +162,7 @@ public class DefaultStyles {
     /* ----- COLORS ------------------------------------------*/
     
     public final static JBColor JB_COLOR_BRIGHT = new JBColor(new Color(232, 232, 233), new Color(1, 2, 3));
-    public final static JBColor JB_COLOR_LIGHT_GRAY = new JBColor(Gray._142, new Color(130, 132, 143));
+    public final static JBColor JB_COLOR_LIGHT_GRAY = new JBColor(Gray._160, new Color(160, 162, 163));
     public final static JBColor JB_COLOR_GRAY = new JBColor(Gray._122, new Color(100, 102, 103));
     public final static JBColor JB_COLOR_DARK_GRAY = new JBColor(Gray._50, new Color(60, 87, 63));
     public final static JBColor JB_COLOR_DARK = new JBColor(new Color(25, 24, 24), new Color(226, 227, 227));
