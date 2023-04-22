@@ -76,7 +76,7 @@ public class UberTreeViewer extends JComponent implements MouseListener, MouseMo
     
     // minimum node dimensions
     public static final int MIN_CELL_WIDTH = 40;
-    public static final int MIN_CELL_HEIGHT = 40;
+    public static final int MIN_CELL_HEIGHT = 50;
     
     // auto-scale factor interval
     public final static double MAX_AUTO_SCALE_FACTOR = 1.12;
