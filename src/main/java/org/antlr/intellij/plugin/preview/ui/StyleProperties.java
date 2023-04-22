@@ -48,7 +48,7 @@ public class StyleProperties implements Cloneable {
         this.labelColor = filled ? labelColor : background;
         this.stroke = stroke;
         this.textFont = textFont;
-        this.labelFont = textFont.deriveFont(DefaultStyles.BASIC_LABEL_FONT_SIZE);
+        this.labelFont = DefaultStyles.LABEL_FONT;
         this.arcDiameter = arcDiameter;
     }
     
