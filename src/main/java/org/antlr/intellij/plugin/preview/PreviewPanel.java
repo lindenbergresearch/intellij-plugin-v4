@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.icons.AllIcons.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -22,6 +23,7 @@ import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.preview.UberTreeViewer.EdgesConnectorStyle;
+import org.antlr.intellij.plugin.preview.VariableExtentProvider.ExtentMode;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -307,12 +309,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         ToggleAction toggleCompactLabels = new ToggleAction(
             "Compact Labels",
-            "Use compact labeling for tree-nodes.",
+            "Use compact node labeling.",
             Json.Array
         ) {
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
-                return treeViewer.isCompactLabels();
+                return treeViewer.hasCompactLabels();
             }
             
             
@@ -321,6 +323,29 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 treeViewer.setCompactLabels(state);
             }
         };
+        
+        ToggleAction toggleCompactLayout = new ToggleAction(
+            "Compact Layout",
+            "Use compact layout for tree-nodes.",
+            GroupByModuleGroup
+        ) {
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return treeViewer.hasCompactLayoutStyle();
+            }
+            
+            
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                treeViewer.setExtendLayoutStyle(
+                    state ?
+                        ExtentMode.PRECISE_BOUNDS :
+                        ExtentMode.MAXIMIZED_BOUNDS
+                );
+                treeViewer.setTreeInvalidated(true);
+            }
+        };
+        
         
         ToggleAction toggleObjectExplorer = new ToggleAction(
             "Object Explorer",
@@ -557,6 +582,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         actionGroup.addSeparator();
         
         actionGroup.addAll(
+            toggleCompactLayout,
             toggleCompactLabels,
             toggleObjectExplorer
         );
