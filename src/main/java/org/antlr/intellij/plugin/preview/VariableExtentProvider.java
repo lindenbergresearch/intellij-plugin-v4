@@ -46,7 +46,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     /**
      * extend provider mode
      */
-    private ExtentMode extentMode = ExtentMode.MAXIMIZED_BOUNDS;
+    private ExtentMode extentMode = ExtentMode.PRECISE_BOUNDS;
     
     /*|--------------------------------------------------------------------------|*/
     
