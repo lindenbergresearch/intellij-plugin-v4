@@ -116,7 +116,6 @@ public class PreviewState {
             startRuleName = "";
         }
         LOG.info("recover start-rule: '" + startRuleName + '\'');
-        
     }
     
     
@@ -205,6 +204,16 @@ public class PreviewState {
     
     
     /**
+     * Test for valid start rule.
+     *
+     * @return True if a valid start rule was found.
+     */
+    public boolean hasValidStartRule() {
+        return startRuleName != null && !startRuleName.isEmpty();
+    }
+    
+    
+    /**
      * Returns the manual input text for testing grammars.
      *
      * @return Input text.
@@ -236,5 +245,4 @@ public class PreviewState {
             inputEditor = null;
         }
     }
-    
 }
