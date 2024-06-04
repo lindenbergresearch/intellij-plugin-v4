@@ -14,9 +14,7 @@ import java.awt.*;
  */
 public class ErrorConsolePanel extends JPanel {
     
-    private JBList<String> list;
-    private JBScrollPane scrollPane;
-    private DefaultListModel<String> listModel;
+    private final DefaultListModel<String> listModel;
     
     private static ErrorConsolePanel instance;
     
@@ -30,7 +28,7 @@ public class ErrorConsolePanel extends JPanel {
     public ErrorConsolePanel(LayoutManager layout, Border border) {
         super(layout, true);
         
-        list = new JBList<>();
+        var list = new JBList<String>();
         
         list.setEmptyText("No errors found while parsing.");
         listModel = new DefaultListModel<>();
@@ -38,7 +36,7 @@ public class ErrorConsolePanel extends JPanel {
         list.setModel(listModel);
         
         
-        scrollPane = new JBScrollPane(
+        var scrollPane = new JBScrollPane(
             list,
             JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
             JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
@@ -85,6 +83,4 @@ public class ErrorConsolePanel extends JPanel {
         listModel.addElement(message);
         invalidate();
     }
-    
-    
 }
