@@ -16,8 +16,6 @@ public class ErrorConsolePanel extends JPanel {
     
     private final DefaultListModel<String> listModel;
     
-    private static ErrorConsolePanel instance;
-    
     
     /**
      * Creates a message pane with the given layout and border.
@@ -50,18 +48,6 @@ public class ErrorConsolePanel extends JPanel {
         list.setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(DefaultStyles.BASIC_FONT_SIZE - 2));
         list.setBackground(DefaultStyles.getConsoleBackground());
         list.setForeground(JBColor.RED);
-        
-        setInstance(this);
-    }
-    
-    
-    public static ErrorConsolePanel getInstance() {
-        return instance;
-    }
-    
-    
-    public static void setInstance(ErrorConsolePanel instance) {
-        ErrorConsolePanel.instance = instance;
     }
     
     
