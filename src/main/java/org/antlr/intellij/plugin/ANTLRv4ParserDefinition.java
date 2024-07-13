@@ -14,7 +14,7 @@ import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4GrammarParser;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.v4.runtime.VocabularyImpl;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,8 +28,8 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
     public ANTLRv4ParserDefinition() {
         PSIElementTypeFactory.defineLanguageIElementTypes(
             ANTLRv4Language.INSTANCE,
-            ANTLRv4Lexer.tokenNames,
-            ANTLRv4Parser.ruleNames
+            ((VocabularyImpl)ANTLRv4Lexer.VOCABULARY).getSymbolicNames(),
+            org.antlr.intellij.plugin.parser.ANTLRv4Parser.ruleNames
         );
     }
     
