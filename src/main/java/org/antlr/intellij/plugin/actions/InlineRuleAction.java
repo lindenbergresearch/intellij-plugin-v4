@@ -1,9 +1,6 @@
 package org.antlr.intellij.plugin.actions;
 
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -22,6 +19,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Trees;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -70,21 +68,29 @@ public class InlineRuleAction extends AnAction {
         // if rule has outermost alt, must add (...) around insertion
         // Look for ruleBlock, lexerRuleBlock
         if (RefactorUtils.ruleHasMultipleOutermostAlts(parser, ruleDefNode)) {
-            ruleText_ = "(" + ruleText_ + ")";
+            ruleText_ = '(' + ruleText_ + ')';
         }
         final String ruleText = ruleText_; // we ref from inner class; requires final
         
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            replaceRuleRefs(doc, tokens, ruleName, rrefNodes, ruleText);
+        });
+        
         // replace rule refs with rule text
-        WriteCommandAction setTextAction = new WriteCommandAction(project) {
-            @Override
-            protected void run(final Result result) {
-                // do in a single action so undo works in one go
-                replaceRuleRefs(doc, tokens, ruleName, rrefNodes, ruleText);
-            }
-        };
-        setTextAction.execute();
+//        var setTextAction = new WriteCommandAction(project) {
+//            @Override
+//            protected void run(final Result result) {
+//                // do in a single action so undo works in one go
+//
+//            }
+//        };
+//        setTextAction.execute();
     }
     
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
     
     public void replaceRuleRefs(
         Document doc, CommonTokenStream tokens,
@@ -92,11 +98,11 @@ public class InlineRuleAction extends AnAction {
         List<TerminalNode> rrefNodes,
         String ruleText
     ) {
-        int base = 0;
-        for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
-            Token rrefToken = t.getSymbol();
-            Token nextToken = tokens.get(rrefToken.getTokenIndex() + 1);
-            String thisReplacementRuleText = ruleText;
+        var base = 0;
+        for (var t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
+            var rrefToken = t.getSymbol();
+            var nextToken = tokens.get(rrefToken.getTokenIndex() + 1);
+            var thisReplacementRuleText = ruleText;
             if ((nextToken.getType() == ANTLRv4Lexer.STAR ||
                 nextToken.getType() == ANTLRv4Lexer.PLUS ||
                 nextToken.getType() == ANTLRv4Lexer.QUESTION) &&

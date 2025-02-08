@@ -31,7 +31,7 @@ public class ChooseExtractedRuleName extends DialogWrapper {
         nameField = new JBTextField("newRule");
         double h = nameField.getSize().getHeight();
         nameField.setPreferredSize(new Dimension(250, (int) h));
-        setTitle("Name the extracted rule");
+        setTitle("Name the Extracted Rule");
         nameField.selectAll();
         return nameField;
     }

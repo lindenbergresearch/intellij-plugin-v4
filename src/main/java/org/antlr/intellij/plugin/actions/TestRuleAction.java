@@ -1,15 +1,13 @@
 package org.antlr.intellij.plugin.actions;
 
 import com.intellij.icons.AllIcons.Actions;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.MouseEvent;
 
@@ -43,7 +41,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
             if (editor != null) {
                 var mousePosition = editor.getContentComponent().getMousePosition();
                 if (mousePosition != null) {
-                    var pos = editor.xyToLogicalPosition(mousePosition);
+                    var pos = e.getUpdateSession().compute(this, "xyToLogicalPosition", ActionUpdateThread.EDT, () -> editor.xyToLogicalPosition(mousePosition));
                     var offset = editor.logicalPositionToOffset(pos);
                     var file = e.getData(LangDataKeys.PSI_FILE);
                     if (file != null) {
@@ -75,6 +73,12 @@ public class TestRuleAction extends AnAction implements DumbAware {
     
     
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
+    
+    
+    @Override
     public void actionPerformed(final AnActionEvent e) {
         if (e.getProject() == null) {
             LOG.error("actionPerformed no project for " + e);
@@ -86,6 +90,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
         LOG.info("actionPerformed " + grammarFile);
         
         var controller = ANTLRv4PluginController.getInstance(e.getProject());
+        if (controller == null) throw new AssertionError();
         controller.getPreviewWindow().show(null);
         
         var r = MyActionUtils.getParserRuleSurroundingRef(e);
@@ -101,5 +106,4 @@ public class TestRuleAction extends AnAction implements DumbAware {
         
         controller.setStartRuleNameEvent(grammarFile, ruleName);
     }
-    
 }
