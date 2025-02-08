@@ -2,14 +2,15 @@ package org.antlr.intellij.plugin.folding;
 
 import com.intellij.codeInsight.folding.CodeFoldingManager;
 import com.intellij.openapi.editor.FoldRegion;
-import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.antlr.intellij.plugin.TestUtils;
 
-public class ANTLRv4FoldingBuilderTest extends LightPlatformCodeInsightFixtureTestCase {
+public class ANTLRv4FoldingBuilderTest extends BasePlatformTestCase {
     
     public void test_folding_should_not_throw_on_incomplete_prequel() {
         // Given
         myFixture.configureByText("foo.g4", "grammar foo;\n @\n");
+        
         
         // When
         CodeFoldingManager.getInstance(getProject()).buildInitialFoldings(myFixture.getEditor());
