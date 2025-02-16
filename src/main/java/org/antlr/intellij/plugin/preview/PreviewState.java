@@ -9,7 +9,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
-import org.antlr.v4.tool.Rule;
 
 /**
  * Track everything associated with the state of the preview window.
@@ -28,7 +27,7 @@ import org.antlr.v4.tool.Rule;
  */
 public class PreviewState {
     private static final Logger LOG =
-        Logger.getInstance("ANTLR InputPanel");
+        Logger.getInstance(PreviewState.class);
     
     public Project project;
     public VirtualFile grammarFile;
@@ -37,7 +36,7 @@ public class PreviewState {
     public LexerGrammar lexerGrammar;
     
     public String startRuleName;
-    public CharSequence manualInputText = ""; // save input when switching grammars
+    public CharSequence manualInputText; // save input when switching grammars
     
     public VirtualFile inputFile; // save input file when switching grammars
     public ParsingResult parsingResult;
@@ -67,6 +66,7 @@ public class PreviewState {
         LOG.info("create preview-state with project: " + project.getName().trim() + " grammar: " + grammarFile.getName());
         
         propertiesComponent = PropertiesComponent.getInstance(project);
+        manualInputText = "";
         recoverPreviewData();
     }
     
@@ -80,8 +80,8 @@ public class PreviewState {
             return;
         
         // build grammar dependent config keys
-        String inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
-        String startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
+        var inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
+        var startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
         
         propertiesComponent.setValue(
             inputTextPropertiesKey,
@@ -102,8 +102,8 @@ public class PreviewState {
      */
     public void recoverPreviewData() {
         // build grammar dependent config keys
-        String inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
-        String startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
+        var inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
+        var startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
         
         manualInputText =
             propertiesComponent.getValue(inputTextPropertiesKey);
@@ -115,6 +115,7 @@ public class PreviewState {
         if (!existsStartRule(startRuleName)) {
             startRuleName = "";
         }
+        
         LOG.info("recover start-rule: '" + startRuleName + '\'');
     }
     
@@ -159,7 +160,7 @@ public class PreviewState {
      * @return Grammar name as String.
      */
     public String getGrammarName() {
-        String g = getMainGrammar() == null ?
+        var g = getMainGrammar() == null ?
             grammarFile.getName().replace(".g4", "") :
             getMainGrammar().name;
         
@@ -185,7 +186,7 @@ public class PreviewState {
      */
     public boolean existsStartRule(String name) {
         if (grammar != null) {
-            Rule rule = grammar.getRule(name);
+            var rule = grammar.getRule(name);
             return (rule != null);
         }
         
@@ -240,7 +241,7 @@ public class PreviewState {
         // It would appear that the project closed event occurs before these
         // close grammars sometimes. Very strange. check for null editor.
         if (inputEditor != null) {
-            final EditorFactory factory = EditorFactory.getInstance();
+            final var factory = EditorFactory.getInstance();
             factory.releaseEditor(inputEditor);
             inputEditor = null;
         }
