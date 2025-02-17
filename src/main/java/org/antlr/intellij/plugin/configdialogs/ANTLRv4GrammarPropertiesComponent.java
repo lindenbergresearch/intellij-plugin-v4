@@ -1,7 +1,6 @@
 package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +15,7 @@ public class ANTLRv4GrammarPropertiesComponent implements PersistentStateCompone
     
     
     public static ANTLRv4GrammarPropertiesComponent getInstance(Project project) {
-        return ServiceManager.getService(project, ANTLRv4GrammarPropertiesComponent.class);
+        return project.getService(ANTLRv4GrammarPropertiesComponent.class);
     }
     
     
@@ -28,7 +27,7 @@ public class ANTLRv4GrammarPropertiesComponent implements PersistentStateCompone
     
     
     @Override
-    public void loadState(ANTLRv4GrammarPropertiesStore state) {
+    public void loadState(@NotNull ANTLRv4GrammarPropertiesStore state) {
         mySettings = state;
     }
 }
