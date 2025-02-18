@@ -240,8 +240,9 @@ public class RefactorUtils {
     public static int getCharIndexOfNextRuleStart(ParserRuleContext tree, int tokenIndex) {
         final var selNode =
             Trees.getRootOfSubtreeEnclosingRegion(tree, tokenIndex, tokenIndex);
+      
         final var ruleRoot = (ParserRuleContext)
-            getAncestorWithType(selNode, RuleSpecContext.class);
+            getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
         
         return ruleRoot.getStop().getStopIndex() + 2; // insert after '\n' following ';'
     }
