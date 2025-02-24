@@ -1,27 +1,20 @@
 package org.antlr.intellij.plugin.actions;
 
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Trees;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class InlineRuleAction extends AnAction {
     @Override
@@ -32,121 +25,131 @@ public class InlineRuleAction extends AnAction {
     
     @Override
     public void actionPerformed(AnActionEvent e) {
-        PsiElement el = MyActionUtils.getSelectedPsiElement(e);
-        if (el == null) return;
+        var psiElement = MyActionUtils.getSelectedPsiElement(e);
+        if (psiElement == null) {
+            return;
+        }
         
-        final String ruleName = el.getText();
+        final var ruleName = psiElement.getText();
         
-        final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
-        if (psiFile == null) return;
+        final var psiFile = e.getData(LangDataKeys.PSI_FILE);
+        if (psiFile == null) {
+            return;
+        }
         
-        final Project project = e.getProject();
+        final var project = e.getProject();
         
-        Editor editor = e.getData(PlatformDataKeys.EDITOR);
-        if (editor == null) return;
-        final Document doc = editor.getDocument();
+        var editor = e.getData(PlatformDataKeys.EDITOR);
+        if (editor == null) {
+            return;
+        }
         
-        String grammarText = psiFile.getText();
-        ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-        Parser parser = results.parser;
-        ParseTree tree = results.tree;
+        final var doc = editor.getDocument();
         
-        final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
+        var grammarText = psiFile.getText();
+        var results = ParsingUtils.parseANTLRGrammar(grammarText);
+        var parser = results.parser;
+        var tree = results.tree;
+        
+        final var tokens = (CommonTokenStream) parser.getTokenStream();
         
         // find all parser and lexer rule refs
-        final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
-        if (rrefNodes == null) return;
+        final var refNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
+        if (refNodes == null) {
+            return;
+        }
         
         // find rule def
         ParseTree ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
-        if (ruleDefNameNode == null) return;
+        if (ruleDefNameNode == null) {
+            return;
+        }
         
         // identify rhs of rule
-        final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
-        String ruleText_ = RefactorUtils.getRuleText(tokens, ruleDefNode);
+        final var ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
+        var altRuleText = RefactorUtils.getRuleText(tokens, ruleDefNode);
         
         // if rule has outermost alt, must add (...) around insertion
         // Look for ruleBlock, lexerRuleBlock
         if (RefactorUtils.ruleHasMultipleOutermostAlts(parser, ruleDefNode)) {
-            ruleText_ = '(' + ruleText_ + ')';
+            altRuleText = '(' + altRuleText + ')';
         }
-        final String ruleText = ruleText_; // we ref from inner class; requires final
+        final var ruleText = altRuleText; // we ref from inner class; requires final
         
         WriteCommandAction.runWriteCommandAction(project, () -> {
-            replaceRuleRefs(doc, tokens, ruleName, rrefNodes, ruleText);
+            replaceRuleRefs(doc, tokens, ruleName, refNodes, ruleText);
         });
-        
-        // replace rule refs with rule text
-//        var setTextAction = new WriteCommandAction(project) {
-//            @Override
-//            protected void run(final Result result) {
-//                // do in a single action so undo works in one go
-//
-//            }
-//        };
-//        setTextAction.execute();
     }
+    
     
     @Override
     public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
     }
     
+    
     public void replaceRuleRefs(
         Document doc, CommonTokenStream tokens,
         String ruleName,
-        List<TerminalNode> rrefNodes,
+        List<TerminalNode> refNodes,
         String ruleText
     ) {
         var base = 0;
-        for (var t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
+        for (var t : refNodes) { // walk nodes in lexicographic order, replacing as we go
             var rrefToken = t.getSymbol();
             var nextToken = tokens.get(rrefToken.getTokenIndex() + 1);
             var thisReplacementRuleText = ruleText;
-            if ((nextToken.getType() == ANTLRv4Lexer.STAR ||
-                nextToken.getType() == ANTLRv4Lexer.PLUS ||
-                nextToken.getType() == ANTLRv4Lexer.QUESTION) &&
+            if ((IntStream.of(
+                ANTLRv4Lexer.STAR,
+                ANTLRv4Lexer.PLUS,
+                ANTLRv4Lexer.QUESTION
+            ).anyMatch(i -> nextToken.getType() == i)) &&
                 !ruleText.startsWith("(")) {
                 // need (...) if we replace foo* or foo+ and ruleText doesn't have parens yet
-                thisReplacementRuleText = "(" + ruleText + ")";
+                thisReplacementRuleText = '(' + ruleText + ')';
             }
+            
             doc.replaceString(base + rrefToken.getStartIndex(), base + rrefToken.getStopIndex() + 1, thisReplacementRuleText);
             // text shifts underneath us so we adjust token start/stop indexes into doc
             base += thisReplacementRuleText.length() - ruleName.length();
         }
         
         // reparse to find new rule location
-        String grammarText = doc.getText();
-        ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-        Parser parser = results.parser;
-        ParseTree tree = results.tree;
+        var grammarText = doc.getText();
+        var results = ParsingUtils.parseANTLRGrammar(grammarText);
+        var parser = results.parser;
+        var tree = results.tree;
         tokens = (CommonTokenStream) parser.getTokenStream();
         
         // find rule def
-        TerminalNode ruleDefNameNode = (TerminalNode) RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
-        if (ruleDefNameNode == null) return;
+        var ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
+        if (ruleDefNameNode == null) {
+            return;
+        }
         
-        final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
-        Token start = ruleDefNode.getStart();
-        Token stop = ruleDefNode.getStop();
+        final var ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
+        var start = ruleDefNode.getStart();
+        var stop = ruleDefNode.getStop();
         
         // check for direct recursive, in which case we don't delete it
-        boolean ruleIsDirectlyRecursive = false;
-        for (TerminalNode t : rrefNodes) {
+        var ruleIsDirectlyRecursive = false;
+        for (var t : refNodes) {
             if (Trees.isAncestorOf(ruleDefNode, t)) {
                 ruleIsDirectlyRecursive = true;
             }
         }
         
         // don't delete if we made replacements in the rule itself
-        if (ruleIsDirectlyRecursive) return;
+        if (ruleIsDirectlyRecursive) {
+            return;
+        }
         
         // remove the inlined rule (lexer or parser)
-        List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
-        if (hiddenTokensToRight != null && hiddenTokensToRight.size() > 0) {
+        var hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
+        if (hiddenTokensToRight != null && !hiddenTokensToRight.isEmpty()) {
             // remove extra whitespace but not trailing comments (if any)
             // javadoc is included in start (if any) as it's not hidden
-            Token afterSemi = hiddenTokensToRight.get(0);
+            var afterSemi = hiddenTokensToRight.get(0);
             if (afterSemi.getType() == ANTLRv4Lexer.WS) {
                 stop = afterSemi;
             }
