@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class GenerateLexerRulesForLiteralsAction extends AnAction {
-    public static final Logger LOG = Logger.getInstance("GenerateLexerRulesForLiterals");
+    public static final Logger LOG = Logger.getInstance(GenerateLexerRulesForLiteralsAction.class);
     
     
     /**
@@ -67,7 +67,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
         final var tree = results.tree;
         var literalNodes = XPath.findAll(tree, "//ruleBlock//STRING_LITERAL", parser);
         var lexerRules = new LinkedHashMap<String, String>();
-       
+        
         for (var node : literalNodes) {
             var literal = node.getText();
             var ruleText = String.format("%s : %s ;",
@@ -87,8 +87,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
             lexerRules.remove(lit.getText());
         }
         
-        final var chooser =
-            new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
+        final var chooser = new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
         chooser.show();
         var selectedElements = chooser.getSelectedElements();
         // chooser disposed automatically.
@@ -97,7 +96,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
         if (editor == null) throw new AssertionError();
         final var doc = editor.getDocument();
         final var tokens = (CommonTokenStream) parser.getTokenStream();
-       
+        
         if (selectedElements != null) {
             var text = doc.getText();
             var cursorOffset = editor.getCaretModel().getOffset();
@@ -112,7 +111,8 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
                     cursorOffset = start; // put right before this rule
                     break;
                 }
-                if (cursorOffset >= start && cursorOffset <= stop) {
+                
+                if (cursorOffset <= stop) {
                     // cursor in this rule
                     cursorOffset = stop + 2; // put right before this rule (after newline)
                     if (cursorOffset >= text.length()) {
@@ -123,10 +123,10 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
             }
             
             var allRules = Utils.join(selectedElements.iterator(), "\n");
-            text =
-                text.substring(0, cursorOffset) +
-                    '\n' + allRules + '\n' +
-                    text.substring(cursorOffset);
+            text = text.substring(0, cursorOffset) +
+                '\n' + allRules + '\n' +
+                text.substring(cursorOffset);
+            
             MyPsiUtils.replacePsiFileFromText(project, psiFile, text);
         }
     }
