@@ -11,8 +11,6 @@ import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 
 import java.io.File;
 
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
 /**
  * Holds all the settings related to a given grammar file. These settings
  * can be used during code generation, in the Preview window etc.
@@ -122,26 +120,28 @@ public class ANTLRv4GrammarProperties implements Cloneable {
     
     
     public String resolveOutputDirName(Project project, VirtualFile contentRoot, String package_) {
-        String outputDirName = outputDir.isEmpty() ? RunANTLROnGrammarFile.OUTPUT_DIR_NAME : outputDir;
+        var outputDirName = outputDir.isEmpty() ? RunANTLROnGrammarFile.OUTPUT_DIR_NAME : outputDir;
         
         outputDirName = PathMacroManager.getInstance(project).expandPath(outputDirName);
         
-        File f = new File(outputDirName);
-        if (!f.isAbsolute()) { // if not absolute file spec, it's relative to project root
+        var file = new File(outputDirName);
+        if (!file.isAbsolute()) { // if not absolute file spec, it's relative to project root
             outputDirName = contentRoot.getPath() + File.separator + outputDirName;
         }
+        
         // add package if any
-        if (isNotBlank(package_)) {
+        if (!package_.isBlank()) {
             outputDirName += File.separator + package_.replace('.', File.separatorChar);
         }
+        
         return outputDirName;
     }
     
     
     public String resolveLibDir(Project project, String defaultValue) {
-        String libDir = getLibDir();
+        var libDir = getLibDir().trim();
         
-        if (libDir == null || libDir.equals("")) {
+        if (libDir.isEmpty()) {
             libDir = defaultValue;
         }
         
