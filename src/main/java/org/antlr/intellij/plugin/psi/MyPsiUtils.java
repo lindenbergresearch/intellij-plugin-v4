@@ -1,7 +1,5 @@
 package org.antlr.intellij.plugin.psi;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -18,12 +16,14 @@ import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.RULE_ELEMENT_TYPES;
 import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES;
 
-@SuppressWarnings("SimplifiableIfStatement")
 public class MyPsiUtils {
     
     /**
@@ -36,6 +36,7 @@ public class MyPsiUtils {
     public static boolean isRuleIElement(IElementType type, int antlrTokenID) {
         return Objects.equals(type, RULE_ELEMENT_TYPES.get(antlrTokenID));
     }
+    
     
     /**
      * Tests a Token Psi IElement against an ANTLRv4 token-id-constant from the lexer.
@@ -59,6 +60,7 @@ public class MyPsiUtils {
     public static boolean isRuleElement(PsiElement element, int antlrTokenID) {
         return isRuleIElement(element.getNode().getElementType(), antlrTokenID);
     }
+    
     
     /**
      * Tests a PsiElement for matching its ANTLRv4 token-id counterpart in the lexer.
@@ -87,8 +89,11 @@ public class MyPsiUtils {
      */
     @Nullable
     public static PsiElement findFirstChildOfType(final PsiElement parent, final TokenSet types) {
-        Iterator<PsiElement> iterator = findChildrenOfType(parent, types).iterator();
-        if (iterator.hasNext()) return iterator.next();
+        var iterator = findChildrenOfType(parent, types).iterator();
+        if (iterator.hasNext()) {
+            return iterator.next();
+        }
+        
         return null;
     }
     
@@ -99,7 +104,7 @@ public class MyPsiUtils {
     
     
     /**
-     * Like PsiTreeUtil.findChildrenOfType, except no collection is created and it doesnt use recursion.
+     * Like PsiTreeUtil.findChildrenOfType, except no collection is created and it doesn't use recursion.
      *
      * @param parent the element whose children will be searched
      * @param types  the types to search for
@@ -107,12 +112,11 @@ public class MyPsiUtils {
      * whose type is contained in the provided tokenset.
      */
     public static Iterable<PsiElement> findChildrenOfType(final PsiElement parent, final TokenSet types) {
-        PsiElement[] psiElements = PsiTreeUtil.collectElements(parent, input -> {
-            if (input == null) return false;
-            ASTNode node = input.getNode();
-            if (node == null) return false;
-            return types.contains(node.getElementType());
+        var psiElements = PsiTreeUtil.collectElements(parent, input -> {
+            var node = input.getNode();
+            return node != null && types.contains(node.getElementType());
         });
+        
         return Arrays.asList(psiElements);
     }
     
@@ -130,48 +134,49 @@ public class MyPsiUtils {
                 return false;
             }
             
-            GrammarElementRefNode id = ((RuleSpecNode) element1).getNameIdentifier();
+            var id = ((RuleSpecNode) element1).getNameIdentifier();
             return id != null && id.getText().equals(ruleName);
         };
         
-        PsiElement[] ruleSpec = PsiTreeUtil.collectElements(grammar, definitionFilter);
+        var ruleSpec = PsiTreeUtil.collectElements(grammar, definitionFilter);
         if (ruleSpec.length > 0) {
             return ruleSpec[0];
         }
+        
         return null;
     }
     
     
-    public static PsiElement createLeafFromText(
-        Project project, PsiElement context,
-        String text, IElementType type
-    ) {
-        PsiFileFactoryImpl factory = (PsiFileFactoryImpl) PsiFileFactory.getInstance(project);
-        PsiElement el = factory.createElementFromText(text,
+    public static PsiElement createLeafFromText(Project project, PsiElement context, String text, IElementType type) {
+        var factory = (PsiFileFactoryImpl) PsiFileFactory.getInstance(project);
+        var el = factory.createElementFromText(text,
             ANTLRv4Language.INSTANCE,
             type,
-            context);
+            context
+        );
+        
+        if (el == null) {
+            return null;
+        }
+        
         return PsiTreeUtil.getDeepestFirst(el); // forces parsing of file!!
         // start rule depends on root passed in
     }
     
     
     public static void replacePsiFileFromText(final Project project, final PsiFile psiFile, String text) {
-        final PsiFile newPsiFile = createFile(project, text);
-        WriteCommandAction setTextAction = new WriteCommandAction(project) {
-            @Override
-            protected void run(final Result result) {
-                psiFile.deleteChildRange(psiFile.getFirstChild(), psiFile.getLastChild());
-                psiFile.addRange(newPsiFile.getFirstChild(), newPsiFile.getLastChild());
-            }
-        };
-        setTextAction.execute();
+        final var newPsiFile = createFile(project, text);
+        
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            psiFile.deleteChildRange(psiFile.getFirstChild(), psiFile.getLastChild());
+            psiFile.addRange(newPsiFile.getFirstChild(), newPsiFile.getLastChild());
+        });
     }
     
     
     public static PsiFile createFile(Project project, String text) {
-        String fileName = "a.g4"; // random name but must be .g4
-        PsiFileFactoryImpl factory = (PsiFileFactoryImpl) PsiFileFactory.getInstance(project);
+        var fileName = "a.g4"; // random name but must be .g4
+        var factory = (PsiFileFactoryImpl) PsiFileFactory.getInstance(project);
         return factory.createFileFromText(fileName, ANTLRv4Language.INSTANCE,
             text, false, false);
     }
@@ -179,9 +184,12 @@ public class MyPsiUtils {
     
     public static PsiElement[] collectAtActions(PsiElement root, final String tokenText) {
         return PsiTreeUtil.collectElements(root, element -> {
-            PsiElement p = element.getContext();
-            if (p != null) p = p.getContext();
-            return p instanceof AtAction &&
+            var psiElement = element.getContext();
+            if (psiElement != null) {
+                psiElement = psiElement.getContext();
+            }
+            
+            return psiElement instanceof AtAction &&
                 element instanceof ParserRuleRefNode &&
                 element.getText().equals(tokenText);
         });
@@ -195,7 +203,7 @@ public class MyPsiUtils {
      */
     public static PsiElement[] collectNodesWithName(PsiElement root, final String tokenText) {
         return PsiTreeUtil.collectElements(root, element -> {
-            String tokenTypeName = element.getNode().getElementType().toString();
+            var tokenTypeName = element.getNode().getElementType().toString();
             return tokenTypeName.equals(tokenText);
         });
     }
@@ -208,71 +216,80 @@ public class MyPsiUtils {
     
     public static PsiElement[] collectChildrenOfType(PsiElement root, final IElementType tokenType) {
         List<PsiElement> elems = new ArrayList<>();
-        for (PsiElement child : root.getChildren()) {
-            if (child.getNode().getElementType() == tokenType) {
+        for (var child : root.getChildren()) {
+            if (child.getNode().getElementType().equals(tokenType)) {
                 elems.add(child);
             }
         }
-        return elems.toArray(new PsiElement[elems.size()]);
+        return elems.toArray(new PsiElement[0]);
     }
     
     
     public static PsiElement findChildOfType(PsiElement root, final IElementType tokenType) {
-        List<PsiElement> elems = new ArrayList<>();
-        for (PsiElement child : root.getChildren()) {
-            if (child.getNode().getElementType() == tokenType) {
+        for (var child : root.getChildren()) {
+            if (child.getNode().getElementType().equals(tokenType)) {
                 return child;
             }
         }
+        
         return null;
     }
     
     
     public static PsiElement[] collectChildrenWithText(PsiElement root, final String text) {
         List<PsiElement> elems = new ArrayList<>();
-        for (PsiElement child : root.getChildren()) {
+        
+        for (var child : root.getChildren()) {
             if (child.getText().equals(text)) {
                 elems.add(child);
             }
         }
-        return elems.toArray(new PsiElement[elems.size()]);
+        
+        return elems.toArray(new PsiElement[0]);
     }
     
     
     // Look for stuff like: options { tokenVocab=ANTLRv4Lexer; superClass=Foo; }
     public static String findTokenVocabIfAny(ANTLRv4FileRoot file) {
         String vocabName = null;
-        PsiElement[] options = collectNodesWithName(file, "option");
-        for (PsiElement o : options) {
-            PsiElement[] tokenVocab = collectChildrenWithText(o, "tokenVocab");
+        var options = collectNodesWithName(file, "option");
+        
+        for (var option : options) {
+            var tokenVocab = collectChildrenWithText(option, "tokenVocab");
+            
             if (tokenVocab.length > 0) {
-                PsiElement optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
-                PsiElement[] ids = collectChildrenOfType(optionNode, ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_optionValue));
+                var optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
+                var ids = collectChildrenOfType(optionNode, ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_optionValue));
                 vocabName = ids[0].getText();
             }
         }
+        
         return vocabName;
     }
     
     
     public static PsiElement findElement(PsiElement startNode, int offset) {
-        PsiElement p = startNode;
-        if (p == null) return null;
-        System.out.println(Thread.currentThread().getName() + ": visit root " + p +
-            ", offset=" + offset +
-            ", class=" + p.getClass().getSimpleName() +
-            ", text=" + p.getNode().getText() +
-            ", node range=" + p.getTextRange());
+        if (startNode == null) {
+            return null;
+        }
         
-        PsiElement c = p.getFirstChild();
-        while (c != null) {
-            PsiElement result = findElement(c, offset);
+        System.out.println(Thread.currentThread().getName() + ": visit root " + startNode +
+            ", offset=" + offset +
+            ", class=" + startNode.getClass().getSimpleName() +
+            ", text=" + startNode.getNode().getText() +
+            ", node range=" + startNode.getTextRange());
+        
+        var firstChild = startNode.getFirstChild();
+        while (firstChild != null) {
+            var result = findElement(firstChild, offset);
+            
             if (result != null) {
                 return result;
             }
-            c = c.getNextSibling();
+            
+            firstChild = firstChild.getNextSibling();
         }
+        
         return null;
     }
-    
 }
