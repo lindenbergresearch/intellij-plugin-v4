@@ -1,38 +1,8 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
-    id "org.jetbrains.intellij" version "1.17.2"
-}
-
-
-wrapper {
-    gradleVersion = '7.5'
-}
-
-
-group 'antlr'
-version pluginVersion
-
-apply plugin: 'java'
-apply plugin: 'org.jetbrains.intellij'
-apply plugin: 'antlr'
-
-compileJava {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
-}
-
-intellij {
-    version = ideaVersion
-
-    pluginName = 'antlr-intellij-plugin-neo'
-    downloadSources = true
-    updateSinceUntilBuild = false
+    id 'org.jetbrains.intellij.platform' version "2.2.1"
+    id 'java'
 }
 
 repositories {
@@ -41,16 +11,75 @@ repositories {
     maven { // Gets snapshots of antlr if needed
         url "https://oss.sonatype.org/content/repositories/snapshots/"
     }
+
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
+apply plugin: 'java'
+apply plugin: 'org.jetbrains.intellij.platform'
+apply plugin: 'antlr'
+
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.WARN
+}
+
+compileJava {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
+intellijPlatform {
+    buildSearchableOptions = false
+    instrumentCode = false
+
+    pluginConfiguration {
+        id = 'antlr-intellij-plugin-neo'
+        name = 'ANTLR Neo'
+        version = '1.7-SNAPSHOT'
+        description = ''
+        changeNotes =
+                """
+      A descriptive release note...
+      """.stripIndent()
+
+//        productDescriptor {
+//            code = 'MY_CODE'
+//            releaseDate = '20250217'
+//            releaseVersion = '20251'
+//            optional = false
+//            eap = false
+//        }
+
+        ideaVersion {
+            sinceBuild = '241'
+            untilBuild = '241.*'
+        }
+
+        vendor {
+            name = 'Lindenberg Research'
+            email = 'lindenberg.research@gmail.com'
+        }
+    }
+}
+
+
 dependencies {
-    antlr("org.antlr:antlr4:$antlr4Version") { // use ANTLR version 4
+    intellijPlatform {
+        intellijIdeaCommunity '2024.1'
+        bundledPlugin 'com.intellij.java'
+        testFramework TestFrameworkType.Platform.INSTANCE
+    }
+
+    antlr("org.antlr:antlr4:4.13.2") { // use ANTLR version 4
         exclude group: 'com.ibm.icu', module: 'icu4j'
     }
-    implementation "org.antlr:antlr4-intellij-adaptor:0.1"
-    implementation group: 'org.jfree', name: 'org.jfree.svg', version: '5.0.5'
+
+    implementation "org.antlr:antlr4-intellij-adaptor:0.2"
+    implementation group: 'org.jfree', name: 'org.jfree.svg', version: '5.0.6'
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.12.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.14.1'
 }
 
 generateGrammarSource {
