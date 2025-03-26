@@ -1,14 +1,13 @@
 package org.antlr.intellij.plugin.resolve;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
+import org.antlr.intellij.plugin.ANTLRv4FileType;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.psi.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.RULE_ELEMENT_TYPES;
@@ -21,16 +20,16 @@ public class TokenVocabResolver {
      */
     @Nullable
     public static PsiFile resolveTokenVocabFile(PsiElement reference) {
-        PsiElement optionValue = PsiTreeUtil.findFirstParent(reference, TokenVocabResolver::isOptionValue);
+        var optionValue = PsiTreeUtil.findFirstParent(reference, el -> isOptionValue(el));
         
         if (optionValue != null) {
-            PsiElement option = optionValue.getParent();
+            var option = optionValue.getParent();
             
             if (option != null) {
-                PsiElement optionName = PsiTreeUtil.getDeepestFirst(option);
+                var optionName = PsiTreeUtil.getDeepestFirst(option);
                 
                 if (optionName.getText().equals("tokenVocab")) {
-                    String text = StringUtils.strip(reference.getText(), "'");
+                    var text = StringUtils.strip(reference.getText(), "'");
                     return findRelativeFile(text, reference.getContainingFile());
                 }
             }
@@ -45,14 +44,14 @@ public class TokenVocabResolver {
      */
     @Nullable
     public static PsiElement resolveInTokenVocab(GrammarElementRefNode reference, String ruleName) {
-        String tokenVocab = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) reference.getContainingFile());
+        var tokenVocab = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) reference.getContainingFile());
         
         if (tokenVocab != null) {
-            PsiFile tokenVocabFile = findRelativeFile(tokenVocab, reference.getContainingFile());
+            var tokenVocabFile = findRelativeFile(tokenVocab, reference.getContainingFile());
             
             if (tokenVocabFile != null) {
-                GrammarSpecNode lexerGrammar = PsiTreeUtil.findChildOfType(tokenVocabFile, GrammarSpecNode.class);
-                PsiElement node = MyPsiUtils.findSpecNode(lexerGrammar, ruleName);
+                var lexerGrammar = PsiTreeUtil.findChildOfType(tokenVocabFile, GrammarSpecNode.class);
+                var node = MyPsiUtils.findSpecNode(lexerGrammar, ruleName);
                 
                 if (node instanceof LexerRuleSpecNode) {
                     // fragments are not visible to the parser
@@ -60,6 +59,7 @@ public class TokenVocabResolver {
                         return node;
                     }
                 }
+                
                 if (node instanceof TokenSpecNode) {
                     return node;
                 }
@@ -71,8 +71,8 @@ public class TokenVocabResolver {
     
     
     private static boolean isOptionValue(PsiElement el) {
-        ASTNode node = el.getNode();
-        return node != null && node.getElementType() == RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_optionValue);
+        var node = el.getNode();
+        return node != null && node.getElementType().equals(RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_optionValue));
     }
     
     
@@ -80,10 +80,10 @@ public class TokenVocabResolver {
      * Looks for an ANTLR grammar file named {@code <baseName>}.g4 next to the given {@code sibling} file.
      */
     static PsiFile findRelativeFile(String baseName, PsiFile sibling) {
-        PsiDirectory parentDirectory = sibling.getParent();
+        var parentDirectory = sibling.getParent();
         
         if (parentDirectory != null) {
-            PsiFile candidate = parentDirectory.findFile(baseName + ".g4");
+            var candidate = parentDirectory.findFile(baseName + ANTLRv4FileType.INSTANCE.getDefaultExtension());
             
             if (candidate instanceof ANTLRv4FileRoot) {
                 return candidate;
