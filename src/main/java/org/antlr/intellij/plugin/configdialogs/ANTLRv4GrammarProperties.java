@@ -18,7 +18,7 @@ import java.io.File;
  * Settings can be modified via a user interface in {@link ConfigANTLRPerGrammar}
  * and are saved in {@code .idea/misc.xml} thanks to {@link ANTLRv4GrammarPropertiesComponent}.
  */
-@Tag("PerGrammarGenerationSettings")
+@Tag(value = "PerGrammarGenerationSettings")
 public class ANTLRv4GrammarProperties implements Cloneable {
     
     public static final String PROP_LANGUAGE = "language";
@@ -130,7 +130,7 @@ public class ANTLRv4GrammarProperties implements Cloneable {
         }
         
         // add package if any
-        if (!package_.isBlank()) {
+        if (package_ != null && !package_.isBlank()) {
             outputDirName += File.separator + package_.replace('.', File.separatorChar);
         }
         
