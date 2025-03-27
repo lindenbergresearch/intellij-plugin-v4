@@ -19,7 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.antlr.intellij.plugin.Utils.deconstructJBColor;
+import static org.antlr.intellij.plugin.ANTLRUtils.deconstructJBColor;
 
 /**
  * Supports creating and managing a {@link JPanel} for the Settings Dialog.
@@ -34,11 +34,11 @@ public class ANTLRv4UISettingsComponent {
     
     private JPanel mainPanel;
     
-    private final JCheckBox checkBox1;
-    private final JCheckBox checkBox2;
+    private final JCheckBox checkBoxAutoShow;
+    private final JCheckBox checkBoxDebugMode;
     private final ANTLRv4UISettingsState appSettings;
     
-    Insets emptyInsets = new JBInsets(0);
+    Insets emptyInsets = new JBInsets(0,0,0,0);
     Insets cpInsets = JBUI.insetsLeft(8);
     
     
@@ -54,12 +54,15 @@ public class ANTLRv4UISettingsComponent {
         commonSettingsPanel.setBorder(IdeBorderFactory.createTitledBorder("Common Viewer Settings"));
         
         
-        checkBox1 = new JBCheckBox("Automatically bring preview window in front when switching a grammar.");
-        checkBox2 = new JBCheckBox("This is a second option.");
+        checkBoxAutoShow = new JBCheckBox("Automatically bring preview window in front when switching a grammar.");
+        checkBoxDebugMode = new JBCheckBox("Enable DEBUG Mode for ANTLR I/O Console.");
         // ...
         
-        commonSettingsPanel.add(checkBox1);
-        commonSettingsPanel.add(checkBox2);
+        checkBoxAutoShow.setSelected(appSettings.autoShowAntlrTool);
+        checkBoxDebugMode.setSelected(appSettings.enableDebugConsole);
+        
+        commonSettingsPanel.add(checkBoxAutoShow);
+        commonSettingsPanel.add(checkBoxDebugMode);
         
         mainPanel = add(mainPanel, commonSettingsPanel);
         
@@ -326,6 +329,26 @@ public class ANTLRv4UISettingsComponent {
             Objects.requireNonNull(tuple.first().getSelectedColor()),
             Objects.requireNonNull(tuple.second().getSelectedColor())
         );
+    }
+    
+    
+    public boolean isAutoShow() {
+        return checkBoxAutoShow.isSelected();
+    }
+    
+    
+    public void setAutoShow(boolean autoShow) {
+        checkBoxAutoShow.setSelected(autoShow);
+    }
+    
+    
+    public boolean isDebugConsole() {
+        return checkBoxDebugMode.isSelected();
+    }
+    
+    
+    public void setDebugConsole(boolean debugConsole) {
+        checkBoxDebugMode.setSelected(debugConsole);
     }
     
     

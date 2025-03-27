@@ -6,7 +6,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.ui.JBColor;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.antlr.intellij.plugin.Utils;
+import org.antlr.intellij.plugin.ANTLRUtils;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +50,8 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     // checkbox storage
     public final Map<ColorKey, Boolean> checkBoxes = new LinkedHashMap<>();
     
+    public boolean autoShowAntlrTool;
+    public boolean enableDebugConsole;
     /*|--------------------------------------------------------------------------|*/
     
     
@@ -60,7 +62,7 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
      * @param color    The color to store.
      */
     public void setColor(@NotNull ColorKey colorKey, JBColor color) {
-        colors.put(colorKey, Utils.toHexJBColor(color));
+        colors.put(colorKey, ANTLRUtils.toHexJBColor(color));
     }
     
     
@@ -78,7 +80,7 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
         var colorHex = colors.get(colorKey);
         
         try {
-            return Utils.hexToJBColor(colorHex);
+            return ANTLRUtils.hexToJBColor(colorHex);
         } catch (NumberFormatException ex) {
             // default on malformed string
             return DefaultStyles.getDefaultColor(colorKey);
@@ -111,15 +113,34 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     }
     
     
+    public boolean isAutoShowAntlrTool() {
+        return autoShowAntlrTool;
+    }
+    
+    
+    public void setAutoShowAntlrTool(boolean autoShowAntlrTool) {
+        this.autoShowAntlrTool = autoShowAntlrTool;
+    }
+    
+    
+    public boolean isEnableDebugConsole() {
+        return enableDebugConsole;
+    }
+    
+    
+    public void setEnableDebugConsole(boolean enableDebugConsole) {
+        this.enableDebugConsole = enableDebugConsole;
+    }
+    
+    
     /**
      * Reset color storage.
      */
     public void reset() {
         colors.clear();
+        this.autoShowAntlrTool = false;
+        this.enableDebugConsole = false;
     }
-    
-    
-    
     
     /*|--------------------------------------------------------------------------|*/
     

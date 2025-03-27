@@ -3,7 +3,7 @@ package org.antlr.intellij.plugin.configdialogs;
 
 
 import com.intellij.openapi.options.Configurable;
-import org.antlr.intellij.plugin.Utils;
+import org.antlr.intellij.plugin.ANTLRUtils;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState.ColorKey;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nls.Capitalization;
@@ -52,14 +52,14 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
         for (var colorKey : ColorKey.VALUES) {
             var selectedColor = component.getSelectedColors(colorKey);
             var storedColor = settings.getColor(colorKey);
-            if (!Utils.compareJBColors(selectedColor, storedColor))
+            if (!ANTLRUtils.compareJBColors(selectedColor, storedColor))
                 return true;
             
             if (!Objects.equals(component.getSelectedState(colorKey), settings.getCheckBoxState(colorKey)))
                 return true;
         }
         
-        return false;
+        return settings.isAutoShowAntlrTool() != component.isAutoShow() || settings.isEnableDebugConsole() != component.isDebugConsole();
     }
     
     
@@ -71,6 +71,9 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
             settings.setColor(colorKey, component.getSelectedColors(colorKey));
             settings.setCheckBoxState(colorKey, component.getSelectedState(colorKey));
         }
+        
+        settings.setAutoShowAntlrTool(component.isAutoShow());
+        settings.setEnableDebugConsole(component.isDebugConsole());
     }
     
     
