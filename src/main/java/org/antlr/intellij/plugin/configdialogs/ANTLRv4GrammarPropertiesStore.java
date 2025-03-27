@@ -18,7 +18,7 @@ import java.util.Objects;
 public class ANTLRv4GrammarPropertiesStore {
     
     static final ANTLRv4GrammarProperties DEFAULT_GRAMMAR_PROPERTIES = initDefaultGrammarProperties();
-    private static final Logger logger = Logger.getInstance(ANTLRv4GrammarPropertiesStore.class.getName());
+    private static final Logger logger = Logger.getInstance(ANTLRv4GrammarPropertiesStore.class);
     @Property
     private final List<ANTLRv4GrammarProperties> perGrammarGenerationSettings = new ArrayList<>();
     
@@ -32,7 +32,7 @@ public class ANTLRv4GrammarPropertiesStore {
      * Defaults to settings defined in the project if they exist, or to empty settings.
      */
     public static ANTLRv4GrammarProperties getGrammarProperties(Project project, String grammarFile) {
-        ANTLRv4GrammarPropertiesStore store = ANTLRv4GrammarPropertiesComponent.getInstance(project).getState();
+        var store = ANTLRv4GrammarPropertiesComponent.getInstance(project).getState();
         return store.getGrammarProperties(grammarFile);
     }
     
@@ -42,22 +42,22 @@ public class ANTLRv4GrammarPropertiesStore {
      * they exist, or from the default empty settings otherwise.
      */
     public static ANTLRv4GrammarProperties getOrCreateGrammarProperties(Project project, String grammarFile) {
-        ANTLRv4GrammarPropertiesStore store = ANTLRv4GrammarPropertiesComponent.getInstance(project).getState();
+        var store = ANTLRv4GrammarPropertiesComponent.getInstance(project).getState();
         return store.getOrCreateGrammarProperties(grammarFile);
     }
     
     
     private static ANTLRv4GrammarProperties initDefaultGrammarProperties() {
-        ANTLRv4GrammarProperties defaultSettings = new ANTLRv4GrammarProperties();
+        var defaultSettings = new ANTLRv4GrammarProperties();
         
         defaultSettings.fileName = "**";
         defaultSettings.autoGen = true;
         defaultSettings.outputDir = "";
         defaultSettings.libDir = "";
-        defaultSettings.encoding = "";
+        defaultSettings.encoding = "UTF-8";
         defaultSettings.pkg = "";
-        defaultSettings.language = "";
-        defaultSettings.generateListener = true;
+        defaultSettings.language = "Java";
+        defaultSettings.generateListener = false;
         defaultSettings.generateVisitor = true;
         defaultSettings.caseChangingStrategy = CaseChangingStrategy.LEAVE_AS_IS;
         
@@ -71,10 +71,10 @@ public class ANTLRv4GrammarPropertiesStore {
     
     
     public ANTLRv4GrammarProperties getGrammarProperties(String grammarFile) {
-        ANTLRv4GrammarProperties grammarSettings = findSettingsForFile(grammarFile);
+        var grammarSettings = findSettingsForFile(grammarFile);
         
         if (grammarSettings == null) {
-            ANTLRv4GrammarProperties projectSettings = findSettingsForFile("*");
+            var projectSettings = findSettingsForFile("*");
             
             if (projectSettings == null) {
                 return ANTLRv4GrammarPropertiesStore.DEFAULT_GRAMMAR_PROPERTIES;
@@ -88,14 +88,13 @@ public class ANTLRv4GrammarPropertiesStore {
     
     
     private ANTLRv4GrammarProperties getOrCreateGrammarProperties(String grammarFile) {
-        
-        ANTLRv4GrammarProperties properties = getGrammarProperties(grammarFile);
+        var properties = getGrammarProperties(grammarFile);
         
         if (Objects.equals(properties.fileName, grammarFile)) {
             return properties;
         }
         
-        ANTLRv4GrammarProperties newProperties = new ANTLRv4GrammarProperties(properties);
+        var newProperties = new ANTLRv4GrammarProperties(properties);
         newProperties.fileName = grammarFile;
         
         add(newProperties);
@@ -106,13 +105,13 @@ public class ANTLRv4GrammarPropertiesStore {
     
     @Nullable
     private ANTLRv4GrammarProperties findSettingsForFile(String fileName) {
-        for (ANTLRv4GrammarProperties settings : perGrammarGenerationSettings) {
+        for (var settings : perGrammarGenerationSettings) {
             if (settings.fileName.equals(fileName)) {
                 return settings;
             }
         }
         
-        for (ANTLRv4GrammarProperties settings : perGrammarGenerationSettings) {
+        for (var settings : perGrammarGenerationSettings) {
             if (matchesWildcardPattern(fileName, settings)) {
                 return settings;
             }
@@ -124,13 +123,14 @@ public class ANTLRv4GrammarPropertiesStore {
     
     private boolean matchesWildcardPattern(String fileName, ANTLRv4GrammarProperties settings) {
         try {
-            WildcardFileNameMatcher wildcardFileNameMatcher = new WildcardFileNameMatcher(settings.fileName);
+            var wildcardFileNameMatcher = new WildcardFileNameMatcher(settings.fileName);
             if (wildcardFileNameMatcher.acceptsCharSequence(fileName)) {
                 return true;
             }
         } catch (Exception e) {
             logger.warn("Unable to check if wildcard matches file name: " + fileName, e);
         }
+        
         return false;
     }
 }
