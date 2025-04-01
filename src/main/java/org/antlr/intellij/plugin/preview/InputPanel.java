@@ -95,13 +95,11 @@ public class InputPanel {
     private JRadioButton inputRadioButton;
     private JRadioButton fileRadioButton;
     private JTextArea placeHolder;
-    private JTextArea errorConsole;
     private JLabel startRuleLabel;
     private JPanel radioButtonPanel;
     private JPanel startRuleAndInputPanel;
     private TextFieldWithBrowseButton fileChooser;
     private JPanel outerMostPanel;
-    private JPanel jPanel;
     private JLabel startRuleLabel2;
     private ComboBox<String> comboBox;
     private JScrollPane errorScrollPane;
@@ -110,17 +108,20 @@ public class InputPanel {
     
     private void createUIComponents() {
         outerMostPanel = new JPanel(new BorderLayout(0, 0));
-        jPanel = new JPanel(new BorderLayout(0, 0));
-        errorConsole = new JTextArea();
+        var jPanel = new JPanel(new BorderLayout(0, 0));
+        var errorConsole = new JTextArea();
         comboBox = new ComboBox<>();
         
         
         comboBox.addItemListener(itemEvent -> {
-            /**
+            /*
              * IMPORTANT:
+             * ----------
+             *
              * Adding items (start-rules) to combobox and select the saved one always triggers
              * an ItemEvent, so ignore if it's not done by the user via UI.
              * Also ignore deselection events.
+             *
              */
             if (!comboBox.hasFocus() || previewState == null || itemEvent.getStateChange() != ItemEvent.SELECTED) {
                 return;
@@ -244,7 +245,9 @@ public class InputPanel {
      * Display syntax errors, hints in tooltips if under the cursor
      */
     public static void showTooltips(Editor editor, @NotNull PreviewState previewState, int offset) {
-        if (previewState.getParsingResult() == null) return; // no results?
+        if (previewState.getParsingResult() == null) {
+            return; // no results?
+        }
         
         // Turn off any tooltips if none under the cursor
         // find the highlighter associated with this offset
@@ -268,9 +271,9 @@ public class InputPanel {
                 } else if (eventInfo instanceof LookaheadEventInfo) {
                     var k = eventInfo.stopIndex - eventInfo.startIndex + 1;
                     msg = "Deepest lookahead k=" + k;
-                } else if (eventInfo instanceof PredicateEvalInfo) {
-                    var evalInfo = (PredicateEvalInfo) eventInfo;
-                    msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
+                } else if (eventInfo instanceof PredicateEvalInfo evalInfo) {
+                    msg = ProfilerPanel.getSemanticContextDisplayString(
+                        evalInfo,
                         previewState,
                         evalInfo.semctx, evalInfo.predictedAlt,
                         evalInfo.evalResult
@@ -283,14 +286,22 @@ public class InputPanel {
             } else {
                 // error tool tips
                 var errorUnderCursor = r.getUserData(SYNTAX_ERROR);
-                msg = getErrorDisplayString(errorUnderCursor);
+                
+                if (errorUnderCursor != null) {
+                    msg = getErrorDisplayString(errorUnderCursor);
+                } else {
+                    msg = "Unknown error";
+                }
+                
                 if (msg.length() > MAX_HINT_WIDTH) {
                     msg = msg.substring(0, MAX_HINT_WIDTH) + "...";
                 }
+                
                 if (msg.indexOf('<') >= 0) {
                     msg = msg.replaceAll("<", "&lt;");
                 }
             }
+            
             msgList.add(msg);
         }
         
@@ -349,6 +360,7 @@ public class InputPanel {
         if (previewState != null) {
             previewState.setInputFile(chosenFile);
         }
+        
         selectFileEvent();
     }
     
@@ -417,6 +429,10 @@ public class InputPanel {
         
         // get state for grammar in current editor, not editor where user is typing preview input!
         var controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+        
+        if (controller == null) {
+            return;
+        }
         
         // wipe old and make new one
         releaseEditor(previewState);
@@ -530,7 +546,14 @@ public class InputPanel {
         uninstallListeners(previewState.getInputEditor());
         
         // release the editor
-        ANTLRv4PluginController.printToConsole(previewState.getProject(), "InputPanel.releaseEditor(" +previewState.getInputEditor() + ", lexerGrammarFile=" + previewState.getGrammarFile() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        ANTLRv4PluginController.printToConsole(
+            previewState.getProject(),
+            "InputPanel.releaseEditor(" +
+                previewState.getInputEditor() +
+                ", lexerGrammarFile=" +
+                previewState.getGrammarFile() +
+                ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT
+        );
         
         previewState.releaseEditor();
         
@@ -555,9 +578,13 @@ public class InputPanel {
     
     
     public void uninstallListeners(Editor editor) {
-        if (editor == null) return;
+        if (editor == null) {
+            return;
+        }
+        
         editor.removeEditorMouseListener(editorMouseListener);
         editor.removeEditorMouseMotionListener(editorMouseListener);
+        
         for (var listener : caretListeners) {
             editor.getCaretModel().removeCaretListener(listener);
         }
@@ -577,8 +604,14 @@ public class InputPanel {
             return;
         }
         
-        ANTLRv4PluginController.printToConsole(previewState.getProject(), "InputPanel.setStartRuleName(" + grammarFile.getName() + ", '" + startRuleName + "')", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
-
+        ANTLRv4PluginController.printToConsole(
+            previewState.getProject(),
+            "InputPanel.setStartRuleName(" +
+                grammarFile.getName() + ", '" +
+                startRuleName + "')",
+            ConsoleViewContentType.LOG_DEBUG_OUTPUT
+        );
+        
         final var labelGrammar = String.format(
             grammarFileLabelText,
             grammarFile.getName()
@@ -821,6 +854,7 @@ public class InputPanel {
      */
     public void highlightAndOfferHint(Editor editor, int offset, Interval sourceInterval, JBColor color, EffectType effectType, String hintText) {
         var caretModel = editor.getCaretModel();
+        editor.getMarkupModel().removeAllHighlighters();
         
         final var textAttributes = new TextAttributes();
         textAttributes.setForegroundColor(color);
@@ -856,6 +890,7 @@ public class InputPanel {
      */
     public void highlightRange(TextAttributes textAttributes, int startOffset, int endOffset, int layer) {
         var editor = getInputEditor();
+        editor.getMarkupModel().removeAllHighlighters();
         
         // invalid parameters
         if (textAttributes == null || startOffset < 0 || endOffset < 0)
@@ -891,8 +926,8 @@ public class InputPanel {
         }
         
         var region = previewState.getGrammar().getStateToGrammarRegion(atnState);
-        var token =
-            (CommonToken) previewState.getGrammar().tokenStream.get(region.a);
+        var token = (CommonToken) previewState.getGrammar().tokenStream.get(region.a);
+        
         jumpToGrammarPosition(project, token.getStartIndex());
     }
     
@@ -924,13 +959,15 @@ public class InputPanel {
     public void jumpToGrammarPosition(Project project, int start) {
         final var controller = ANTLRv4PluginController.getInstance(project);
         
-        if (controller == null)
+        if (controller == null) {
             return;
+        }
         
         final var grammarEditor = controller.getEditor(previewState.getGrammarFile());
         
-        if (grammarEditor == null)
+        if (grammarEditor == null) {
             return;
+        }
         
         var caretModel = grammarEditor.getCaretModel();
         caretModel.moveToOffset(start);
@@ -947,7 +984,10 @@ public class InputPanel {
     
     public void annotateErrorsInPreviewInputEditor(SyntaxError e) {
         var editor = getInputEditor();
-        if (editor == null) return;
+        if (editor == null) {
+            return;
+        }
+        
         var markupModel = editor.getMarkupModel();
         
         int a, b; // Start and stop index
@@ -960,10 +1000,13 @@ public class InputPanel {
             a = offendingToken.getStartIndex();
             b = offendingToken.getStopIndex() + 1;
         }
+        
         final var attr = new TextAttributes();
+        
         attr.setForegroundColor(JBColor.RED);
         attr.setEffectColor(JBColor.RED);
         attr.setEffectType(EffectType.WAVE_UNDERSCORE);
+        
         var highlighter =
             markupModel.addRangeHighlighter(
                 a,
@@ -972,6 +1015,7 @@ public class InputPanel {
                 attr,
                 HighlighterTargetArea.EXACT_RANGE
             );
+        
         highlighter.putUserData(SYNTAX_ERROR, e);
     }
     
