@@ -147,6 +147,25 @@ public class MyPsiUtils {
     }
     
     
+    public static PsiElement findLexerSpecNode(GrammarSpecNode grammar, final String lexerRuleName) {
+        PsiElementFilter definitionFilter = element1 -> {
+            if (!(element1 instanceof LexerRuleSpecNode)) {
+                return false;
+            }
+            
+            var id = ((LexerRuleSpecNode) element1).getNameIdentifier();
+            return id != null && id.getText().equals(lexerRuleName);
+        };
+        
+        var ruleSpec = PsiTreeUtil.collectElements(grammar, definitionFilter);
+        if (ruleSpec.length > 0) {
+            return ruleSpec[0];
+        }
+        
+        return null;
+    }
+    
+    
     public static PsiElement createLeafFromText(Project project, PsiElement context, String text, IElementType type) {
         var factory = (PsiFileFactoryImpl) PsiFileFactory.getInstance(project);
         var el = factory.createElementFromText(text,

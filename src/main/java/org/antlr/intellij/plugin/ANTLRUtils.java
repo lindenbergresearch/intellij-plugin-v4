@@ -4,9 +4,13 @@ import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.misc.Tuple2;
 
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.regex.Pattern;
 
-public class Utils {
+public class ANTLRUtils {
+    public static final String DEFAULT_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.S";
+    
     
     /**
      * Converts a given Color to a hex string in the format: #RRGGBB
@@ -52,7 +56,6 @@ public class Utils {
         var dec = deconstructJBColor(jbColor);
         
         return dec.first().equals(colors.first()) && dec.second().equals(colors.second());
-        
     }
     
     
@@ -154,20 +157,31 @@ public class Utils {
      * @return Longest string, null if empty.
      */
     public static String getLongestString(String... s) {
-        if (s == null)
+        if (s == null || s.length == 0) {
             return null;
-        
-        if (s.length == 1)
-            return s[0];
-        
-        var longest = s[0];
-        
-        for (var str : s) {
-            if (str.length() > longest.length())
-                longest = str;
         }
         
-        return longest;
+        String maxString = null;
+        
+        for (var str : s) {
+            if (str == null) {
+                continue;
+            }
+            if (maxString == null || str.length() > maxString.length()) {
+                maxString = str;
+            }
+        }
+        
+        return maxString;
     }
     
+    
+    public static String getTimeStamp() {
+        return new SimpleDateFormat(DEFAULT_TIMESTAMP_FORMAT).format(Calendar.getInstance().getTime());
+    }
+    
+    
+    public static String getTimeStamp(String format) {
+        return new SimpleDateFormat(format).format(Calendar.getInstance().getTime());
+    }
 }
