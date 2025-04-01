@@ -3,16 +3,22 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
-import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.*;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.EditorMarkupModel;
-import com.intellij.openapi.editor.markup.*;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterLayer;
+import com.intellij.openapi.editor.markup.HighlighterTargetArea;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -34,14 +40,18 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.runtime.CommonToken;
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.atn.*;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.atn.AmbiguityInfo;
+import org.antlr.v4.runtime.atn.ContextSensitivityInfo;
+import org.antlr.v4.runtime.atn.LookaheadEventInfo;
+import org.antlr.v4.runtime.atn.PredicateEvalInfo;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Utils;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,7 +106,6 @@ public class InputPanel {
     private ComboBox<String> comboBox;
     private JScrollPane errorScrollPane;
     ErrorConsolePanel errorConsolePanel;
-    private final PropertiesComponent propertiesComponent;
     
     
     private void createUIComponents() {
@@ -107,15 +116,33 @@ public class InputPanel {
         
         
         comboBox.addItemListener(itemEvent -> {
-            if (previewState == null)
+            /**
+             * IMPORTANT:
+             * Adding items (start-rules) to combobox and select the saved one always triggers
+             * an ItemEvent, so ignore if it's not done by the user via UI.
+             * Also ignore deselection events.
+             */
+            if (!comboBox.hasFocus() || previewState == null || itemEvent.getStateChange() != ItemEvent.SELECTED) {
                 return;
+            }
             
-            ANTLRv4PluginController controller =
-                ANTLRv4PluginController.getInstance(previewState.project);
+            var controller = ANTLRv4PluginController.getInstance(previewState.getProject());
+            if (controller == null) {
+                return;
+            }
             
-            if (itemEvent.getStateChange() == ItemEvent.SELECTED && controller != null) {
+            controller.printToConsole("comboBox.addItemListener(" + itemEvent + ", " + previewState, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+            
+            var newStartRuleName = itemEvent.getItem().toString();
+            
+            if (newStartRuleName.equals(previewState.getPlainStartRuleName())) {
+                controller.printToConsole("comboBox(): startRuleName already set: " + newStartRuleName, ConsoleViewContentType.LOG_WARNING_OUTPUT);
+                return;
+            }
+            
+            if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
                 controller.setStartRuleNameEvent(
-                    previewState.grammarFile,
+                    previewState.getGrammarFile(),
                     itemEvent.getItem().toString()
                 );
             }
@@ -144,6 +171,7 @@ public class InputPanel {
     
     public InputPanel(final PreviewPanel previewPanel) {
         var layout = new WrappedFlowLayout(0, 0);
+        $$$setupUI$$$();
         layout.setAlignment(FlowLayout.LEFT);
         this.startRuleAndInputPanel.setLayout(layout);
         this.previewPanel = previewPanel;
@@ -158,6 +186,7 @@ public class InputPanel {
                 singleFileDescriptor,
                 TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
             ) {
+                @Override
                 protected void onFileChosen(@NotNull VirtualFile chosenFile) {
                     // this next line is the code taken from super; pasted in
                     // to avoid compile error on super.onFileCho[o]sen
@@ -185,7 +214,6 @@ public class InputPanel {
         
         resetStartRuleLabel();
         setupStartRuleLabelUI();
-        propertiesComponent = PropertiesComponent.getInstance(previewPanel.project);
         editorMouseListener = new PreviewEditorMouseListener(this);
     }
     
@@ -202,8 +230,8 @@ public class InputPanel {
      * Remove any previous underlining or boxing, but not errors or decision event info
      */
     public static void clearTokenInfoHighlighters(Editor editor) {
-        MarkupModel markupModel = editor.getMarkupModel();
-        for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+        var markupModel = editor.getMarkupModel();
+        for (var r : markupModel.getAllHighlighters()) {
             if (r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY) == null &&
                 r.getUserData(SYNTAX_ERROR) == null) {
                 markupModel.removeHighlighter(r);
@@ -216,19 +244,20 @@ public class InputPanel {
      * Display syntax errors, hints in tooltips if under the cursor
      */
     public static void showTooltips(Editor editor, @NotNull PreviewState previewState, int offset) {
-        if (previewState.parsingResult == null) return; // no results?
+        if (previewState.getParsingResult() == null) return; // no results?
         
         // Turn off any tooltips if none under the cursor
         // find the highlighter associated with this offset
-        List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
-        if (highlightersAtOffset.size() == 0) {
+        var highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
+        if (highlightersAtOffset.isEmpty()) {
             return;
         }
         
         List<String> msgList = new ArrayList<>();
-        boolean foundDecisionEvent = false;
-        for (RangeHighlighter r : highlightersAtOffset) {
-            DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
+        var foundDecisionEvent = false;
+        
+        for (var r : highlightersAtOffset) {
+            var eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
             String msg;
             if (eventInfo != null) {
                 // TODO: move decision event stuff to profiler?
@@ -237,10 +266,10 @@ public class InputPanel {
                 } else if (eventInfo instanceof ContextSensitivityInfo) {
                     msg = "Context-sensitive";
                 } else if (eventInfo instanceof LookaheadEventInfo) {
-                    int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
+                    var k = eventInfo.stopIndex - eventInfo.startIndex + 1;
                     msg = "Deepest lookahead k=" + k;
                 } else if (eventInfo instanceof PredicateEvalInfo) {
-                    PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
+                    var evalInfo = (PredicateEvalInfo) eventInfo;
                     msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
                         previewState,
                         evalInfo.semctx, evalInfo.predictedAlt,
@@ -253,7 +282,7 @@ public class InputPanel {
                 foundDecisionEvent = true;
             } else {
                 // error tool tips
-                SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
+                var errorUnderCursor = r.getUserData(SYNTAX_ERROR);
                 msg = getErrorDisplayString(errorUnderCursor);
                 if (msg.length() > MAX_HINT_WIDTH) {
                     msg = msg.substring(0, MAX_HINT_WIDTH) + "...";
@@ -264,8 +293,10 @@ public class InputPanel {
             }
             msgList.add(msg);
         }
-        String combinedMsg = Utils.join(msgList.iterator(), "\n");
-        HintManagerImpl hintMgr = (HintManagerImpl) HintManager.getInstance();
+        
+        var combinedMsg = Utils.join(msgList.iterator(), "\n");
+        var hintMgr = (HintManagerImpl) HintManager.getInstance();
+        
         if (foundDecisionEvent) {
             showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg);
         } else {
@@ -275,33 +306,33 @@ public class InputPanel {
     
     
     public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
-        int flags = HintManager.HIDE_BY_ANY_KEY |
+        var flags = HintManager.HIDE_BY_ANY_KEY |
             HintManager.HIDE_BY_TEXT_CHANGE |
             HintManager.HIDE_BY_SCROLLING;
         
-        int timeout = 0; // default?
+        var timeout = 0; // default?
         hintMgr.showErrorHint(editor, msg, offset, offset + 1, HintManager.ABOVE, flags, timeout);
     }
     
     
     public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
-        int flags = HintManager.HIDE_BY_ANY_KEY |
+        var flags = HintManager.HIDE_BY_ANY_KEY |
             HintManager.HIDE_BY_TEXT_CHANGE |
             HintManager.HIDE_BY_SCROLLING;
         
-        int timeout = 0; // default?
-        JComponent infoLabel = HintUtil.createInformationLabel(msg);
-        LightweightHint hint = new LightweightHint(infoLabel);
-        final LogicalPosition pos = editor.offsetToLogicalPosition(offset);
-        final Point p = HintManagerImpl.getHintPosition(hint, editor, pos, HintManager.ABOVE);
+        var timeout = 0; // default?
+        var infoLabel = HintUtil.createInformationLabel(msg);
+        var hint = new LightweightHint(infoLabel);
+        final var pos = editor.offsetToLogicalPosition(offset);
+        final var p = HintManagerImpl.getHintPosition(hint, editor, pos, HintManager.ABOVE);
         hintMgr.showEditorHint(hint, editor, p, flags, timeout, false);
     }
     
     
     public static void removeHighlighters(Editor editor, Key<?> key) {
         // Remove anything with user data accessible via key
-        MarkupModel markupModel = editor.getMarkupModel();
-        for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+        var markupModel = editor.getMarkupModel();
+        for (var r : markupModel.getAllHighlighters()) {
             if (r.getUserData(key) != null) {
                 markupModel.removeHighlighter(r);
             }
@@ -316,7 +347,7 @@ public class InputPanel {
     
     private void onFileChosen(VirtualFile chosenFile) {
         if (previewState != null) {
-            previewState.inputFile = chosenFile;
+            previewState.setInputFile(chosenFile);
         }
         selectFileEvent();
     }
@@ -344,7 +375,7 @@ public class InputPanel {
         final var factory = EditorFactory.getInstance();
         var doc = factory.createDocument("");
         
-        var editor = createPreviewEditor(previewState.grammarFile, doc, false);
+        var editor = createPreviewEditor(previewState.getGrammarFile(), doc, false);
         setEditorComponent(editor.getComponent()); // do before setting state
         previewState.setInputEditor(editor);
         
@@ -358,7 +389,6 @@ public class InputPanel {
                 @Override
                 public void documentChanged(DocumentEvent e) {
                     previewState.setManualInputText(e.getDocument().getCharsSequence());
-                    previewState.persistPreviewData();
                 }
             }
         );
@@ -372,7 +402,7 @@ public class InputPanel {
             return;
         }
         
-        var inputFile = previewState.inputFile;
+        var inputFile = previewState.getInputFile();
         if (inputFile == null) {
             errorConsolePanel.add("Invalid input file!");
             return;
@@ -406,7 +436,9 @@ public class InputPanel {
             new DocumentListener() {
                 @Override
                 public void documentChanged(@NotNull DocumentEvent event) {
-                    previewPanel.updateParseTreeFromDoc(grammarFile, false);
+                    if (previewPanel.isAutoRefresh()) {
+                        previewPanel.updateParseTreeFromDoc(grammarFile, false);
+                    }
                 }
             }
         );
@@ -441,8 +473,8 @@ public class InputPanel {
     public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
         this.previewState = previewState;
         
-        if (previewState.inputFile != null) {
-            fileChooser.setText(previewState.inputFile.getPath());
+        if (previewState.getInputFile() != null) {
+            fileChooser.setText(previewState.getInputFile().getPath());
             selectFileEvent();
         } else {
             selectInputEvent();
@@ -450,8 +482,8 @@ public class InputPanel {
         
         clearParseErrors();
         
-        if (previewState.startRuleName != null) {
-            setStartRuleName(grammarFile, previewState.startRuleName);
+        if (previewState.hasValidStartRule()) {
+            setStartRuleName(grammarFile, previewState.getPlainStartRuleName());
         } else {
             resetStartRuleLabel();
         }
@@ -459,11 +491,11 @@ public class InputPanel {
     
     
     public void setEditorComponent(JComponent editor) {
-        BorderLayout layout = (BorderLayout) outerMostPanel.getLayout();
+        var layout = (BorderLayout) outerMostPanel.getLayout();
         
         // atomically remove old
         synchronized (swapEditorComponentLock) {
-            Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
+            var editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
             
             if (editorSpotComp != null) {
                 editorSpotComp.setVisible(false);
@@ -498,6 +530,8 @@ public class InputPanel {
         uninstallListeners(previewState.getInputEditor());
         
         // release the editor
+        ANTLRv4PluginController.printToConsole(previewState.getProject(), "InputPanel.releaseEditor(" +previewState.getInputEditor() + ", lexerGrammarFile=" + previewState.getGrammarFile() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        
         previewState.releaseEditor();
         
         // restore the GUI
@@ -510,8 +544,10 @@ public class InputPanel {
             // Avoid showing the default context menu
             ((EditorEx) editor).setContextMenuGroupId("AntlrContextMenu");
         }
+        
         editor.addEditorMouseMotionListener(editorMouseListener);
         editor.addEditorMouseListener(editorMouseListener);
+        
         for (var listener : caretListeners) {
             editor.getCaretModel().addCaretListener(listener);
         }
@@ -529,17 +565,20 @@ public class InputPanel {
     
     
     public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
-        if (previewState == null || previewState.grammar == null) {
+        if (!previewState.hasValidGrammar()) {
             startRuleLabel.setText("");
             return;
         }
         
-        var grammar = previewState.grammar;
+        var grammar = previewState.getGrammar();
         var rules = grammar.rules;
         
-        if (startRuleName.equals(comboBox.getItem()))
+        if (startRuleName.equals(comboBox.getItem())) {
             return;
+        }
         
+        ANTLRv4PluginController.printToConsole(previewState.getProject(), "InputPanel.setStartRuleName(" + grammarFile.getName() + ", '" + startRuleName + "')", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+
         final var labelGrammar = String.format(
             grammarFileLabelText,
             grammarFile.getName()
@@ -548,14 +587,16 @@ public class InputPanel {
         comboBox.setEnabled(true);
         comboBox.removeAllItems();
         
+        var item = "";
         
-        for (var s : rules.keySet()) {
-            comboBox.addItem(s);
-            if (startRuleName.equals(s)) {
-                comboBox.setSelectedItem(s);
+        for (var ruleName : rules.keySet()) {
+            comboBox.addItem(ruleName);
+            if (startRuleName.equals(ruleName)) {
+                item = ruleName;
             }
         }
         
+        comboBox.setSelectedItem(item);
         startRuleLabel.setForeground(JBColor.foreground());
         startRuleLabel.setIcon(ANTLRv4Icons.FILE);
         startRuleLabel.setText(labelGrammar);
@@ -583,7 +624,7 @@ public class InputPanel {
         var grammarName = "???";
         
         if (previewState != null) {
-            grammarName = previewState.grammarFile.getName();
+            grammarName = previewState.getGrammarFile().getName();
         }
         
         startRuleLabel.setText(String.format(grammarName));
@@ -611,7 +652,7 @@ public class InputPanel {
     
     
     public void clearParseErrors() {
-        Editor editor = getInputEditor();
+        var editor = getInputEditor();
         if (editor == null) return;
         
         clearInputEditorHighlighters();
@@ -626,10 +667,10 @@ public class InputPanel {
      * Clear all input highlighters
      */
     public void clearInputEditorHighlighters() {
-        Editor editor = getInputEditor();
+        var editor = getInputEditor();
         if (editor == null) return;
         
-        MarkupModel markupModel = editor.getMarkupModel();
+        var markupModel = editor.getMarkupModel();
         markupModel.removeAllHighlighters();
     }
     
@@ -639,11 +680,11 @@ public class InputPanel {
      * to the preview input window.
      */
     public void showParseErrors(final List<SyntaxError> errors) {
-        if (errors.size() == 0) {
+        if (errors.isEmpty()) {
             clearInputEditorHighlighters();
             return;
         }
-        for (SyntaxError e : errors) {
+        for (var e : errors) {
             annotateErrorsInPreviewInputEditor(e);
             displayErrorInParseErrorConsole(e);
         }
@@ -664,11 +705,11 @@ public class InputPanel {
      * Show token information if the ctrl-key is down and mouse movement occurs
      */
     public void showTokenInfoUponCtrlKey(Editor editor, PreviewState previewState, int offset) {
-        Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
+        var tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
         
         if (tokenUnderCursor == null) {
-            PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
-            CommonTokenStream tokenStream = (CommonTokenStream) parser.getInputStream();
+            var parser = (PreviewParser) previewState.getParsingResult().parser;
+            var tokenStream = (CommonTokenStream) parser.getInputStream();
             tokenUnderCursor = ParsingUtils.getSkippedTokenUnderCursor(tokenStream, offset);
         }
         
@@ -676,20 +717,20 @@ public class InputPanel {
             return;
         }
         
-        String channelInfo = "";
-        int channel = tokenUnderCursor.getChannel();
+        var channelInfo = "";
+        var channel = tokenUnderCursor.getChannel();
         
         if (channel != Token.DEFAULT_CHANNEL) {
-            String chNum = channel == Token.HIDDEN_CHANNEL ? "hidden" : String.valueOf(channel);
+            var chNum = channel == Token.HIDDEN_CHANNEL ? "hidden" : String.valueOf(channel);
             channelInfo = ", Channel " + chNum;
         }
         
-        JBColor color = JBColor.PINK;
-        String tokenInfo =
+        var color = JBColor.PINK;
+        var tokenInfo =
             String.format(
                 "#%d Type %s, Line %d:%d%s",
                 tokenUnderCursor.getTokenIndex(),
-                previewState.grammar.getTokenDisplayName(tokenUnderCursor.getType()),
+                previewState.getGrammar().getTokenDisplayName(tokenUnderCursor.getType()),
                 tokenUnderCursor.getLine(),
                 tokenUnderCursor.getCharPositionInLine(),
                 channelInfo
@@ -700,7 +741,7 @@ public class InputPanel {
             color = JBColor.gray;
         }
         
-        Interval sourceInterval = Interval.of(
+        var sourceInterval = Interval.of(
             tokenUnderCursor.getStartIndex(),
             tokenUnderCursor.getStopIndex() + 1
         );
@@ -714,38 +755,38 @@ public class InputPanel {
      * if the alt-key is down and mouse movement occurs.
      */
     public void showParseRegion(Editor editor, PreviewState previewState, int offset) {
-        Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
+        var tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
         if (tokenUnderCursor == null) {
             return;
         }
         
-        ParseTree tree = previewState.parsingResult.tree;
-        TerminalNode nodeWithToken =
+        var tree = previewState.getParsingResult().tree;
+        var nodeWithToken =
             (TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
         if (nodeWithToken == null) {
             // hidden token
             return;
         }
         
-        PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
-        CommonTokenStream tokenStream = (CommonTokenStream) parser.getInputStream();
-        ParserRuleContext parent = (ParserRuleContext) nodeWithToken.getParent();
-        Interval tokenInterval = parent.getSourceInterval();
-        Token startToken = tokenStream.get(tokenInterval.a);
-        Token stopToken = tokenStream.get(tokenInterval.b);
-        Interval sourceInterval =
+        var parser = (PreviewParser) previewState.getParsingResult().parser;
+        var tokenStream = (CommonTokenStream) parser.getInputStream();
+        var parent = (ParserRuleContext) nodeWithToken.getParent();
+        var tokenInterval = parent.getSourceInterval();
+        var startToken = tokenStream.get(tokenInterval.a);
+        var stopToken = tokenStream.get(tokenInterval.b);
+        var sourceInterval =
             Interval.of(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
         
-        List<String> stack = parser.getRuleInvocationStack(parent);
+        var stack = parser.getRuleInvocationStack(parent);
         Collections.reverse(stack);
         
         if (stack.size() > MAX_STACK_DISPLAY) {
             // collapse contiguous dups to handle left-recursive stacks
             List<Pair<String, Integer>> smaller = new ArrayList<>();
-            int last = 0;
+            var last = 0;
             smaller.add(new Pair<>(stack.get(0), 1)); // init to having first element, count of 1
-            for (int i = 1; i < stack.size(); i++) {
-                String s = stack.get(i);
+            for (var i = 1; i < stack.size(); i++) {
+                var s = stack.get(i);
                 if (smaller.get(last).a.equals(s)) {
                     smaller.set(last, new Pair<>(s, smaller.get(last).b + 1));
                 } else {
@@ -754,16 +795,16 @@ public class InputPanel {
                 }
             }
             stack = new ArrayList<>();
-            for (Pair<String, Integer> pair : smaller) {
+            for (var pair : smaller) {
                 if (pair.b > 1) {
-                    stack.add(pair.a + "^" + pair.b);
+                    stack.add(pair.a + '^' + pair.b);
                 } else {
                     stack.add(pair.a);
                 }
             }
         }
         
-        String stackS = Utils.join(stack.toArray(), " -> ");
+        var stackS = Utils.join(stack.toArray(), " -> ");
         highlightAndOfferHint(editor, offset, sourceInterval, JBColor.YELLOW, EffectType.ROUNDED_BOX, stackS);
     }
     
@@ -837,58 +878,63 @@ public class InputPanel {
     
     
     public void setCursorToGrammarElement(Project project, PreviewState previewState, int offset) {
-        Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
+        var tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
         if (tokenUnderCursor == null) {
             return;
         }
         
-        PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
-        Integer atnState = parser.inputTokenToStateMap.get(tokenUnderCursor);
+        var parser = (PreviewParser) previewState.getParsingResult().parser;
+        var atnState = parser.inputTokenToStateMap.get(tokenUnderCursor);
         if (atnState == null) { // likely an error token
             //LOG.error("no ATN state for input token " + tokenUnderCursor);
             return;
         }
         
-        Interval region = previewState.grammar.getStateToGrammarRegion(atnState);
-        CommonToken token =
-            (CommonToken) previewState.grammar.tokenStream.get(region.a);
+        var region = previewState.getGrammar().getStateToGrammarRegion(atnState);
+        var token =
+            (CommonToken) previewState.getGrammar().tokenStream.get(region.a);
         jumpToGrammarPosition(project, token.getStartIndex());
     }
     
     
     public void setCursorToGrammarRule(Project project, PreviewState previewState, int offset) {
-        Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
+        var tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
         if (tokenUnderCursor == null) {
             return;
         }
         
-        ParseTree tree = previewState.parsingResult.tree;
-        TerminalNode nodeWithToken =
+        var tree = previewState.getParsingResult().tree;
+        var nodeWithToken =
             (TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
         if (nodeWithToken == null) {
             // hidden token
             return;
         }
         
-        ParserRuleContext parent = (ParserRuleContext) nodeWithToken.getParent();
-        int ruleIndex = parent.getRuleIndex();
-        Rule rule = previewState.grammar.getRule(ruleIndex);
-        GrammarAST ruleNameNode = (GrammarAST) rule.ast.getChild(0);
-        int start = ((CommonToken) ruleNameNode.getToken()).getStartIndex();
+        var parent = (ParserRuleContext) nodeWithToken.getParent();
+        var ruleIndex = parent.getRuleIndex();
+        var rule = previewState.getGrammar().getRule(ruleIndex);
+        var ruleNameNode = (GrammarAST) rule.ast.getChild(0);
+        var start = ((CommonToken) ruleNameNode.getToken()).getStartIndex();
         
         jumpToGrammarPosition(project, start);
     }
     
     
     public void jumpToGrammarPosition(Project project, int start) {
-        final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-        if (controller == null) return;
-        final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
-        if (grammarEditor == null) return;
+        final var controller = ANTLRv4PluginController.getInstance(project);
         
-        CaretModel caretModel = grammarEditor.getCaretModel();
+        if (controller == null)
+            return;
+        
+        final var grammarEditor = controller.getEditor(previewState.getGrammarFile());
+        
+        if (grammarEditor == null)
+            return;
+        
+        var caretModel = grammarEditor.getCaretModel();
         caretModel.moveToOffset(start);
-        ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
+        var scrollingModel = grammarEditor.getScrollingModel();
         scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
         grammarEditor.getContentComponent().requestFocus();
     }
@@ -900,25 +946,25 @@ public class InputPanel {
     
     
     public void annotateErrorsInPreviewInputEditor(SyntaxError e) {
-        Editor editor = getInputEditor();
+        var editor = getInputEditor();
         if (editor == null) return;
-        MarkupModel markupModel = editor.getMarkupModel();
+        var markupModel = editor.getMarkupModel();
         
         int a, b; // Start and stop index
-        RecognitionException cause = e.getException();
+        var cause = e.getException();
         if (cause instanceof LexerNoViableAltException) {
             a = ((LexerNoViableAltException) cause).getStartIndex();
             b = ((LexerNoViableAltException) cause).getStartIndex() + 1;
         } else {
-            Token offendingToken = e.getOffendingSymbol();
+            var offendingToken = e.getOffendingSymbol();
             a = offendingToken.getStartIndex();
             b = offendingToken.getStopIndex() + 1;
         }
-        final TextAttributes attr = new TextAttributes();
+        final var attr = new TextAttributes();
         attr.setForegroundColor(JBColor.RED);
         attr.setEffectColor(JBColor.RED);
         attr.setEffectType(EffectType.WAVE_UNDERSCORE);
-        RangeHighlighter highlighter =
+        var highlighter =
             markupModel.addRangeHighlighter(
                 a,
                 b,
@@ -933,4 +979,62 @@ public class InputPanel {
     public void addCaretListener(CaretListener caretListener) {
         this.caretListeners.add(caretListener);
     }
+    
+    
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        createUIComponents();
+        outerMostPanel.setLayout(new BorderLayout(10, 10));
+        startRuleAndInputPanel = new JPanel();
+        startRuleAndInputPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 9));
+        startRuleAndInputPanel.setMinimumSize(new Dimension(233, 40));
+        startRuleAndInputPanel.setPreferredSize(new Dimension(295, 40));
+        startRuleAndInputPanel.setToolTipText("srthuertzu");
+        outerMostPanel.add(startRuleAndInputPanel, BorderLayout.NORTH);
+        radioButtonPanel = new JPanel();
+        radioButtonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        radioButtonPanel.setAlignmentX(0.0f);
+        radioButtonPanel.setAlignmentY(0.0f);
+        startRuleAndInputPanel.add(radioButtonPanel);
+        inputRadioButton = new JRadioButton();
+        inputRadioButton.setSelected(true);
+        inputRadioButton.setText("Input");
+        radioButtonPanel.add(inputRadioButton);
+        fileRadioButton = new JRadioButton();
+        fileRadioButton.setText("File");
+        radioButtonPanel.add(fileRadioButton);
+        fileChooser = new TextFieldWithBrowseButton();
+        fileChooser.setEditable(false);
+        radioButtonPanel.add(fileChooser);
+        startRuleLabel = new JLabel();
+        startRuleLabel.setText("Label");
+        startRuleAndInputPanel.add(startRuleLabel);
+        startRuleLabel2 = new JLabel();
+        startRuleLabel2.setText("Label");
+        startRuleAndInputPanel.add(startRuleLabel2);
+        startRuleAndInputPanel.add(comboBox);
+        placeHolder = new JTextArea();
+        placeHolder.setBackground(Color.lightGray);
+        placeHolder.setEditable(false);
+        placeHolder.setEnabled(true);
+        placeHolder.setMargin(new Insets(0, 0, 0, 0));
+        placeHolder.setText("");
+        outerMostPanel.add(placeHolder, BorderLayout.EAST);
+        ButtonGroup buttonGroup;
+        buttonGroup = new ButtonGroup();
+        buttonGroup.add(fileRadioButton);
+        buttonGroup.add(inputRadioButton);
+    }
+    
+    
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {return outerMostPanel;}
 }

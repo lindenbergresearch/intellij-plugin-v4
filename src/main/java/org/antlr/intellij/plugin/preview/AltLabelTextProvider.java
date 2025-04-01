@@ -33,11 +33,15 @@ public class AltLabelTextProvider implements TreeTextProvider {
     public static final String RULE_LABEL_PREFIX = "#";
     
     // text used if name, text or symbol is not available
-    public static final String NOT_PRESENT_TEXT = "-";
+    public static final String NOT_PRESENT_TEXT = "???";
     
     // chars wrapping a rule
     public static final String RULE_WRAPPING_TEXT_R = "";
     public static final String RULE_WRAPPING_TEXT_L = "";
+    
+    // used to wrap the actual text/value of a recognised token
+    public static final String TOKEN_TEXT_WRAPPING_CHAR_R = "\'";
+    public static final String TOKEN_TEXT_WRAPPING_CHAR_L = "\'";
     
     
     // use compact labels
@@ -156,7 +160,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
             }
             
             if (originalAltNums > 1) {
-                text += ALT_LABEL_TEXT + outerAltNum;
+                text += ALT_LABEL_TEXT + outerAltNum /*+ "/" + originalAltNums*/;
             }
         }
         
@@ -195,18 +199,22 @@ public class AltLabelTextProvider implements TreeTextProvider {
         // add hint to be more concise
         if (node instanceof ErrorNodeImpl) {
             text = symName == null ?
-                '\'' + text + '\'' :
-                symName + ": " + '\'' + text + '\'';
+                TOKEN_TEXT_WRAPPING_CHAR_L + text + TOKEN_TEXT_WRAPPING_CHAR_R :
+                symName + ": " + TOKEN_TEXT_WRAPPING_CHAR_L + text + TOKEN_TEXT_WRAPPING_CHAR_R;
             
             return "<re-sync>" + NL + text;
         }
         
+        // end of file
         if (text.equals("<EOF>")) return EOF_LABEL;
+  
+        // no symbolic name, return text only
         if (symName == null) return text;
         
+        // take care of compact mode
         if (compact) return text;
         
-        return symName + NL + '\'' + text + '\'';
+        return symName + NL + TOKEN_TEXT_WRAPPING_CHAR_L + text + TOKEN_TEXT_WRAPPING_CHAR_R;
     }
     
     

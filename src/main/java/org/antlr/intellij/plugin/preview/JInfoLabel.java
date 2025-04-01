@@ -1,9 +1,9 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.ui.JBColor;
+import org.antlr.intellij.plugin.misc.FontManager;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.antlr.intellij.plugin.preview.ui.StyledElementMargin;
-import org.antlr.intellij.plugin.preview.ui.UIHelper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,7 +42,7 @@ public class JInfoLabel extends JComponent {
     
     private Point offset = new Point(10, 10);
     
-    private float fontSize = DefaultStyles.BASIC_FONT_SIZE - 5;
+    private float fontSize = DefaultStyles.BaseFontRegular.getFont().getSize() - 5;
     
     private JBColor labelColor = DefaultStyles.JB_COLOR_GRAY;
     private JBColor textColor = DefaultStyles.JB_COLOR_DARK;
@@ -60,7 +60,7 @@ public class JInfoLabel extends JComponent {
         setLocation(offset);
         setOpaque(false);
         setBackground(DefaultStyles.JB_COLOR_TRANSPARENT);
-        setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(fontSize));
+        setFont((Font) DefaultStyles.BaseFontTerminal.getFont());
         margin = DefaultStyles.DEFAULT_TEXT_MARGIN;
     }
     
@@ -131,7 +131,7 @@ public class JInfoLabel extends JComponent {
         var width = 0.0;
         
         for (var infoLabelElement : content.values()) {
-            var dim = UIHelper.getFullStringBounds(g2d, infoLabelElement.getLabel());
+            var dim = FontManager.getFullStringBounds(g2d, infoLabelElement.getLabel());
             width = Math.max(width, dim.getWidth());
         }
         
@@ -149,7 +149,7 @@ public class JInfoLabel extends JComponent {
         var width = 0.0;
         
         for (var infoLabelElement : content.values()) {
-            var dim = UIHelper.getFullStringBounds(g2d, infoLabelElement.getDisplayText());
+            var dim = FontManager.getFullStringBounds(g2d, infoLabelElement.getDisplayText());
             width = Math.max(width, dim.getWidth());
         }
         

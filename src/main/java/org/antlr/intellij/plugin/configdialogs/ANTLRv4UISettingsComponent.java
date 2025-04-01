@@ -2,14 +2,20 @@
 
 package org.antlr.intellij.plugin.configdialogs;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
+import lombok.Getter;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState.ColorKey;
+import org.antlr.intellij.plugin.misc.FontManager;
+import org.antlr.intellij.plugin.misc.FontManager.FontBundle;
 import org.antlr.intellij.plugin.misc.Tuple2;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 
@@ -25,25 +31,35 @@ import static org.antlr.intellij.plugin.ANTLRUtils.deconstructJBColor;
  * Supports creating and managing a {@link JPanel} for the Settings Dialog.
  */
 public class ANTLRv4UISettingsComponent {
+    // Configure Logger
+    private static final Logger LOG = Logger.getInstance(ANTLRv4UISettingsComponent.class);
+    
+    
     // color panels stored by color-key.
-    private final Map<ColorKey, Tuple2<ColorPanel, ColorPanel>> colorPanels
+    @Getter private final Map<ColorKey, Tuple2<ColorPanel, ColorPanel>> colorPanels
         = new LinkedHashMap<>();
     
-    private final Map<ColorKey, Checkbox> stateCheckBoxes
+    @Getter private final Map<ColorKey, Checkbox> stateCheckBoxes
         = new LinkedHashMap<>();
     
     private JPanel mainPanel;
     
     private final JCheckBox checkBoxAutoShow;
     private final JCheckBox checkBoxDebugMode;
+    private final JCheckBox checkBoxFractionalMetrics;
+    private final JComboBox<FontBundle> fontRegularComboBox;
+    private final JComboBox<FontBundle> fontMonospacedComboBox;
+    private final JBLabel fontRegularLabel;
+    private final JBLabel fontMonospacedLabel;
     private final ANTLRv4UISettingsState appSettings;
     
-    Insets emptyInsets = new JBInsets(0,0,0,0);
+    Insets emptyInsets = new JBInsets(0, 0, 0, 0);
     Insets cpInsets = JBUI.insetsLeft(8);
     
     
     /**
-     *
+     * Creates a UI settings component.
+     * Called automatically.
      */
     public ANTLRv4UISettingsComponent() {
         appSettings = ANTLRv4UISettingsState.getInstance();
@@ -56,23 +72,31 @@ public class ANTLRv4UISettingsComponent {
         
         checkBoxAutoShow = new JBCheckBox("Automatically bring preview window in front when switching a grammar.");
         checkBoxDebugMode = new JBCheckBox("Enable DEBUG Mode for ANTLR I/O Console.");
+        checkBoxFractionalMetrics = new JBCheckBox("Enable FractionalMetrics for the font-rendering.");
         // ...
         
-        checkBoxAutoShow.setSelected(appSettings.autoShowAntlrTool);
-        checkBoxDebugMode.setSelected(appSettings.enableDebugConsole);
+        checkBoxAutoShow.setSelected(appSettings.isAutoShowAntlrTool());
+        checkBoxDebugMode.setSelected(appSettings.isEnableDebugConsole());
+        checkBoxFractionalMetrics.setSelected(appSettings.isUseFractionalMetrics());
         
         commonSettingsPanel.add(checkBoxAutoShow);
         commonSettingsPanel.add(checkBoxDebugMode);
+        commonSettingsPanel.add(checkBoxFractionalMetrics);
         
         mainPanel = add(mainPanel, commonSettingsPanel);
         
         /*|--------------------------------------------------------------------------|*/
         
+        var fontSettingsPanel = new JPanel(new GridBagLayout());
+        fontSettingsPanel.setBorder(IdeBorderFactory.createTitledBorder("Font Settings"));
+        
+        mainPanel = add(mainPanel, fontSettingsPanel);
+        
+        /*|--------------------------------------------------------------------------|*/
+        
         var colorsPanel = new JPanel(new GridBagLayout());
         colorsPanel.setBorder(IdeBorderFactory.createTitledBorder("Parse-Tree Color Settings"));
-        
         mainPanel = add(mainPanel, colorsPanel);
-        
         
         var constraints =
             new GridBagConstraints(
@@ -155,6 +179,140 @@ public class ANTLRv4UISettingsComponent {
         });
         
         colorsPanel.add(resetButton, constraints);
+        
+        /* ----------------------------------------------------------------------- */
+        
+        fontRegularLabel = new JBLabel();
+        fontRegularLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        fontMonospacedLabel = new JBLabel();
+        fontMonospacedLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        fontRegularComboBox = new ComboBox<>(FontManager.getBundles());
+        fontRegularComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean sel, boolean focus) {
+                var c = super.getListCellRendererComponent(list, value, index, sel, focus);
+                var bundle = (FontBundle) value;
+                setText(bundle.getLabel().getText());
+                
+                if (index >= 0) {
+                    setFont(bundle.getFont().deriveFont(JBFont.regular().getSize() + 1.f));
+                }
+                
+                return c;
+            }
+        });
+        
+        fontRegularComboBox.addActionListener(e -> {
+            var bundle = (FontBundle) fontRegularComboBox.getSelectedItem();
+            var font = bundle != null ? bundle.getFont() : FontManager.DEFAULT_FONT;
+            setRegularFont(font);
+        });
+        
+        setRegularFont(appSettings.getFontRegular());
+        
+        var comboBoxConstraints =
+            new GridBagConstraints(
+                0, 0, 1, 1, 0, 0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.NONE,
+                emptyInsets,
+                0, 0
+            );
+        
+        comboBoxConstraints.gridx = 0;
+        comboBoxConstraints.gridy = 1;
+        comboBoxConstraints.weightx = 0.1;
+        comboBoxConstraints.ipady = 0;
+        comboBoxConstraints.gridwidth = 1;
+        
+        var fontLabel = new JBLabel("Regular");
+        fontSettingsPanel.add(fontLabel, comboBoxConstraints);
+        
+        comboBoxConstraints.gridx = 1;
+        comboBoxConstraints.weightx = 0.7;
+        comboBoxConstraints.gridy = 1;
+        comboBoxConstraints.gridwidth = 2;
+        fontSettingsPanel.add(fontRegularComboBox, comboBoxConstraints);
+        fontRegularComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fontRegularComboBox.setPreferredSize(
+            new Dimension(
+                FontManager.getMaximumWidth(),
+                fontRegularComboBox.getPreferredSize().height)
+        );
+        
+        comboBoxConstraints.gridx = 2;
+        comboBoxConstraints.weightx = 0.9;
+        comboBoxConstraints.gridy = 1;
+        comboBoxConstraints.gridwidth = 1;
+        
+        fontSettingsPanel.add(fontRegularLabel, comboBoxConstraints);
+        
+        /* ----------------------------------------------------------------------- */
+        
+        fontMonospacedComboBox = new ComboBox<>(FontManager.getMonospacedBundles());
+        fontMonospacedComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean sel, boolean focus) {
+                var c = super.getListCellRendererComponent(list, value, index, sel, focus);
+                var bundle = (FontBundle) value;
+                setText(bundle.getLabel().getText());
+                
+                if (index >= 0) {
+                    setFont(bundle.getFont().deriveFont(JBFont.regular().getSize() + 1.f));
+                }
+                
+                return c;
+            }
+        });
+        
+        fontMonospacedComboBox.addActionListener(e -> {
+            var bundle = (FontBundle) fontMonospacedComboBox.getSelectedItem();
+            var font = bundle != null ? bundle.getFont() : FontManager.DEFAULT_FONT;
+            setMonospacedFont(font);
+        });
+        
+        setMonospacedFont(appSettings.getFontMonospaced());
+        
+        comboBoxConstraints =
+            new GridBagConstraints(
+                0, 0, 1, 1, 0, 0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.NONE,
+                emptyInsets,
+                0, 0
+            );
+        
+        comboBoxConstraints.gridx = 0;
+        comboBoxConstraints.gridy = 2;
+        comboBoxConstraints.weightx = 0.1;
+        comboBoxConstraints.ipady = 0;
+        comboBoxConstraints.gridwidth = 1;
+        
+        var fontLabelMonospaced = new JBLabel("Monospaced");
+        fontSettingsPanel.add(fontLabelMonospaced, comboBoxConstraints);
+        
+        comboBoxConstraints.gridx = 1;
+        comboBoxConstraints.weightx = 0.9;
+        comboBoxConstraints.gridy = 2;
+        comboBoxConstraints.gridwidth = 1;
+        fontSettingsPanel.add(fontMonospacedComboBox, comboBoxConstraints);
+        fontMonospacedComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fontMonospacedComboBox.setPreferredSize(
+            new Dimension(
+                FontManager.getMaximumWidth(),
+                fontMonospacedComboBox.getPreferredSize().height)
+        );
+        
+        comboBoxConstraints.gridx = 2;
+        comboBoxConstraints.weightx = 0.9;
+        comboBoxConstraints.gridy = 2;
+        comboBoxConstraints.gridwidth = 1;
+        
+        fontSettingsPanel.add(fontMonospacedLabel, comboBoxConstraints);
+        
+        mainPanel.invalidate();
     }
     
     
@@ -267,16 +425,6 @@ public class ANTLRv4UISettingsComponent {
     
     
     /**
-     * Return the color panel data.
-     *
-     * @return The map containing the selected color data.
-     */
-    public Map<ColorKey, Tuple2<ColorPanel, ColorPanel>> getColorPanels() {
-        return colorPanels;
-    }
-    
-    
-    /**
      * Returns or creates a new ColorPanels Tuple2 and adds it to the map.
      *
      * @param colorKey The color-key to be bound.
@@ -306,9 +454,9 @@ public class ANTLRv4UISettingsComponent {
     public Boolean getSelectedState(ColorKey colorKey) {
         if (stateCheckBoxes.containsKey(colorKey)) {
             return stateCheckBoxes.get(colorKey).getState();
-        } else {
-            return DefaultStyles.getDefaultCheckBoxState(colorKey);
         }
+        
+        return DefaultStyles.getDefaultCheckBoxState(colorKey);
     }
     
     
@@ -332,6 +480,46 @@ public class ANTLRv4UISettingsComponent {
     }
     
     
+    public JBFont getRegularFont() {
+        var bundle = (FontBundle) fontRegularComboBox.getSelectedItem();
+        
+        if (bundle == null) {
+            return FontManager.DEFAULT_FONT;
+        }
+        
+        return bundle.getFont();
+    }
+    
+    
+    public void setRegularFont(final JBFont font) {
+        var bundle = FontManager.getBundle(font.getFontName());
+        
+        fontRegularComboBox.setSelectedItem(bundle);
+        fontRegularLabel.setFont(font);
+        fontRegularLabel.setText(font.getFontName() + " / " + font.getFamily());
+    }
+    
+    
+    public JBFont getMonospacedFont() {
+        var bundle = (FontBundle) fontMonospacedComboBox.getSelectedItem();
+        
+        if (bundle == null) {
+            return FontManager.DEFAULT_FONT;
+        }
+        
+        return bundle.getFont();
+    }
+    
+    
+    public void setMonospacedFont(final JBFont font) {
+        var bundle = FontManager.getBundle(font.getFontName());
+        
+        fontMonospacedComboBox.setSelectedItem(bundle);
+        fontMonospacedLabel.setFont(font);
+        fontMonospacedLabel.setText(font.getFontName() + " / " + font.getFamily());
+    }
+    
+    
     public boolean isAutoShow() {
         return checkBoxAutoShow.isSelected();
     }
@@ -349,6 +537,16 @@ public class ANTLRv4UISettingsComponent {
     
     public void setDebugConsole(boolean debugConsole) {
         checkBoxDebugMode.setSelected(debugConsole);
+    }
+    
+    
+    public boolean isFractionalMetrics() {
+        return checkBoxFractionalMetrics.isSelected();
+    }
+    
+    
+    public void setFractionalMetrics(boolean fractionalMetrics) {
+        checkBoxFractionalMetrics.setSelected(fractionalMetrics);
     }
     
     

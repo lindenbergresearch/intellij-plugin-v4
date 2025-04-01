@@ -58,7 +58,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
     
     
     public void rightClick(final PreviewState previewState, Editor editor, int offset) {
-        if (previewState.parsingResult == null) return;
+        if (previewState.getParsingResult() == null) return;
         final List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
         if (highlightersAtOffset.size() == 0) {
             return;
@@ -92,9 +92,9 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
         
         MouseEvent mouseEvent = e.getMouseEvent();
         InputPanel.clearTokenInfoHighlighters(e.getEditor());
-        if (mouseEvent.isControlDown() && inputPanel.previewState.parsingResult != null) {
+        if (mouseEvent.isControlDown() && inputPanel.previewState.getParsingResult() != null) {
             inputPanel.showTokenInfoUponCtrlKey(editor, inputPanel.previewState, offset);
-        } else if (mouseEvent.isAltDown() && inputPanel.previewState.parsingResult != null) {
+        } else if (mouseEvent.isAltDown() && inputPanel.previewState.getParsingResult() != null) {
             inputPanel.showParseRegion(editor, inputPanel.previewState, offset);
         } else { // just moving around, show any errors or hints
             InputPanel.showTooltips(editor, inputPanel.previewState, offset);

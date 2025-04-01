@@ -12,6 +12,7 @@
         <properties>
           <minimumSize width="233" height="40"/>
           <preferredSize width="295" height="40"/>
+          <toolTipText value="srthuertzu"/>
         </properties>
         <border type="none"/>
         <children>

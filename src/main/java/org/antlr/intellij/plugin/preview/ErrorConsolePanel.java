@@ -45,7 +45,7 @@ public class ErrorConsolePanel extends JPanel {
         add(scrollPane);
         setBorder(border);
         
-        list.setFont(DefaultStyles.MONOSPACE_FONT.deriveFont(DefaultStyles.BASIC_FONT_SIZE - 2));
+        list.setFont(DefaultStyles.BaseFontConsole.getFont());
         list.setBackground(DefaultStyles.getConsoleBackground());
         list.setForeground(JBColor.RED);
     }

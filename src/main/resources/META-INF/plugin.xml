@@ -1,6 +1,6 @@
 <idea-plugin>
-    <id>org.antlr.intellij.pluginplus</id>
-    <name>ANTLR Plus</name>
+    <id>org.antlr-neo.intellij.plugin</id>
+    <name>ANTLR Neo</name>
     <version>will be replaced by gradle</version>
     <vendor email="lindenberg.research@gmail.com" url="https://github.com/lindenbergresearch/intellij-plugin-v4">ANTLR
         Project
@@ -9,7 +9,7 @@
     <description><![CDATA[
       <p>
           This plugin is based on the original ANTLR v4 plugin v2.xx using ANTLR 4.11.
-          which could be found at: https://github.com/antlr/intellij-plugin-v4
+          wh                          ich could be found at: https://github.com/antlr/intellij-plugin-v4
 
           The main difference is a complete redesign of the parse-tree-viewer and some other small
           enhancements like semantic coloring etc. and a bunch of fixes.
@@ -40,22 +40,21 @@
 
     <change-notes><![CDATA[
 	<ul>
-	    <li>Updated to ANTLR 4.10.1 and IntelliJ 2022.1</li>
+	    <li>Updated to ANTLR 4.13.2 and IntelliJ 2024.3</li>
     </ul>
       ]]>
     </change-notes>
 
+
     <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
     <!-- requires IntelliJ 2021.2+ due to java 11 issue really but allowing 2019.2 just in case it works for somebody -->
-    <idea-version since-build="222"/>
+    <idea-version since-build="241"/>
 
     <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
          on how to target different products -->
     <!-- uncomment to enable plugin in all products -->
     <depends>com.intellij.modules.lang</depends>
-
-    <application-components>
-    </application-components>
+    <depends>com.intellij.java</depends>
 
     <project-components>
         <component>
@@ -118,14 +117,25 @@
         <iconProvider implementation="org.antlr.intellij.plugin.ANTLRv4IconProvider"/>
         <annotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.highlighter.ANTLRv4SemanticHighlighter"/>
         <!-- lang.formatter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.formatter.SimpleFormattingModelBuilder"/-->
-
+        <lang.documentationProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.editor.ANTLRDocumentationProvider"/>
         <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
         <lang.findUsagesProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
 
-        <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>
-        <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
-        <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
+        <!--        <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>-->
+        <!--        <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>-->
+        <!--        <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>-->
+        <defaultLiveTemplates file="/liveTemplates/lexer/ANTLRLiveTemplates.xml"/>
+        <liveTemplateContext contextId="ANTLR_OUTSIDE" implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
+
         <projectConfigurable groupId="language" id="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings" displayName="ANTLR V4 Default Project Settings" instance="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"/>
+
+        <applicationService serviceImplementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState"/>
+        <applicationConfigurable
+            parentId="editor"
+            instance="org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsConfigurable"
+            id="org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsConfigurable"
+            displayName="ANTLR Color Settings"/>
+
         <projectService serviceImplementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesComponent"/>
     </extensions>
 </idea-plugin>

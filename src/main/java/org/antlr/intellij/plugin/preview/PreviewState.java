@@ -1,14 +1,19 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.antlr.intellij.plugin.ANTLRv4FileType;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
+import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
+import org.antlr.v4.tool.Rule;
 
 /**
  * Track everything associated with the state of the preview window.
@@ -29,18 +34,19 @@ public class PreviewState {
     private static final Logger LOG =
         Logger.getInstance(PreviewState.class);
     
-    public Project project;
-    public VirtualFile grammarFile;
+    private final Project project;
+    private final VirtualFile grammarFile;
     
-    public Grammar grammar;
-    public LexerGrammar lexerGrammar;
+    private Grammar grammar;
+    private LexerGrammar lexerGrammar;
     
-    public String startRuleName;
-    public CharSequence manualInputText; // save input when switching grammars
+    private String startRuleName;
+    private boolean validStartRule;
+    private CharSequence manualInputText; // save input when switching grammars
     
-    public VirtualFile inputFile; // save input file when switching grammars
-    public ParsingResult parsingResult;
-    protected double parseTime;
+    private VirtualFile inputFile; // save input file when switching grammars
+    private ParsingResult parsingResult;
+    private double parseTime;
     
     private final PropertiesComponent propertiesComponent;
     
@@ -63,11 +69,26 @@ public class PreviewState {
         this.project = project;
         this.grammarFile = grammarFile;
         
-        LOG.info("create preview-state with project: " + project.getName().trim() + " grammar: " + grammarFile.getName());
+        var message = "create PreviewState() for grammar: " + getGrammarName();
+        LOG.info(message);
+        ANTLRv4PluginController.printToConsole(project, message, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         
         propertiesComponent = PropertiesComponent.getInstance(project);
+        
         manualInputText = "";
-        recoverPreviewData();
+        startRuleName = "";
+        validStartRule = false;
+//
+//        reloadPreviewData();
+    }
+    
+    
+    private String getDefaultStartRuleName() {
+        if (grammar != null && grammar.getRuleNames() != null) {
+            return grammar.getRuleNames()[0];
+        }
+        
+        return "";
     }
     
     
@@ -76,12 +97,27 @@ public class PreviewState {
      * for later recovery.
      */
     public void persistPreviewData() {
-        if (getMainGrammar() == null || startRuleName == null || startRuleName.isEmpty())
+        if (getMainGrammar() == null || startRuleName == null || startRuleName.isEmpty()) {
+            startRuleName = "";
+            validStartRule = false;
             return;
+        }
         
         // build grammar dependent config keys
         var inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
         var startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
+        var validRulePropertiesKey = "org.antlr.intellij.plugin.preview.validStartRule." + getGrammarName();
+        
+        if (!existsStartRule(startRuleName)) {
+            // fallback
+            startRuleName = getDefaultStartRuleName();
+            if (!existsStartRule(startRuleName)) {
+                startRuleName = "";
+                validStartRule = false;
+            } else {
+                validStartRule = true;
+            }
+        }
         
         propertiesComponent.setValue(
             inputTextPropertiesKey,
@@ -93,30 +129,80 @@ public class PreviewState {
             startRuleName
         );
         
+        propertiesComponent.setValue(
+            validRulePropertiesKey,
+            validStartRule
+        );
+        
         LOG.info("save start-rule for session recover: '" + startRuleName + '\'');
+        ANTLRv4PluginController.printToConsole(
+            project,
+            "persistPreviewData(name=" + startRuleName + ", valid=" + (validStartRule ? "true" : "false") + ')',
+            ConsoleViewContentType.LOG_DEBUG_OUTPUT
+        );
     }
     
     
     /**
      * Recovers the input text for testing grammars and the assigned start-rule.
      */
-    public void recoverPreviewData() {
+    public void reloadPreviewData() {
         // build grammar dependent config keys
         var inputTextPropertiesKey = "org.antlr.intellij.plugin.preview.input." + getGrammarName();
         var startRulePropertiesKey = "org.antlr.intellij.plugin.preview.startRule." + getGrammarName();
+        var validRulePropertiesKey = "org.antlr.intellij.plugin.preview.validStartRule." + getGrammarName();
         
-        manualInputText =
-            propertiesComponent.getValue(inputTextPropertiesKey);
+        manualInputText = propertiesComponent.getValue(inputTextPropertiesKey);
+        startRuleName = propertiesComponent.getValue(startRulePropertiesKey);
+        validStartRule = propertiesComponent.getBoolean(validRulePropertiesKey);
         
-        startRuleName = PropertiesComponent.getInstance(project).getValue(
-            startRulePropertiesKey
+        
+        ANTLRv4PluginController.printToConsole(
+            project,
+            "reloadPreviewData(" + startRuleName + ", valid: " + (validStartRule ? "true" : "false") + ", grammar=" + (hasValidGrammar() ? "true" : "false") + ')',
+            ConsoleViewContentType.LOG_DEBUG_OUTPUT
         );
         
-        if (!existsStartRule(startRuleName)) {
-            startRuleName = "";
+        if (!hasValidGrammar()) {
+            validStartRule = false;
+            return;
         }
         
-        LOG.info("recover start-rule: '" + startRuleName + '\'');
+        if (!existsStartRule(startRuleName)) {
+            ANTLRv4PluginController.printToConsole(
+                project,
+                "start-rule does not exist or is invalid: startRule='" + startRuleName + "', valid: " + (validStartRule ? "true" : "false"),
+                ConsoleViewContentType.LOG_WARNING_OUTPUT
+            );
+            
+            startRuleName = getDefaultStartRuleName();
+            if (existsStartRule(startRuleName)) {
+                validStartRule = true;
+                ANTLRv4PluginController.printToConsole(
+                    project,
+                    "using default startRule from grammar:" + startRuleName,
+                    ConsoleViewContentType.LOG_DEBUG_OUTPUT
+                );
+            } else {
+                validStartRule = false;
+                startRuleName = "";
+            }
+        } else {
+            validStartRule = true;
+        }
+        
+        
+        if (!existsStartRule(startRuleName) || !validStartRule) {
+            ANTLRv4PluginController.printToConsole(project, "unable to find a start-rule for grammar: " + startRuleName, ConsoleViewContentType.LOG_WARNING_OUTPUT);
+        } else {
+            ANTLRv4PluginController.printToConsole(
+                project,
+                "reloadPreviewData(name=" + startRuleName + ", valid=" + "true" + ')',
+                ConsoleViewContentType.LOG_DEBUG_OUTPUT
+            );
+        }
+        
+        LOG.info("reload start-rule: " + startRuleName + ' ' + validStartRule);
     }
     
     
@@ -138,8 +224,13 @@ public class PreviewState {
      * @param inputEditor An editor instance.
      */
     public synchronized void setInputEditor(Editor inputEditor) {
-        releaseEditor();
-        this.inputEditor = inputEditor;
+        ANTLRv4PluginController.printToConsole(project, "PreviewState.getInputEditor(): " + inputEditor, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        
+        if (inputEditor != null) {
+            ANTLRv4PluginController.printToConsole(project, "PreviewState.getInputEditor[releaseEditor](): " + inputEditor.getVirtualFile(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+            releaseEditor();
+            this.inputEditor = inputEditor;
+        }
     }
     
     
@@ -161,7 +252,7 @@ public class PreviewState {
      */
     public String getGrammarName() {
         var g = getMainGrammar() == null ?
-            grammarFile.getName().replace(".g4", "") :
+            grammarFile.getName().replace('.' + ANTLRv4FileType.INSTANCE.getDefaultExtension(), "") :
             getMainGrammar().name;
         
         return g.trim().replace(' ', '_');
@@ -174,6 +265,7 @@ public class PreviewState {
      * @return True if valid grammar has been set.
      */
     public boolean hasValidGrammar() {
+        ANTLRv4PluginController.printToConsole(project, "hasValidGrammar(grammar=" + (grammar != null ? "true" : false) + ", lexerGrammar=" + (lexerGrammar != null ? "true" : false) + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         return !(grammar == null || lexerGrammar == null);
     }
     
@@ -190,7 +282,7 @@ public class PreviewState {
             return (rule != null);
         }
         
-        return true;
+        return false;
     }
     
     
@@ -200,7 +292,26 @@ public class PreviewState {
      * @return The start-rule name.
      */
     public String getStartRuleName() {
-        return startRuleName == null ? "" : startRuleName;
+        //reloadPreviewData();
+        ANTLRv4PluginController.printToConsole(project, "getStartRuleName(current=" + startRuleName + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        
+        if (!hasValidStartRule()) {
+            if (existsStartRule(getDefaultStartRuleName())) {
+                startRuleName = getDefaultStartRuleName();
+                validStartRule = true;
+                persistPreviewData();
+                ANTLRv4PluginController.printToConsole(project, "using default startRule from grammar:" + startRuleName, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+            } else {
+                return null;
+            }
+        }
+        
+        return startRuleName;
+    }
+    
+    
+    public String getPlainStartRuleName() {
+        return startRuleName;
     }
     
     
@@ -210,7 +321,7 @@ public class PreviewState {
      * @return True if a valid start rule was found.
      */
     public boolean hasValidStartRule() {
-        return startRuleName != null && !startRuleName.isEmpty();
+        return startRuleName != null && !startRuleName.isEmpty() && existsStartRule(startRuleName);
     }
     
     
@@ -230,7 +341,10 @@ public class PreviewState {
      * @param text Input text.
      */
     public void setManualInputText(CharSequence text) {
-        manualInputText = text != null ? text : "";
+        if (text != null && !text.isEmpty() && !manualInputText.equals(text)) {
+            manualInputText = text;
+            persistPreviewData();
+        }
     }
     
     
@@ -241,9 +355,141 @@ public class PreviewState {
         // It would appear that the project closed event occurs before these
         // close grammars sometimes. Very strange. check for null editor.
         if (inputEditor != null) {
+            ANTLRv4PluginController.printToConsole(project, "releaseEditor(" + inputEditor.getVirtualFile() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
             final var factory = EditorFactory.getInstance();
             factory.releaseEditor(inputEditor);
             inputEditor = null;
         }
+    }
+    
+    
+    public Project getProject() {
+        return project;
+    }
+    
+    
+    public VirtualFile getGrammarFile() {
+        return grammarFile;
+    }
+    
+    
+    public Grammar getGrammar() {
+        return grammar;
+    }
+    
+    
+    public void setGrammar(Grammar grammar) {
+        this.grammar = grammar;
+    }
+    
+    
+    public boolean isBadGrammar() {
+        return grammar.equals(ParsingUtils.BAD_PARSER_GRAMMAR);
+    }
+    
+    
+    public boolean isBadLexerGrammar() {
+        return grammar.equals(ParsingUtils.BAD_LEXER_GRAMMAR);
+    }
+    
+    
+    public LexerGrammar getLexerGrammar() {
+        return lexerGrammar;
+    }
+    
+    
+    public void setLexerGrammar(LexerGrammar lexerGrammar) {
+        this.lexerGrammar = lexerGrammar;
+    }
+    
+    
+    public void setStartRuleName(String startRuleName) {
+        ANTLRv4PluginController.printToConsole(project, "setStartRuleName(" + startRuleName + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        if (startRuleName != null && !startRuleName.equals(this.startRuleName)) {
+            this.startRuleName = startRuleName;
+            persistPreviewData();
+        }
+    }
+    
+    
+    public Rule getGrammarRule() {
+        if (validStartRule) {
+            return grammar.getRule(getStartRuleName());
+        }
+        
+        return null;
+    }
+    
+    
+    public VirtualFile getInputFile() {
+        return inputFile;
+    }
+    
+    
+    public void setInputFile(VirtualFile inputFile) {
+        this.inputFile = inputFile;
+    }
+    
+    
+    public ParsingResult getParsingResult() {
+        return parsingResult;
+    }
+    
+    
+    public void setParsingResult(ParsingResult parsingResult) {
+        this.parsingResult = parsingResult;
+    }
+    
+    
+    public double getParseTime() {
+        return parseTime;
+    }
+    
+    
+    public void setParseTime(double parseTime) {
+        this.parseTime = parseTime;
+    }
+    
+    
+    public PropertiesComponent getPropertiesComponent() {
+        return propertiesComponent;
+    }
+    
+    
+    public boolean isValidStartRule() {
+        return validStartRule;
+    }
+    
+    
+    public void setValidStartRule(boolean validStartRule) {
+        this.validStartRule = validStartRule;
+    }
+    
+    
+    @Override
+    public String toString() {
+        var sr = startRuleName;
+        var srValid = hasValidStartRule();
+        var srExists = sr != null && srValid && existsStartRule(sr);
+        
+        return "PreviewState { \n" +
+            "\tproject          =" + project +
+            "\n\tgrammarFile    =" + grammarFile.getName() +
+            "\n\tgrammar        =" + grammar +
+            "\n\tvalidGrammar   =" + hasValidGrammar() +
+            "\n\tisBadGrammar   =" + isBadGrammar() +
+            "\n\tlexerGrammar   =" + lexerGrammar +
+            
+            "\n\tstartRule      =" + startRuleName +
+            "\n\tvalidStartRule =" + validStartRule +
+            "\n\texistsStartRule=" + existsStartRule(startRuleName) +
+            "\n\texistsDefRule  =" + existsStartRule(getDefaultStartRuleName()) +
+            
+            "\n\tmanualInputText=" + manualInputText +
+            "\n\tinputFile      =" + (inputFile != null ? inputFile.getName() : "-") +
+            
+            "\n\tparsingResult  =" + parsingResult +
+            "\n\tparseTime      =" + parseTime +
+            "\n}";
     }
 }

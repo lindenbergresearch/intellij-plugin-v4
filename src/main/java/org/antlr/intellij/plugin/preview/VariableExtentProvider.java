@@ -1,9 +1,10 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.util.ui.JBFont;
 import org.abego.treelayout.NodeExtentProvider;
+import org.antlr.intellij.plugin.misc.FontManager;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.antlr.intellij.plugin.preview.ui.DoubleDimension2D;
-import org.antlr.intellij.plugin.preview.ui.UIHelper;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.Tree;
 
@@ -106,33 +107,33 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         var isValidMultiline = lines.length > 1 && lines[0].length() > 0 && lines[1].length() > 0;
         
         var margin = DefaultStyles.DEFAULT_TEXT_MARGIN;
-        var header = BASIC_FONT;
-        var footer = LABEL_FONT;
+        var header = BaseFontRegular.getFont();
+        var footer = BaseFontLabel.getFont();
         
         if (viewer.isRootNode(tree)) {
             margin = ROOT_NODE_MARGIN;
         } else if (viewer.isEOFNode(tree)) {
             margin = EOF_NODE_MARGIN;
-            header = TERMINAL_NODE_STYLE.getTextFont();
-            footer = TERMINAL_LABEL_FONT;
+            header = (JBFont) TERMINAL_NODE_STYLE.getTextFont();
+            footer = BaseFontTerminal.getFont();
         } else if (viewer.isReSyncedNode(tree)) {
             margin = RESYNC_NODE_MARGIN;
         } else if (viewer.isTerminalNode(tree)) {
             margin = TERMINAL_NODE_MARGIN;
-            header = TERMINAL_NODE_STYLE.getTextFont();
-            footer = TERMINAL_LABEL_FONT;
+            header = (JBFont) TERMINAL_NODE_STYLE.getTextFont();
+            footer = BaseFontTerminalLabel.getFont();
         }
         
         
         // if string consists of two lines, compute the biggest
         if (isValidMultiline) {
-            var boundsTitle = UIHelper.getFullStringBounds(
+            var boundsTitle = FontManager.getFullStringBounds(
                 viewer.getGraphics2D(),
                 lines[0],
                 header
             );
             
-            var boundsLabel = UIHelper.getFullStringBounds(
+            var boundsLabel = FontManager.getFullStringBounds(
                 viewer.getGraphics2D(),
                 lines[1],
                 footer
@@ -145,7 +146,7 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
         }
         // if not just compute the bounds of the whole string
         else {
-            bounds = UIHelper.getFullStringBounds(
+            bounds = FontManager.getFullStringBounds(
                 viewer.getGraphics2D(),
                 lines[0],
                 header
@@ -168,10 +169,10 @@ public class VariableExtentProvider implements NodeExtentProvider<Tree> {
     private double getHeightText(Tree tree) {
         var text = viewer.getText(tree);
         var lines = text.trim().split(System.lineSeparator());
-        var bounds = UIHelper.getFullStringBounds(
+        var bounds = FontManager.getFullStringBounds(
             viewer.getGraphics2D(),
             text,
-            BASIC_FONT
+            BaseFontRegular.getFont()
         );
         
         var margin = DefaultStyles.DEFAULT_TEXT_MARGIN;

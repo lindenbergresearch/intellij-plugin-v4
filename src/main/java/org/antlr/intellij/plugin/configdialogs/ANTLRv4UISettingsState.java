@@ -5,19 +5,27 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.OptionTag;
+import lombok.Getter;
+import lombok.Setter;
 import org.antlr.intellij.plugin.ANTLRUtils;
+import org.antlr.intellij.plugin.misc.FontConverter;
 import org.antlr.intellij.plugin.preview.ui.DefaultStyles;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * ANTLR Color and Tree-Viewer settings persistence.
  */
-@State(
+@Getter @State(
     name = "org.intellij.sdk.settings.AppSettingsState",
     storages = @Storage(value = "ANTLRSettings.xml")
 )
@@ -44,14 +52,25 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     }
     
     
+    // Listener for configuration change
+    public static final List<ANTLRSettingsListener<ANTLRv4UISettingsState>> listeners = new ArrayList<>();
+    
     // color storage
     public final Map<ColorKey, String> colors = new LinkedHashMap<>();
     
     // checkbox storage
     public final Map<ColorKey, Boolean> checkBoxes = new LinkedHashMap<>();
     
-    public boolean autoShowAntlrTool;
-    public boolean enableDebugConsole;
+    @Setter @Getter public boolean autoShowAntlrTool;
+    @Setter @Getter public boolean enableDebugConsole;
+    @Setter @Getter public boolean useFractionalMetrics;
+    
+    @Setter @Getter @OptionTag(converter = FontConverter.class)
+    public JBFont fontRegular = JBFont.label();
+    
+    @Setter @Getter @OptionTag(converter = FontConverter.class)
+    public JBFont fontMonospaced = JBFont.create(new Font("Monospaced", Font.PLAIN, (int) JBFont.regular().getSize2D()));
+    
     /*|--------------------------------------------------------------------------|*/
     
     
@@ -113,26 +132,6 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     }
     
     
-    public boolean isAutoShowAntlrTool() {
-        return autoShowAntlrTool;
-    }
-    
-    
-    public void setAutoShowAntlrTool(boolean autoShowAntlrTool) {
-        this.autoShowAntlrTool = autoShowAntlrTool;
-    }
-    
-    
-    public boolean isEnableDebugConsole() {
-        return enableDebugConsole;
-    }
-    
-    
-    public void setEnableDebugConsole(boolean enableDebugConsole) {
-        this.enableDebugConsole = enableDebugConsole;
-    }
-    
-    
     /**
      * Reset color storage.
      */
@@ -140,6 +139,9 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
         colors.clear();
         this.autoShowAntlrTool = false;
         this.enableDebugConsole = false;
+        this.useFractionalMetrics = true;
+        this.fontRegular = JBFont.label();
+        this.fontMonospaced = JBFont.create(new Font("Monospaced", Font.PLAIN, (int) JBFont.regular().getSize2D()));
     }
     
     /*|--------------------------------------------------------------------------|*/
@@ -160,5 +162,24 @@ public class ANTLRv4UISettingsState implements PersistentStateComponent<ANTLRv4U
     @Override
     public void loadState(@NotNull ANTLRv4UISettingsState state) {
         XmlSerializerUtil.copyBean(state, this);
+    }
+    
+    /*|--------------------------------------------------------------------------|*/
+    
+    
+    public static void addListener(ANTLRSettingsListener<ANTLRv4UISettingsState> listener) {
+        listeners.add(listener);
+    }
+    
+    
+    public static void removeListener(ANTLRSettingsListener<ANTLRv4UISettingsState> listener) {
+        listeners.remove(listener);
+    }
+    
+    
+    public static void notifyListeners() {
+        for (var listener : listeners) {
+            listener.settingsChanged(ANTLRv4UISettingsState.getInstance());
+        }
     }
 }

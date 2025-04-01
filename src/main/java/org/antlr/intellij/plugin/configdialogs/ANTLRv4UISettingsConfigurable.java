@@ -59,7 +59,12 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
                 return true;
         }
         
-        return settings.isAutoShowAntlrTool() != component.isAutoShow() || settings.isEnableDebugConsole() != component.isDebugConsole();
+        return
+            settings.isAutoShowAntlrTool() != component.isAutoShow() ||
+                settings.isEnableDebugConsole() != component.isDebugConsole() ||
+                settings.isUseFractionalMetrics() != component.isFractionalMetrics() ||
+                !Objects.equals(settings.getFontRegular(), component.getRegularFont()) ||
+                !Objects.equals(settings.getFontMonospaced(), component.getMonospacedFont());
     }
     
     
@@ -74,6 +79,12 @@ public class ANTLRv4UISettingsConfigurable implements Configurable {
         
         settings.setAutoShowAntlrTool(component.isAutoShow());
         settings.setEnableDebugConsole(component.isDebugConsole());
+        settings.setUseFractionalMetrics(component.isFractionalMetrics());
+        
+        settings.setFontRegular(component.getRegularFont());
+        settings.setFontMonospaced(component.getMonospacedFont());
+        
+        ANTLRv4UISettingsState.notifyListeners();
     }
     
     
