@@ -10,9 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/**
- *
- */
 public abstract class StyledElement implements StyleRendering, StyleSetup {
     
     /* ----- BASE PROPERTIES -------------------------------------------------------------------------*/

@@ -41,77 +41,53 @@ public class DefaultStyles {
     /* ----- MARGIN ------------------------------------------*/
     
     public static final StyledElementMargin
-        DEFAULT_TEXT_MARGIN = new StyledElementMargin(10, 5, 10, 5);
+        DEFAULT_TEXT_MARGIN = new StyledElementMargin(4);
     
     public static final StyledElementMargin
         DEFAULT_MARGIN = new StyledElementMargin(0);
     
     public static final StyledElementMargin
-        ROOT_NODE_MARGIN = new StyledElementMargin(13, 9, 13, 9);
+        ROOT_NODE_MARGIN = new StyledElementMargin(10, 5, 10, 5);
     
     public static final StyledElementMargin
-        EOF_NODE_MARGIN = new StyledElementMargin(9);
+        EOF_NODE_MARGIN = new StyledElementMargin(4);
     
     public static final StyledElementMargin
-        RESYNC_NODE_MARGIN = new StyledElementMargin(5);
+        RESYNC_NODE_MARGIN = new StyledElementMargin(4);
     
     public static final StyledElementMargin
-        TERMINAL_NODE_MARGIN = new StyledElementMargin(7);
+        TERMINAL_NODE_MARGIN = new StyledElementMargin(4);
     
     
     /* ----- FONT FACES --------------------------------------*/
     
-    public static final Font BaseFont = JBFont.regular();
     
-    public static final Font BaseFontBold = BaseFont.deriveFont(Font.BOLD);
+    /**
+     * Functional interface for fonts.
+     */
+    public interface FontProvider {
+        JBFont getFont();
+    }
     
-    public static final Font BaseFontItalic = BaseFont.deriveFont(Font.ITALIC);
     
-    // --- common font-sizes
+    public interface SizedFontProvider {
+        JBFont getSizedFont(int size);
+    }
     
-    public static final float BASIC_FONT_SIZE =
-        JBFont.regular().getSize2D() + 2;
     
-    public static final float BASIC_LABEL_FONT_SIZE =
-        BASIC_FONT_SIZE * LABEL_FOOTER_FONT_SCALE;
+    //    public static final Font BaseFont = JBFont.regular();
+    public static final FontProvider BaseFont = () -> ANTLRv4UISettingsState.getInstance().getFontRegular();
+    public static final FontProvider BaseFontBold = () -> (JBFont) BaseFont.getFont().deriveFont(Font.BOLD);
+    public static final FontProvider BaseFontItalic = () -> (JBFont) BaseFont.getFont().deriveFont(Font.ITALIC);
+    public static final FontProvider MonospacedFont = () -> ANTLRv4UISettingsState.getInstance().getFontMonospaced();
     
-    public static final float BASIC_TERMINAL_FONT_SIZE =
-        BASIC_FONT_SIZE - 2;
     
-    public static final float BASIC_TERMINAL_LABEL_FONT_SIZE =
-        BASIC_TERMINAL_FONT_SIZE * LABEL_FOOTER_FONT_SCALE;
-    
-    // --- fonts
-    
-    public static final Font BASIC_FONT =
-        BaseFont.deriveFont(BASIC_FONT_SIZE);
-    
-    public static final Font HEADLINE_FONT =
-        BaseFont.deriveFont(BASIC_FONT_SIZE + 2);
-    
-    public static final Font SMALL_FONT =
-        BaseFont.deriveFont(BASIC_FONT_SIZE - 2);
-    
-    public static final Font BOLD_FONT =
-        BaseFontBold.deriveFont(Font.BOLD, BASIC_FONT_SIZE);
-    
-    public static final Font ITALIC_FONT =
-        BaseFontItalic.deriveFont(Font.ITALIC, BASIC_FONT_SIZE);
-    
-    public static final Font LABEL_FONT =
-        BaseFont.deriveFont(BASIC_LABEL_FONT_SIZE);
-    
-    public static final Font MONOSPACE_FONT =
-        new Font("Monospaced", Font.PLAIN, (int) BASIC_FONT_SIZE);
-    
-    public static final Font TERMINAL_FONT =
-        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_TERMINAL_FONT_SIZE);
-    
-    public static final Font TERMINAL_LABEL_FONT =
-        MONOSPACE_FONT.deriveFont(Font.BOLD, BASIC_TERMINAL_LABEL_FONT_SIZE);
-    
-    public static final Font SMALL_ITALIC_TERMINAL_FONT =
-        MONOSPACE_FONT.deriveFont(Font.BOLD | Font.ITALIC, BASIC_FONT_SIZE - 2);
+    public static final FontProvider BaseFontRegular = () -> BaseFont.getFont().deriveFont(JBFont.regular().getSize2D());
+    public static final FontProvider BaseFontHeadline = () -> BaseFont.getFont().deriveFont(JBFont.regular().getSize2D() + 2);
+    public static final FontProvider BaseFontLabel = () -> BaseFont.getFont().deriveFont(JBFont.regular().getSize2D() * LABEL_FOOTER_FONT_SCALE);
+    public static final FontProvider BaseFontTerminal = () -> MonospacedFont.getFont().deriveFont(JBFont.regular().getSize2D() - 2);
+    public static final FontProvider BaseFontTerminalLabel = () -> MonospacedFont.getFont().deriveFont(JBFont.regular().getSize2D() * LABEL_FOOTER_FONT_SCALE);
+    public static final FontProvider BaseFontConsole = () -> MonospacedFont.getFont().deriveFont(JBFont.regular().getSize2D() - 2);
     
     
     /**
@@ -283,7 +259,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             ELEMENT_FILLED,
             DEFAULT_ARC_DIAMETER
         );
@@ -297,7 +273,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
             DEFAULT_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND),
             DEFAULT_ARC_DIAMETER
         
@@ -314,7 +290,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             ELEMENT_OUTLINED_ONLY,
             DEFAULT_ARC_DIAMETER
         );
@@ -328,7 +304,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
             DEFAULT_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             getCheckBoxStateFromAppSettings(ColorKey.ERROR_COLOR),
             DEFAULT_ARC_DIAMETER
         
@@ -345,7 +321,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             ELEMENT_OUTLINED_ONLY,
             DEFAULT_ARC_DIAMETER
         );
@@ -359,7 +335,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
             DEFAULT_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             getCheckBoxStateFromAppSettings(ColorKey.RESYNC_COLOR),
             DEFAULT_ARC_DIAMETER
         
@@ -376,7 +352,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
             THICK_STROKE,
-            HEADLINE_FONT,
+            BaseFontHeadline.getFont(),
             ELEMENT_FILLED,
             NO_ARC_DIAMETER
         );
@@ -390,7 +366,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
             THICK_STROKE,
-            HEADLINE_FONT,
+            BaseFontHeadline.getFont(),
             getCheckBoxStateFromAppSettings(ColorKey.ROOT_NODE_COLOR),
             NO_ARC_DIAMETER
         
@@ -407,7 +383,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
             DEFAULT_STROKE,
-            TERMINAL_FONT,
+            BaseFontTerminal.getFont(),
             ELEMENT_FILLED,
             DEFAULT_ARC_DIAMETER
         );
@@ -421,7 +397,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
             DEFAULT_STROKE,
-            TERMINAL_FONT,
+            BaseFontTerminal.getFont(),
             getCheckBoxStateFromAppSettings(ColorKey.EOF_NODE_COLOR),
             DEFAULT_ARC_DIAMETER
         
@@ -438,7 +414,7 @@ public class DefaultStyles {
             JB_COLOR_DARK,
             JB_COLOR_DARK,
             DEFAULT_STROKE,
-            TERMINAL_FONT,
+            BaseFontTerminal.getFont(),
             ELEMENT_OUTLINED_ONLY,
             ROUND_ARC_DIAMETER
         );
@@ -452,7 +428,7 @@ public class DefaultStyles {
             getColorFromAppSettings(ColorKey.TEXT_COLOR),
             getColorFromAppSettings(ColorKey.LABEL_COLOR),
             THIN_STROKE,
-            TERMINAL_FONT,
+            BaseFontTerminal.getFont(),
             getCheckBoxStateFromAppSettings(ColorKey.TERMINAL_NODE_COLOR),
             ROUND_ARC_DIAMETER
         
@@ -469,7 +445,7 @@ public class DefaultStyles {
             JB_COLOR_BRIGHT,
             JB_COLOR_BRIGHT,
             THICK_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             ELEMENT_FILLED,
             DEFAULT_ARC_DIAMETER
         );
@@ -480,10 +456,10 @@ public class DefaultStyles {
             DEFAULT_MARGIN,
             JB_COLOR_DARK,
             (JBColor) getColorFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND).brighter(),
-            (JBColor) getColorFromAppSettings(ColorKey.TEXT_COLOR),
-            (JBColor) getColorFromAppSettings(ColorKey.LABEL_COLOR),
+            getColorFromAppSettings(ColorKey.TEXT_COLOR),
+            getColorFromAppSettings(ColorKey.LABEL_COLOR),
             THICK_STROKE,
-            BASIC_FONT,
+            BaseFontRegular.getFont(),
             getCheckBoxStateFromAppSettings(ColorKey.DEFAULT_NODE_BACKGROUND),
             DEFAULT_ARC_DIAMETER
         );
@@ -499,52 +475,31 @@ public class DefaultStyles {
      * @return The matching JBColor.
      */
     public static JBColor getDefaultColor(ColorKey colorKey) {
-        switch (colorKey) {
-            case VIEWER_BACKGROUND:
-                return getConsoleBackground();
-            case TEXT_COLOR:
-                return DEFAULT_STYLE.textColor;
-            case LABEL_COLOR:
-                return DEFAULT_STYLE.labelColor;
-            case DEFAULT_NODE_BACKGROUND:
-                return DEFAULT_STYLE.background;
-            case EOF_NODE_COLOR:
-                return EOF_NODE_STYLE.background;
-            case ROOT_NODE_COLOR:
-                return ROOT_NODE_STYLE.background;
-            case TERMINAL_NODE_COLOR:
-                return TERMINAL_NODE_STYLE.background;
-            case ERROR_COLOR:
-            case RESYNC_COLOR:
-                return ERROR_NODE_STYLE.background;
-            case CONNECTOR_COLOR:
-                return EDGE_COLOR_DEFAULT;
-            case CONNECTOR_SELECTED_COLOR:
-                return EDGE_COLOR_SELECTED;
-            
-            default:
-                return JB_COLOR_BRIGHT;
-        }
+        return switch (colorKey) {
+            case VIEWER_BACKGROUND -> getConsoleBackground();
+            case TEXT_COLOR -> DEFAULT_STYLE.textColor;
+            case LABEL_COLOR -> DEFAULT_STYLE.labelColor;
+            case DEFAULT_NODE_BACKGROUND -> DEFAULT_STYLE.background;
+            case EOF_NODE_COLOR -> EOF_NODE_STYLE.background;
+            case ROOT_NODE_COLOR -> ROOT_NODE_STYLE.background;
+            case TERMINAL_NODE_COLOR -> TERMINAL_NODE_STYLE.background;
+            case ERROR_COLOR, RESYNC_COLOR -> ERROR_NODE_STYLE.background;
+            case CONNECTOR_COLOR -> EDGE_COLOR_DEFAULT;
+            case CONNECTOR_SELECTED_COLOR -> EDGE_COLOR_SELECTED;
+            default -> JB_COLOR_BRIGHT;
+        };
     }
     
     
     public static Boolean getDefaultCheckBoxState(ColorKey colorKey) {
-        switch (colorKey) {
-            case DEFAULT_NODE_BACKGROUND:
-                return DEFAULT_STYLE.filled;
-            case EOF_NODE_COLOR:
-                return EOF_NODE_STYLE.filled;
-            case ROOT_NODE_COLOR:
-                return ROOT_NODE_STYLE.filled;
-            case TERMINAL_NODE_COLOR:
-                return TERMINAL_NODE_STYLE.filled;
-            case ERROR_COLOR:
-            case RESYNC_COLOR:
-                return ERROR_NODE_STYLE.filled;
-            
-            default:
-                return false;
-        }
+        return switch (colorKey) {
+            case DEFAULT_NODE_BACKGROUND -> DEFAULT_STYLE.filled;
+            case EOF_NODE_COLOR -> EOF_NODE_STYLE.filled;
+            case ROOT_NODE_COLOR -> ROOT_NODE_STYLE.filled;
+            case TERMINAL_NODE_COLOR -> TERMINAL_NODE_STYLE.filled;
+            case ERROR_COLOR, RESYNC_COLOR -> ERROR_NODE_STYLE.filled;
+            default -> false;
+        };
     }
     
     

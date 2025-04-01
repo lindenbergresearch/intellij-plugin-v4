@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview.ui;
 
 import com.intellij.ui.JBColor;
+import org.antlr.intellij.plugin.misc.FontManager;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -31,8 +32,8 @@ public abstract class StyledText extends StyledElement {
     
     
     /* ----- CONFIG ATTRIBUTES -----------------------------------------------------------------------*/
-    protected VerticalLayout verticalTextLayout;
-    protected HorizontalLayout horizontalTextLayout;
+    private VerticalLayout verticalTextLayout;
+    private HorizontalLayout horizontalTextLayout;
     protected String text;
     protected boolean isLabel = false;
     
@@ -102,12 +103,12 @@ public abstract class StyledText extends StyledElement {
         graphics2D.setFont(isLabel ? getLabelFont() : getTextFont());
         
         var bounds =
-            UIHelper.getFullStringBounds(graphics2D, text, isLabel ? getLabelFont() : getTextFont());
+            FontManager.getFullStringBounds(graphics2D, text, isLabel ? getLabelFont() : getTextFont());
         
         double x;
         switch (horizontalTextLayout) {
             case CENTER:
-                x = UIHelper.getStringCentered(graphics2D, getCenter(), text).x;
+                x = FontManager.getStringCentered(graphics2D, getCenter(), text).x;
                 break;
             case RIGHT:
                 x = getWidth() - bounds.getWidth();
@@ -126,7 +127,7 @@ public abstract class StyledText extends StyledElement {
                 y = getHeight();
                 break;
             case MIDDLE:
-                y = UIHelper.getStringCentered(graphics2D, getCenter(), text).y;
+                y = FontManager.getStringCentered(graphics2D, getCenter(), text).y;
                 break;
             default:
                 y = 0;
@@ -179,6 +180,24 @@ public abstract class StyledText extends StyledElement {
     }
     
     
+    public VerticalLayout getVerticalTextLayout() {
+        return verticalTextLayout;
+    }
+    
+    
+    public void setVerticalTextLayout(VerticalLayout verticalTextLayout) {
+        this.verticalTextLayout = verticalTextLayout;
+    }
+    
+    
+    public HorizontalLayout getHorizontalTextLayout() {
+        return horizontalTextLayout;
+    }
+    
+    
+    public void setHorizontalTextLayout(HorizontalLayout horizontalTextLayout) {
+        this.horizontalTextLayout = horizontalTextLayout;
+    }
     
     
     /* ----- STANDARD GETTER / SETTER ----------------------------------------------------------------*/

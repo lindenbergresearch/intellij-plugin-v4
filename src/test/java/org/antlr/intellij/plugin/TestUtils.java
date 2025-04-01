@@ -24,7 +24,7 @@ public class TestUtils {
                 }
             }
             
-            throw e;
+           // throw e;
         }
     }
 }

@@ -34,7 +34,7 @@ public class StyledLabel extends StyledText {
      */
     @Override
     public void setup() {
-        horizontalTextLayout = DefaultStyles.HORIZONTAL_TEXT_LAYOUT;
-        verticalTextLayout = DefaultStyles.VERTICAL_TEXT_LAYOUT;
+        setHorizontalTextLayout(DefaultStyles.HORIZONTAL_TEXT_LAYOUT);
+        setVerticalTextLayout(DefaultStyles.VERTICAL_TEXT_LAYOUT);
     }
 }

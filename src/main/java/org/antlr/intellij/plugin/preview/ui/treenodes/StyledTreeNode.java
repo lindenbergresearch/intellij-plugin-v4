@@ -1,6 +1,8 @@
 package org.antlr.intellij.plugin.preview.ui.treenodes;
 
 import com.intellij.ui.JBColor;
+import lombok.Getter;
+import lombok.Setter;
 import org.antlr.intellij.plugin.preview.ui.StyleProperties;
 import org.antlr.intellij.plugin.preview.ui.StyledElement;
 import org.antlr.intellij.plugin.preview.ui.StyledShape;
@@ -12,13 +14,14 @@ import java.awt.geom.Rectangle2D;
 /**
  * Abstract tree-node with style attributes.
  */
-public abstract class StyledTreeNode extends StyledElement {
-    protected StyledText header, footer;
+@Setter @Getter public abstract class StyledTreeNode extends StyledShape {
+    protected StyledText header;
+    protected StyledText footer;
     protected StyledShape shape;
     protected Tree node;
     protected String[] lines;
     protected double spacing = 0.68;
-    protected boolean selected = false;
+    public boolean selected = false;
     protected boolean compact = false;
     
     
@@ -106,65 +109,5 @@ public abstract class StyledTreeNode extends StyledElement {
         
         header.setViewport(viewport);
         footer.setViewport(viewport);
-    }
-    
-    
-    public StyledText getHeader() {
-        return header;
-    }
-    
-    
-    public void setHeader(StyledText header) {
-        this.header = header;
-    }
-    
-    
-    public StyledText getFooter() {
-        return footer;
-    }
-    
-    
-    public void setFooter(StyledText footer) {
-        this.footer = footer;
-    }
-    
-    
-    public double getSpacing() {
-        return spacing;
-    }
-    
-    
-    public void setSpacing(double spacing) {
-        this.spacing = spacing;
-    }
-    
-    
-    public StyledShape getShape() {
-        return shape;
-    }
-    
-    
-    public void setShape(StyledShape shape) {
-        this.shape = shape;
-    }
-    
-    
-    public boolean isSelected() {
-        return selected;
-    }
-    
-    
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-    
-    
-    public boolean isCompact() {
-        return compact;
-    }
-    
-    
-    public void setCompact(boolean compact) {
-        this.compact = compact;
     }
 }
