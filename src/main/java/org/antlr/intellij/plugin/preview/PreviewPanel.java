@@ -1046,7 +1046,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         // update references in tree-viewer
         treeViewer.grammarFile = grammarFile;
         treeViewer.previewState = previewState;
-        
+
 //        autoSetStartRule(previewState);
         
         inputPanel.switchToGrammar(previewState, grammarFile);
@@ -1104,16 +1104,19 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     public void closeGrammar(VirtualFile grammarFile) {
         var grammarFileName = grammarFile.getPath();
-        //DEBUG LOG.info("closeGrammar " + grammarFileName + ' ' + project.getName());
-        
         inputPanel.resetStartRuleLabel();
         inputPanel.clearErrorConsole();
         clearParseTree(); // wipe tree
         
         var controller = ANTLRv4PluginController.getInstance(project);
         if (controller == null) throw new AssertionError();
-        ANTLRv4PluginController.printToConsole(controller.project, "PreviewPanel.closeGrammar[releaseEditor!](" +grammarFileName + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
-       
+        ANTLRv4PluginController.printToConsole(
+            controller.getProject(),
+            "PreviewPanel.closeGrammar[releaseEditor!](" +
+                grammarFileName + ')',
+            ConsoleViewContentType.LOG_DEBUG_OUTPUT
+        );
+        
         controller.getPreviewState(grammarFile).releaseEditor();
     }
     

@@ -1,17 +1,15 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.components.Service.Level;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.*;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -22,18 +20,16 @@ import com.intellij.openapi.progress.util.BackgroundTaskUtil;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.AsyncFileListener;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileEvent;
-import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.ui.content.ContentFactory;
+import com.intellij.psi.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
@@ -42,15 +38,12 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.v4.parse.ANTLRParser;
-import org.antlr.v4.runtime.RuntimeMetaData;
 import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
+import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * This class is the controller for the ANTLR plugin. It receives
@@ -65,38 +58,176 @@ import java.util.Objects;
  * needed for the preview window. Updates must be made atomically so that
  * the grammars and editors are consistently associated with the same window.
  */
-public class ANTLRv4PluginController implements ProjectComponent, Disposable {
+@Service(value = Level.PROJECT)
+public final class ANTLRv4PluginController implements Disposable {
     public static final Logger LOG = Logger.getInstance(ANTLRv4PluginController.class);
     public static final String PLUGIN_ID = "antlr-intellij-plugin-neo";
-    
     public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
-    public static final String CONSOLE_WINDOW_ID = "ANTLR I/O";
-    
+    public static final String CONSOLE_WINDOW_ID = "ANTLR Console";
+    private final static ANTLRv4FileType ANTL_FILE_TYPE = ANTLRv4FileType.INSTANCE;
     private static final Key<GrammarEditorMouseAdapter> EDITOR_MOUSE_LISTENER_KEY = Key.create("EDITOR_MOUSE_LISTENER_KEY");
     
-    private final MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
-    private final MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
+    @Getter
+    private final Project project;
     
-    private final static ANTLRv4FileType ANTL_FILE_TYPE = ANTLRv4FileType.INSTANCE;
-    
-    public Project project;
     public boolean projectIsClosed = false;
+    
+    @Getter @Setter
     public ConsoleView console;
     public Map<VirtualFile, PreviewState> previewStateCache = Collections.synchronizedMap(new HashMap<>());
-    public PreviewPanel previewPanel;
     
-    private ToolWindow consoleWindow;
-    private ToolWindow previewWindow;
+    @Getter
+    public PreviewPanel previewPanel;
     
     private ProgressIndicator parsingProgressIndicator;
     private ProgressIndicator runIndicator;
     
     private int counter = 0;
+    
+    @Getter @Setter
     private boolean logDebugMessages = false;
     
     
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
+    
+    @Inject
     public ANTLRv4PluginController(Project project) {
         this.project = project;
+        LOG.info("ANTLRv4PluginController initialized");
+        init();
+    }
+    
+    
+    public void init() {
+        installEditorListener();
+        installAsyncFileListener();
+        installFileEditorListener();
+        installPsiChangeListener(); // optional
+    }
+    
+    
+    private void installAsyncFileListener() {
+        var listener = new AsyncFileListener() {
+            
+            @Override
+            public ChangeApplier prepareChange(@NotNull List<? extends VFileEvent> events) {
+                // Called before VFS changes are applied
+                return new ChangeApplier() {
+                    
+                    @Override
+                    public void afterVfsChange() {
+                        // Called after VFS changes are applied
+                        for (var event : events) {
+                            if (event.getFile() != null) {
+                                LOG.info("VFS changed: " + event.getFile().getPath());
+                                printToConsole("VFS changed: " + event.getFile().getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                            }
+                        }
+                    }
+                };
+            }
+        };
+        
+        VirtualFileManager.getInstance().addAsyncFileListener(listener, this);
+    }
+    
+    
+    private void installFileEditorListener() {
+        var listener = new FileEditorManagerListener() {
+            @Override
+            public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+                // Called when a file is opened in the editor
+                LOG.info("File opened: " + file.getPath());
+                printToConsole("File opened: " + file.getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+            }
+            
+            
+            @Override
+            public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+                // Called when a file is closed
+                LOG.info("File closed: " + file.getPath());
+                printToConsole("File closed: " + file.getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                
+                if (!projectIsClosed) {
+                    editorFileClosedEvent(file);
+                }
+            }
+            
+            
+            @Override
+            public void selectionChanged(@NotNull FileEditorManagerEvent event) {
+                // Called when editor selection changes
+                LOG.info("Editor selection changed: " + event.getNewFile());
+                assert event.getNewFile() != null;
+                printToConsole("Selection changed: " + event.getNewFile().getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                
+                if (!projectIsClosed && event.getNewFile() != null) {
+                    currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+                }
+            }
+        };
+        
+        project.getMessageBus()
+            .connect(this)
+            .subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
+    }
+    
+    
+    private void installEditorListener() {
+        EditorFactory.getInstance().addEditorFactoryListener(new EditorFactoryListener() {
+            @Override
+            public void editorCreated(@NotNull EditorFactoryEvent event) {
+                final var editor = event.getEditor();
+                final var doc = editor.getDocument();
+                var virtualFile = FileDocumentManager.getInstance().getFile(doc);
+                
+                if (virtualFile != null && virtualFile.getName().endsWith('.' + ANTL_FILE_TYPE.getDefaultExtension())) {
+                    var listener = new GrammarEditorMouseAdapter();
+                    var listener2 = new GrammarEditorMouseMotionListener(project);
+                    editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
+                    editor.addEditorMouseListener(listener);
+                    editor.addEditorMouseMotionListener(listener2);
+                    
+                    var file = event.getEditor().getVirtualFile();
+                    printToConsole("editorCreated(file=" + (file != null ? file.getName() : "null)" + ')'), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                }
+            }
+            
+            
+            @Override
+            public void editorReleased(@NotNull EditorFactoryEvent event) {
+                LOG.info("editorReleased(" + event + ')');
+                
+                var editor = event.getEditor();
+                
+                if (editor.getProject() != null && !Objects.equals(editor.getProject(), project)) {
+                    return;
+                }
+                
+                var listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
+                if (listener != null) {
+                    editor.removeEditorMouseListener(listener);
+                    editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, null);
+                }
+                printToConsole("editorReleased(file=" + event.getEditor().getVirtualFile() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+            }
+        }, this); // Register with project-level disposable
+    }
+    
+    
+    private void installPsiChangeListener() {
+        PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
+            @Override
+            public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
+                // Called when PSI tree changes
+                PsiFile file = event.getFile();
+                if (file != null) {
+                    LOG.info("PSI changed: " + file.getName());
+                    printToConsole("PSI changed: " + file.getName(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                }
+            }
+        }, this);
     }
     
     
@@ -106,15 +237,30 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
             return null;
         }
         
-        var pc = project.getComponent(ANTLRv4PluginController.class);
-        if (pc == null) {
-            LOG.error("getInstance(): getComponent() for " + project.getName() + " returns null!");
-        }
-        
-        return pc;
+        return project.getService(ANTLRv4PluginController.class);
     }
     
-    /* ----------------------------------------------------------------------------------------------------------------- */
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
+    
+    public PreviewPanel getOrCreatePreviewPanel() {
+        if (previewPanel == null) {
+            previewPanel = new PreviewPanel(project);
+        }
+        return previewPanel;
+    }
+    
+    
+    public ToolWindow getPreviewWindow() {
+        return ToolWindowManager.getInstance(project).getToolWindow(PREVIEW_WINDOW_ID);
+    }
+    
+    
+    public ToolWindow getConsoleWindow() {
+        return ToolWindowManager.getInstance(project).getToolWindow(CONSOLE_WINDOW_ID);
+    }
+    
+    /* ------------------------------------------------------------------------------------------------------------------ */
     
     
     /**
@@ -131,11 +277,11 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
             return;
         }
         
-        if (consoleWindow != null && console != null) {
+        if (getConsoleWindow() != null && console != null) {
             console.print((++counter) + " [" + ANTLRUtils.getTimeStamp() + "] " + text + '\n', contentType);
             console.requestScrollingToEnd();
         } else {
-            LOG.warn("printToConsole(String, ConsoleViewContentType): console window or console is null! Message: " + text);
+            LOG.warn("printToConsole(String, ConsoleViewContentType): console window or console is null! Message: " + text + " " + console + " " + getConsoleWindow());
         }
     }
     
@@ -258,99 +404,10 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
     
     
     @Override
-    public void projectOpened() {
-        createToolWindows();
-        installListeners();
-    }
-    
-    
-    public void createToolWindows() {
-        LOG.info("createToolWindows " + project.getName());
-        var toolWindowManager = ToolWindowManager.getInstance(project);
-        
-        previewPanel = new PreviewPanel(project);
-        
-        var contentFactory = ContentFactory.getInstance();
-        
-        toolWindowManager.invokeLater(() -> {
-            var content = contentFactory.createContent(previewPanel, "", false);
-            content.setCloseable(false);
-            
-            previewWindow = toolWindowManager.registerToolWindow(PREVIEW_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-            previewWindow.getContentManager().addContent(content);
-            previewWindow.setIcon(ANTLRv4Icons.getToolWindow());
-            previewWindow.show();
-        });
-        
-        var factory = TextConsoleBuilderFactory.getInstance();
-        var consoleBuilder = factory.createBuilder(project);
-        this.console = consoleBuilder.getConsole();
-        
-        toolWindowManager.invokeLater(() -> {
-            var consoleComponent = console.getComponent();
-            var content = contentFactory.createContent(consoleComponent, "ANTLR Console", false);
-            content.setCloseable(false);
-            
-            consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-            consoleWindow.getContentManager().addContent(content);
-            consoleWindow.setIcon(ANTLRv4Icons.getToolWindow());
-            
-            var plugin = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID));
-            
-            var version = "no plugin-descriptor found";
-            if (plugin != null) {
-                version = plugin.getName() + " v" + plugin.getVersion() + ", ANTLR Runtime: v" + RuntimeMetaData.VERSION +
-                    ", Java: v" + SystemInfo.JAVA_VERSION +
-                    ", running on: " + SystemInfo.getOsNameAndVersion() + ' ' + SystemInfo.OS_ARCH;
-            }
-            
-            LOG.info(version);
-            printToConsole(version);
-            printToConsole("Project: " + project.getName());
-        });
-    }
-    
-    
-    @Override
-    public void projectClosed() {
-//        LOG.info("projectClosed " + project.getName());
-//        //synchronized ( shutdownLock ) { // They should be called from EDT only so no lock
-//        projectIsClosed = true;
-//        uninstallListeners();
-//
-//        for (var it : grammarToPreviewState.values()) {
-//            previewPanel.inputPanel.releaseEditor(it);
-//        }
-//
-//        console = null;
-//        previewPanel = null;
-//        previewWindow = null;
-//        consoleWindow = null;
-//        project = null;
-//        grammarToPreviewState = null;
-    }
-    
-    
-    // seems that intellij can kill and reload a project w/o user knowing.
-    // a ptr was left around that pointed at a disposed project. led to
-    // problem in switchGrammar. Probably was a listener still attached and trigger
-    // editor listeners released in editorReleased() events.
-    public void uninstallListeners() {
-        VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileAdapter);
-        
-        if (!project.isDisposed()) {
-            var msgBus = project.getMessageBus().connect(project);
-            msgBus.disconnect();
-        }
-    }
-    
-    
-    @Override
     public void dispose() {
         LOG.info(" dispose(" + project.getName() + ')');
         
         projectIsClosed = true;
-        uninstallListeners();
         
         for (var it : previewStateCache.values()) {
             previewPanel.inputPanel.releaseEditor(it);
@@ -360,73 +417,7 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
         
         console = null;
         previewPanel = null;
-        previewWindow = null;
-        consoleWindow = null;
-        project = null;
         previewStateCache = null;
-    }
-    
-    
-    @NotNull
-    @Override
-    public String getComponentName() {
-        return "antlr.ProjectComponent";
-    }
-    
-    
-    public void installListeners() {
-        LOG.info("installListeners() " + project.getName());
-        // Listen for .g4 file saves
-        VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileAdapter, this);
-        
-        // Listen for editor window changes
-        var msgBus = project.getMessageBus().connect(this);
-        msgBus.subscribe(
-            FileEditorManagerListener.FILE_EDITOR_MANAGER,
-            myFileEditorManagerAdapter
-        );
-        
-        var factory = EditorFactory.getInstance();
-        factory.addEditorFactoryListener(
-            new EditorFactoryAdapter() {
-                @Override
-                public void editorCreated(@NotNull EditorFactoryEvent event) {
-                    final var editor = event.getEditor();
-                    final var doc = editor.getDocument();
-                    var virtualFile = FileDocumentManager.getInstance().getFile(doc);
-                    
-                    if (virtualFile != null && virtualFile.getName().endsWith('.' + ANTL_FILE_TYPE.getDefaultExtension())) {
-                        var listener = new GrammarEditorMouseAdapter();
-                        var listener2 = new GrammarEditorMouseMotionListener(project);
-                        editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
-                        editor.addEditorMouseListener(listener);
-                        editor.addEditorMouseMotionListener(listener2);
-                        
-                        var file = event.getEditor().getVirtualFile();
-                        printToConsole("editorCreated(file=" + (file != null ? file.getName() : "null)" + ')'), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
-                    }
-                }
-                
-                
-                @Override
-                public void editorReleased(@NotNull EditorFactoryEvent event) {
-                    LOG.info("editorReleased(" + event + ')');
-                    
-                    var editor = event.getEditor();
-                    
-                    if (editor.getProject() != null && !Objects.equals(editor.getProject(), project)) {
-                        return;
-                    }
-                    
-                    var listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
-                    if (listener != null) {
-                        editor.removeEditorMouseListener(listener);
-                        editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, null);
-                    }
-                    printToConsole("editorReleased(file=" + event.getEditor().getVirtualFile() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
-                }
-            }, this
-        );
     }
     
     
@@ -466,14 +457,11 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
     public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
         LOG.info("currentEditorFileChangedEvent(" + oldFile + ", " + newFile + ')');
         printToConsole("currentEditorFileChangedEvent(" + oldFile + ", " + newFile + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
-        if (newFile == null) { // all files must be closed I guess
-            return;
-        }
         
         var fileSuffix = '.' + ANTLRv4FileType.INSTANCE.getDefaultExtension();
         
         if (newFile.getName().endsWith(".g")) {
-            var text = "currentEditorFileChangedEvent ANTLR 4 cannot handle .g files";
+            var text = "ANTLR 4 cannot handle obsolete ANTLR 3 '*.g' files.";
             
             LOG.info(text);
             printToConsole(text, ConsoleViewContentType.LOG_ERROR_OUTPUT);
@@ -711,26 +699,6 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
     }
     
     
-    public PreviewPanel getPreviewPanel() {
-        return previewPanel;
-    }
-    
-    
-    public ConsoleView getConsole() {
-        return console;
-    }
-    
-    
-    public ToolWindow getConsoleWindow() {
-        return consoleWindow;
-    }
-    
-    
-    public ToolWindow getPreviewWindow() {
-        return previewWindow;
-    }
-    
-    
     public @NotNull PreviewState getPreviewState(VirtualFile grammarFile) {
         ANTLRv4PluginController.printToConsole(project, "getPreviewState(" + grammarFile.getPath() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         if (previewStateCache.containsKey(grammarFile)) {
@@ -770,9 +738,8 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
     
     
     public VirtualFile getCurrentGrammarFile() {
-        return getCurrentGrammarFile(project);
+        return null;
     }
-    
     
     /* ------------------------------------------------------------------------------------------------------------------ */
     
@@ -823,8 +790,6 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
     
     
     private class GrammarEditorMouseAdapter implements EditorMouseListener {
-        
-        
         @Override
         public void mouseClicked(EditorMouseEvent editorMouseEvent) {
             var doc = editorMouseEvent.getEditor().getDocument();
@@ -833,41 +798,6 @@ public class ANTLRv4PluginController implements ProjectComponent, Disposable {
             
             if (virtualFile != null && virtualFile.getName().endsWith(fileSuffix)) {
                 mouseEnteredGrammarEditorEvent(virtualFile, editorMouseEvent);
-            }
-        }
-    }
-    
-    
-    private class MyVirtualFileAdapter implements VirtualFileListener {
-        @Override
-        public void contentsChanged(VirtualFileEvent event) {
-            final var virtualFile = event.getFile();
-            var fileSuffix = '.' + ANTLRv4FileType.INSTANCE.getDefaultExtension();
-            
-            if (!virtualFile.getName().endsWith(fileSuffix)) {
-                return;
-            }
-            
-            if (!projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) {
-                grammarFileSavedEvent(virtualFile);
-            }
-        }
-    }
-    
-    
-    private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
-        @Override
-        public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-            if (!projectIsClosed) {
-                currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
-            }
-        }
-        
-        
-        @Override
-        public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile virtualFile) {
-            if (!projectIsClosed) {
-                editorFileClosedEvent(virtualFile);
             }
         }
     }

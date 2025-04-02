@@ -4,15 +4,15 @@ import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ScrollType;
-import com.intellij.openapi.editor.event.CaretListener;
-import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.editor.event.*;
+import com.intellij.openapi.editor.ex.DocumentEx;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.EditorMarkupModel;
 import com.intellij.openapi.editor.markup.EffectType;
@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComponentWithBrowseButton.BrowseFolderActionListener;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -63,9 +64,9 @@ import java.util.Collections;
 import java.util.List;
 
 // Not a view itself but delegates to one.
-public class InputPanel {
+public class InputPanel implements Disposable {
     private static final Logger LOG =
-        Logger.getInstance("ANTLR InputPanel");
+        Logger.getInstance(InputPanel.class);
     
     private static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
     private static final int MAX_STACK_DISPLAY = 30;
@@ -399,11 +400,52 @@ public class InputPanel {
         doc.addDocumentListener(
             new DocumentListener() {
                 @Override
-                public void documentChanged(DocumentEvent e) {
+                public void documentChanged(@NotNull DocumentEvent e) {
                     previewState.setManualInputText(e.getDocument().getCharsSequence());
                 }
             }
         );
+        
+        
+        
+        EditorFactory.getInstance().getEventMulticaster().addSelectionListener(new SelectionListener() {
+            @Override
+            public void selectionChanged(@NotNull SelectionEvent e) {
+                var editor = e.getEditor();
+                var start = e.getNewRange().getStartOffset();
+                var end = e.getNewRange().getEndOffset();
+                
+                if (start != end) {
+                    handleTextSelection(start, end, editor);
+                }
+            }
+        }, this);
+    }
+    
+    
+    private void handleTextSelection(int start, int end, Editor editor) {
+        if (!(editor.getDocument() instanceof DocumentEx)) return;
+        editor.getMarkupModel().removeAllHighlighters();
+        
+        var project = editor.getProject();
+        if (project == null) return;
+        
+        
+        var parser = (PreviewParser) previewState.getParsingResult().parser;
+        var tokenStream = (CommonTokenStream) parser.getInputStream();
+        var allTokens = tokenStream.getTokens();
+        
+        var selectedTokens = allTokens.stream()
+            .filter(token -> token.getStopIndex() >= start && token.getStartIndex() <= end)
+            .toList();
+        
+        String list = "[";
+        for (Token token : selectedTokens) {
+            list += ("text='" + token.getText() + " type=" + token.toString() + "' (" + token.getStartIndex() + '-' + token.getStopIndex() + "), ");
+        }
+        list += "]";
+        
+        ANTLRv4PluginController.printToConsole(project, "Selection: " + list, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
     }
     
     
@@ -1081,4 +1123,9 @@ public class InputPanel {
      * @noinspection ALL
      */
     public JComponent $$$getRootComponent$$$() {return outerMostPanel;}
+    
+    
+    @Override public void dispose() {
+    
+    }
 }

@@ -56,11 +56,11 @@
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.java</depends>
 
-    <project-components>
-        <component>
-            <implementation-class>org.antlr.intellij.plugin.ANTLRv4PluginController</implementation-class>
-        </component>
-    </project-components>
+    <!--    <project-components>-->
+    <!--        <component>-->
+    <!--            <implementation-class>org.antlr.intellij.plugin.ANTLRv4PluginController</implementation-class>-->
+    <!--        </component>-->
+    <!--    </project-components>-->
 
     <actions>
         <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateParserAction" text="Generate ANTLR Recognizer">
@@ -120,6 +120,10 @@
         <lang.documentationProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.editor.ANTLRDocumentationProvider"/>
         <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
         <lang.findUsagesProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
+
+        <postStartupActivity implementation="org.antlr.intellij.plugin.ANTLRStartupActivity"/>
+        <toolWindow id="ANTLR Preview" anchor="bottom" icon="org.antlr.intellij.plugin.ANTLRv4Icons.TOOL_WINDOW_PREVIEW" factoryClass="org.antlr.intellij.plugin.ANTLRPreviewToolWindowFactory"/>
+        <toolWindow id="ANTLR Console" anchor="bottom" icon="org.antlr.intellij.plugin.ANTLRv4Icons.TOOL_WINDOW_CONSOLE" factoryClass="org.antlr.intellij.plugin.ANTLRConsoleToolWindowFactory"/>
 
         <!--        <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>-->
         <!--        <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>-->
