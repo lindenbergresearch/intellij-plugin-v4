@@ -26,8 +26,19 @@ public class ANTLRv4Icons {
     public static final Icon RECT_EDGES =
         IconLoader.getIcon("/icons/org/antlr/intellij/plugin/RectEdges.svg", ANTLRv4Icons.class);
     
+    public static final Icon TOOL_WINDOW_PREVIEW =
+        IconLoader.getIcon("/icons/org/antlr/intellij/plugin/toolWindowAntlr.svg", ANTLRv4Icons.class);
     
-    public static Icon getToolWindow() {
-        return IconLoader.getIcon("/icons/org/antlr/intellij/plugin/toolWindowAntlr.svg", ANTLRv4Icons.class);
+    public static final Icon TOOL_WINDOW_CONSOLE =
+        IconLoader.getIcon("/icons/org/antlr/intellij/plugin/toolWindowConsole.svg", ANTLRv4Icons.class);
+    
+    
+    public static Icon getToolWindowPreview() {
+        return TOOL_WINDOW_PREVIEW;
+    }
+    
+    
+    public static Icon getToolWindowConsole() {
+        return TOOL_WINDOW_CONSOLE;
     }
 }
