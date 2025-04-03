@@ -11,6 +11,8 @@ import com.intellij.ui.content.ContentFactory;
 import org.antlr.v4.runtime.RuntimeMetaData;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.openapi.util.text.StringUtil.repeat;
+
 public class ANTLRConsoleToolWindowFactory implements ToolWindowFactory {
     public static final Logger LOG = Logger.getInstance(ANTLRConsoleToolWindowFactory.class);
     
@@ -43,8 +45,10 @@ public class ANTLRConsoleToolWindowFactory implements ToolWindowFactory {
             ? plugin.getName() + " v" + plugin.getVersion() + ", ANTLR Runtime: v" + RuntimeMetaData.VERSION
             : "no plugin-descriptor found";
         
+        
+        controller.printToConsole(repeat("-", version.length()));
         controller.printToConsole(version);
         controller.printToConsole("Project: " + project.getName());
-        controller.printToConsole("-----------------------------------------------------");
+        controller.printToConsole(repeat("-", version.length()));
     }
 }
