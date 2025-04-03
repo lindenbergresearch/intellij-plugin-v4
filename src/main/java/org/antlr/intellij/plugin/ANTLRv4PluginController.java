@@ -69,11 +69,11 @@ public final class ANTLRv4PluginController implements Disposable {
     
     @Getter
     private final Project project;
-    
     public boolean projectIsClosed = false;
     
     @Getter @Setter
-    public ConsoleView console;
+    private ConsoleView console;
+    
     public Map<VirtualFile, PreviewState> previewStateCache = Collections.synchronizedMap(new HashMap<>());
     
     @Getter
@@ -105,6 +105,9 @@ public final class ANTLRv4PluginController implements Disposable {
         installFileEditorListener();
         installPsiChangeListener(); // optional
     }
+    
+    
+    /* ------------------------------------------------------------------------------------------------------------------ */
     
     
     private void installAsyncFileListener() {
@@ -159,7 +162,11 @@ public final class ANTLRv4PluginController implements Disposable {
             public void selectionChanged(@NotNull FileEditorManagerEvent event) {
                 // Called when editor selection changes
                 LOG.info("Editor selection changed: " + event.getNewFile());
-                assert event.getNewFile() != null;
+                
+                if (event.getNewFile() == null) {
+                    return;
+                }
+                
                 printToConsole("Selection changed: " + event.getNewFile().getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
                 
                 if (!projectIsClosed && event.getNewFile() != null) {
@@ -247,6 +254,7 @@ public final class ANTLRv4PluginController implements Disposable {
         if (previewPanel == null) {
             previewPanel = new PreviewPanel(project);
         }
+        
         return previewPanel;
     }
     
@@ -263,6 +271,16 @@ public final class ANTLRv4PluginController implements Disposable {
     /* ------------------------------------------------------------------------------------------------------------------ */
     
     
+    private void ensureConsoleWindowInitialized() {
+        if (console == null || getConsoleWindow() == null) {
+            var toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CONSOLE_WINDOW_ID);
+            if (toolWindow != null) {
+                toolWindow.getContentManager(); // forces init
+            }
+        }
+    }
+    
+    
     /**
      * Print the given text to the ANTLR Console with the given content-type.
      *
@@ -277,12 +295,11 @@ public final class ANTLRv4PluginController implements Disposable {
             return;
         }
         
-        if (getConsoleWindow() != null && console != null) {
-            console.print((++counter) + " [" + ANTLRUtils.getTimeStamp() + "] " + text + '\n', contentType);
-            console.requestScrollingToEnd();
-        } else {
-            LOG.warn("printToConsole(String, ConsoleViewContentType): console window or console is null! Message: " + text + " " + console + " " + getConsoleWindow());
-        }
+        // make sure the tool windows is initialized due to lazy init system
+        ensureConsoleWindowInitialized();
+        
+        console.print((++counter) + " [" + ANTLRUtils.getTimeStamp() + "] " + text + '\n', contentType);
+        console.requestScrollingToEnd();
     }
     
     
@@ -400,24 +417,6 @@ public final class ANTLRv4PluginController implements Disposable {
         }
         
         return null;
-    }
-    
-    
-    @Override
-    public void dispose() {
-        LOG.info(" dispose(" + project.getName() + ')');
-        
-        projectIsClosed = true;
-        
-        for (var it : previewStateCache.values()) {
-            previewPanel.inputPanel.releaseEditor(it);
-        }
-        
-        console.dispose();
-        
-        console = null;
-        previewPanel = null;
-        previewStateCache = null;
     }
     
     
@@ -651,7 +650,7 @@ public final class ANTLRv4PluginController implements Disposable {
         }
         
         // Wipes out the console and also any error annotations
-        previewPanel.inputPanel.clearParseErrors();
+        previewPanel.getInputPanel().clearParseErrors();
         
         final var previewState = getPreviewState(grammarFile);
         
@@ -695,7 +694,11 @@ public final class ANTLRv4PluginController implements Disposable {
         }
         
         previewPanel.onParsingCancelled();
-        ANTLRv4PluginController.printToConsole(project, "Parsing aborted for grammar: " + getCurrentGrammarFile().getName(), ConsoleViewContentType.LOG_WARNING_OUTPUT);
+        ANTLRv4PluginController.printToConsole(
+            project,
+            "Parsing aborted for grammar: " + (getCurrentGrammarFile() != null ? getCurrentGrammarFile().getName() : "null"),
+            ConsoleViewContentType.LOG_WARNING_OUTPUT
+        );
     }
     
     
@@ -720,7 +723,7 @@ public final class ANTLRv4PluginController implements Disposable {
         }
         
         var factory = EditorFactory.getInstance();
-        final var editors = factory.getEditors(document, previewPanel.project);
+        final var editors = factory.getEditors(document, previewPanel.getProject());
         if (editors.length == 0) {
             // no editor found for this file. likely an out-of-sequence issue
             // where Intellij is opening a project and doesn't fire events
@@ -778,7 +781,7 @@ public final class ANTLRv4PluginController implements Disposable {
                 var psiReference = lexerRuleRefNode.getReference();
                 
                 if (psiReference != null && psiReference.resolve() != null) {
-                    var ruleSpecNode = (LexerRuleSpecNode) psiReference.resolve();
+                    var ruleSpecNode = (LexerRuleSpecNode) psiReference.resolve();// <-- todo: check npe due to mouse move on lexer grammars
                     var nodeFirstChild = ruleSpecNode.getChildren()[0];
                     e.getEditor().getContentComponent().setToolTipText(nodeFirstChild.getText());
                 }
@@ -799,6 +802,20 @@ public final class ANTLRv4PluginController implements Disposable {
             if (virtualFile != null && virtualFile.getName().endsWith(fileSuffix)) {
                 mouseEnteredGrammarEditorEvent(virtualFile, editorMouseEvent);
             }
+        }
+    }
+    
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
+    
+    @Override
+    public void dispose() {
+        LOG.info(" dispose(" + project.getName() + ')');
+        
+        projectIsClosed = true;
+        
+        for (var it : previewStateCache.values()) {
+            previewPanel.getInputPanel().releaseEditor(it);
         }
     }
 }
