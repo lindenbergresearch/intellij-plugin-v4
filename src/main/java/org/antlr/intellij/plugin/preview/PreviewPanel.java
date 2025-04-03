@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.icons.AllIcons.*;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -10,6 +11,7 @@ import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
@@ -17,6 +19,8 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
+import lombok.Getter;
+import lombok.Setter;
 import org.abego.treelayout.Configuration.Location;
 import org.antlr.intellij.plugin.ANTLRv4Icons;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -50,15 +54,16 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
  * this object creates and caches lexer/parser grammars for
  * each grammar file it gets notified about.
  */
-public class PreviewPanel extends JPanel implements ParsingResultSelectionListener {
+public class PreviewPanel extends JPanel implements ParsingResultSelectionListener, Disposable {
+    
     /**
      * Readable form of current selected tab
      */
     enum SelectedTab {
-        TREEVIEWER,
+        TREE_VIEWER,
         HIERARCHY,
         PROFILER,
-        TOKENLIST
+        TOKEN_LIST
     }
     
     
@@ -71,19 +76,25 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     private static final boolean isTrackpadZoomSupported =
         SystemInfo.isMac && !SystemInfo.JAVA_VERSION.startsWith("1.7");
     
-    public Project project;
-    public InputPanel inputPanel;
+    @Getter @Setter
+    private Project project;
+    
+    @Getter @Setter
+    private InputPanel inputPanel;
+    
     private UberTreeViewer treeViewer;
+    
     HierarchyViewer hierarchyViewer;
-    public ProfilerPanel profilerPanel;
-    private PropertiesPanel propertiesPanel;
+    @Getter private ProfilerPanel profilerPanel;
+    @Getter private PropertiesPanel propertiesPanel;
     private TokenStreamViewer tokenStreamViewer;
-    private ErrorConsolePanel errorConsolePanel;
+    @Getter private ErrorConsolePanel errorConsolePanel;
     private JTabbedPane tabbedPanel;
+    
     /**
      * Indicates if the preview should be automatically refreshed after grammar changes.
      */
-    private boolean autoRefresh = true;
+    @Getter private boolean autoRefresh = true;
     private boolean scrollFromSource = false;
     private boolean highlightSource = false;
     
@@ -93,20 +104,27 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     private String currentEditorText = "";
     
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
     
     public PreviewPanel(Project project) {
         this.project = project;
         createGUI();
+        init();
+    }
+    
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
+    
+    public void init() {
+        Disposer.register(this, profilerPanel);
+        Disposer.register(this, inputPanel);
+        Disposer.register(this, treeViewer);
     }
     
     
     private boolean isTabSelected(SelectedTab tab) {
         return tabbedPanel.getSelectedIndex() == tab.ordinal();
-    }
-    
-    
-    public boolean isAutoRefresh() {
-        return autoRefresh;
     }
     
     
@@ -140,7 +158,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         );
         
         
-        inputPanel = getEditorPanel();
+        inputPanel = new InputPanel(this);
+        Disposer.register(this, inputPanel);
+        
         inputPanel.getComponent().setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         inputPanel.addCaretListener(new CaretListener() {
             @Override
@@ -148,10 +168,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 var caret = event.getCaret();
                 
                 if (scrollFromSource && caret != null) {
-                    if (isTabSelected(SelectedTab.TOKENLIST))
+                    if (isTabSelected(SelectedTab.TOKEN_LIST))
                         tokenStreamViewer.onInputTextSelected(caret.getOffset());
                     
-                    if (isTabSelected(SelectedTab.TREEVIEWER))
+                    if (isTabSelected(SelectedTab.TREE_VIEWER))
                         hierarchyViewer.selectNodeAtOffset(caret.getOffset());
                 }
             }
@@ -838,21 +858,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
     
     
-    private InputPanel getEditorPanel() {
-        return new InputPanel(this);
-    }
-    
-    
-    public ErrorConsolePanel getErrorConsolePanel() {
-        return errorConsolePanel;
-    }
-    
-    
-    public ProfilerPanel getProfilerPanel() {
-        return profilerPanel;
-    }
-    
-    
     private JTabbedPane createParseTreeAndProfileTabbedPanel() {
         var splitter = new JBSplitter();
         splitter.setShowDividerIcon(true);
@@ -1113,7 +1118,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         ANTLRv4PluginController.printToConsole(
             controller.getProject(),
             "PreviewPanel.closeGrammar[releaseEditor!](" +
-                grammarFileName + ')',
+            grammarFileName + ')',
             ConsoleViewContentType.LOG_DEBUG_OUTPUT
         );
         
@@ -1123,11 +1128,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     
     private void clearTabs() {
         ApplicationManager.getApplication().invokeLater(() -> {
-            treeViewer.setRuleNames(Collections.emptyList());
-            treeViewer.setTree(null);
-            hierarchyViewer.setRuleNames(Collections.emptyList());
-            hierarchyViewer.setTree(null);
-            tokenStreamViewer.clear();
+            
+            if (treeViewer != null) {
+                treeViewer.setRuleNames(Collections.emptyList());
+                treeViewer.setTree(null);
+            }
+            
+            if (hierarchyViewer != null) {
+                hierarchyViewer.setRuleNames(Collections.emptyList());
+                hierarchyViewer.setTree(null);
+            }
+            
+            if (tokenStreamViewer != null) {
+                tokenStreamViewer.clear();
+            }
         });
     }
     
@@ -1143,7 +1157,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 profilerPanel.setProfilerData(preview, (long) preview.getParseTime());
             }
             
-            if (isTabSelected(SelectedTab.TREEVIEWER)) {
+            if (isTabSelected(SelectedTab.TREE_VIEWER)) {
                 treeViewer.setTreeTextProvider(provider);
                 treeViewer.setTree(result.tree);
                 hierarchyViewer.setTreeTextProvider(provider);
@@ -1154,7 +1168,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 //
 //            }
             
-            if (result.parser instanceof PreviewParser && isTabSelected(SelectedTab.TOKENLIST)) {
+            if (result.parser instanceof PreviewParser && isTabSelected(SelectedTab.TOKEN_LIST)) {
                 tokenStreamViewer.setParsingResult(result.parser);
             }
         });
@@ -1219,11 +1233,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
     }
     
     
-    public InputPanel getInputPanel() {
-        return inputPanel;
-    }
-    
-    
     public void autoRefreshPreview(VirtualFile virtualFile) {
         final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
         
@@ -1269,11 +1278,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         cancelParserAction.setEnabled(false);
         buttonBar.updateActionsAsync();
         addErrorText("Parsing aborted.");
-    }
-    
-    
-    public PropertiesPanel getPropertiesPanel() {
-        return propertiesPanel;
     }
     
     
@@ -1347,14 +1351,42 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             return;
         }
         
-        Editor editor = inputPanel.getInputEditor();
+        var editor = inputPanel.getInputEditor();
         if (startIndex >= 0 && stopIndex + 1 <= editor.getDocument().getTextLength()) {
 //            editor.getSelectionModel().removeSelection();
 //            editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
             
             //   Editor editor = inputPanel.getInputEditor();
-            Interval sourceInterval = Interval.of(startIndex, stopIndex + 1);
+            var sourceInterval = Interval.of(startIndex, stopIndex + 1);
             inputPanel.highlightAndOfferHint(editor, startIndex, sourceInterval, (JBColor) JBColor.MAGENTA, EffectType.ROUNDED_BOX, msg);
         }
+    }
+    
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
+    
+    /**
+     * Usually not invoked directly, see class javadoc.
+     */
+    @Override public void dispose() {
+        LOG.debug("Dispose called: " + this.getClass().getName());
+        
+        // Dispose child components here if needed
+        if (inputPanel != null) {
+            Disposer.dispose(inputPanel);
+            inputPanel = null;
+        }
+        
+        if (treeViewer != null) {
+            Disposer.dispose(treeViewer);
+            treeViewer = null;
+        }
+        
+        if (profilerPanel != null) {
+            Disposer.dispose(profilerPanel);
+            profilerPanel = null;
+        }
+        
+        // optional: clear event listeners, listeners, etc.
     }
 }

@@ -184,7 +184,7 @@ public class InputPanel implements Disposable {
             new BrowseFolderActionListener<>(
                 "Select Input File", null,
                 fileChooser,
-                previewPanel.project,
+                previewPanel.getProject(),
                 singleFileDescriptor,
                 TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
             ) {
@@ -407,7 +407,6 @@ public class InputPanel implements Disposable {
         );
         
         
-        
         EditorFactory.getInstance().getEventMulticaster().addSelectionListener(new SelectionListener() {
             @Override
             public void selectionChanged(@NotNull SelectionEvent e) {
@@ -470,7 +469,7 @@ public class InputPanel implements Disposable {
         }
         
         // get state for grammar in current editor, not editor where user is typing preview input!
-        var controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+        var controller = ANTLRv4PluginController.getInstance(previewPanel.getProject());
         
         if (controller == null) {
             return;
@@ -502,8 +501,8 @@ public class InputPanel implements Disposable {
         );
         
         final var editor = readOnly
-            ? factory.createViewer(doc, previewPanel.project)
-            : factory.createEditor(doc, previewPanel.project);
+            ? factory.createViewer(doc, previewPanel.getProject())
+            : factory.createEditor(doc, previewPanel.getProject());
         
         
         editor.getComponent().setBorder(
@@ -1124,8 +1123,10 @@ public class InputPanel implements Disposable {
      */
     public JComponent $$$getRootComponent$$$() {return outerMostPanel;}
     
+    /* ------------------------------------------------------------------------------------------------------------------ */
     
     @Override public void dispose() {
+        LOG.debug("Dispose called: " + this.getClass().getName());
     
     }
 }

@@ -7,6 +7,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import lombok.Getter;
+import lombok.Setter;
 import org.antlr.intellij.plugin.ANTLRv4FileType;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
@@ -34,21 +36,21 @@ public class PreviewState {
     private static final Logger LOG =
         Logger.getInstance(PreviewState.class);
     
-    private final Project project;
-    private final VirtualFile grammarFile;
+    @Getter private final Project project;
+    @Getter private final VirtualFile grammarFile;
     
-    private Grammar grammar;
-    private LexerGrammar lexerGrammar;
+    @Getter @Setter private Grammar grammar;
+    @Setter @Getter private LexerGrammar lexerGrammar;
     
     private String startRuleName;
-    private boolean validStartRule;
+    @Getter @Setter private boolean validStartRule;
     private CharSequence manualInputText; // save input when switching grammars
     
-    private VirtualFile inputFile; // save input file when switching grammars
-    private ParsingResult parsingResult;
-    private double parseTime;
+    @Getter @Setter private VirtualFile inputFile; // save input file when switching grammars
+    @Getter @Setter private ParsingResult parsingResult;
+    @Getter @Setter private double parseTime;
     
-    private final PropertiesComponent propertiesComponent;
+    @Getter private final PropertiesComponent propertiesComponent;
     
     /**
      * The current input editor (inputEditor or fileEditor) for this grammar
@@ -363,26 +365,6 @@ public class PreviewState {
     }
     
     
-    public Project getProject() {
-        return project;
-    }
-    
-    
-    public VirtualFile getGrammarFile() {
-        return grammarFile;
-    }
-    
-    
-    public Grammar getGrammar() {
-        return grammar;
-    }
-    
-    
-    public void setGrammar(Grammar grammar) {
-        this.grammar = grammar;
-    }
-    
-    
     public boolean isBadGrammar() {
         return grammar.equals(ParsingUtils.BAD_PARSER_GRAMMAR);
     }
@@ -390,16 +372,6 @@ public class PreviewState {
     
     public boolean isBadLexerGrammar() {
         return grammar.equals(ParsingUtils.BAD_LEXER_GRAMMAR);
-    }
-    
-    
-    public LexerGrammar getLexerGrammar() {
-        return lexerGrammar;
-    }
-    
-    
-    public void setLexerGrammar(LexerGrammar lexerGrammar) {
-        this.lexerGrammar = lexerGrammar;
     }
     
     
@@ -421,51 +393,6 @@ public class PreviewState {
     }
     
     
-    public VirtualFile getInputFile() {
-        return inputFile;
-    }
-    
-    
-    public void setInputFile(VirtualFile inputFile) {
-        this.inputFile = inputFile;
-    }
-    
-    
-    public ParsingResult getParsingResult() {
-        return parsingResult;
-    }
-    
-    
-    public void setParsingResult(ParsingResult parsingResult) {
-        this.parsingResult = parsingResult;
-    }
-    
-    
-    public double getParseTime() {
-        return parseTime;
-    }
-    
-    
-    public void setParseTime(double parseTime) {
-        this.parseTime = parseTime;
-    }
-    
-    
-    public PropertiesComponent getPropertiesComponent() {
-        return propertiesComponent;
-    }
-    
-    
-    public boolean isValidStartRule() {
-        return validStartRule;
-    }
-    
-    
-    public void setValidStartRule(boolean validStartRule) {
-        this.validStartRule = validStartRule;
-    }
-    
-    
     @Override
     public String toString() {
         var sr = startRuleName;
@@ -473,23 +400,23 @@ public class PreviewState {
         var srExists = sr != null && srValid && existsStartRule(sr);
         
         return "PreviewState { \n" +
-            "\tproject          =" + project +
-            "\n\tgrammarFile    =" + grammarFile.getName() +
-            "\n\tgrammar        =" + grammar +
-            "\n\tvalidGrammar   =" + hasValidGrammar() +
-            "\n\tisBadGrammar   =" + isBadGrammar() +
-            "\n\tlexerGrammar   =" + lexerGrammar +
-            
-            "\n\tstartRule      =" + startRuleName +
-            "\n\tvalidStartRule =" + validStartRule +
-            "\n\texistsStartRule=" + existsStartRule(startRuleName) +
-            "\n\texistsDefRule  =" + existsStartRule(getDefaultStartRuleName()) +
-            
-            "\n\tmanualInputText=" + manualInputText +
-            "\n\tinputFile      =" + (inputFile != null ? inputFile.getName() : "-") +
-            
-            "\n\tparsingResult  =" + parsingResult +
-            "\n\tparseTime      =" + parseTime +
-            "\n}";
+               "\tproject          =" + project +
+               "\n\tgrammarFile    =" + grammarFile.getName() +
+               "\n\tgrammar        =" + grammar +
+               "\n\tvalidGrammar   =" + hasValidGrammar() +
+               "\n\tisBadGrammar   =" + isBadGrammar() +
+               "\n\tlexerGrammar   =" + lexerGrammar +
+               
+               "\n\tstartRule      =" + startRuleName +
+               "\n\tvalidStartRule =" + validStartRule +
+               "\n\texistsStartRule=" + existsStartRule(startRuleName) +
+               "\n\texistsDefRule  =" + existsStartRule(getDefaultStartRuleName()) +
+               
+               "\n\tmanualInputText=" + manualInputText +
+               "\n\tinputFile      =" + (inputFile != null ? inputFile.getName() : "-") +
+               
+               "\n\tparsingResult  =" + parsingResult +
+               "\n\tparseTime      =" + parseTime +
+               "\n}";
     }
 }

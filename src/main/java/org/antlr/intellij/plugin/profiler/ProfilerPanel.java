@@ -29,13 +29,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class ProfilerPanel implements Disposable {
+public class ProfilerPanel implements Disposable, ListSelectionListener {
     private static final Logger LOG =
         Logger.getInstance(ProfilerPanel.class);
     
@@ -66,11 +68,15 @@ public class ProfilerPanel implements Disposable {
     @Getter protected JBTable profilerDataTable;
     protected JLabel deepestLookaheadLabel;
     
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
     
     public ProfilerPanel(Project project, PreviewPanel previewPanel) {
         this.project = project;
         this.previewPanel = previewPanel;
     }
+    
+    /* ------------------------------------------------------------------------------------------------------------------ */
     
     
     public static String getSemanticContextDisplayString(
@@ -396,34 +402,7 @@ public class ProfilerPanel implements Disposable {
     
     private @NotNull ListSelectionModel getListSelectionModel() {
         var selectionModel = profilerDataTable.getSelectionModel();
-        selectionModel.addListSelectionListener(
-            e -> {
-                // previewState, project set later
-                if (e.getValueIsAdjusting()) {
-                    return; // this seems to be "mouse down" but not mouse up
-                }
-                // get state for current grammar editor tab
-                if (project == null) {
-                    return;
-                }
-                
-                if (previewState != null && profilerDataTable.getModel().getClass() != DefaultTableModel.class) {
-                    var selectedRow = profilerDataTable.getSelectedRow();
-                    if (selectedRow == -1) {
-                        selectedRow = 0;
-                    }
-                    
-                    var decision = profilerDataTable.convertRowIndexToModel(selectedRow);
-                    var numberOfDecisions = previewState.getGrammar().atn.getNumberOfDecisions();
-                    
-                    if (decision <= numberOfDecisions) {
-                        selectDecisionInGrammar(previewState, decision);
-                        highlightInputPhrases(previewState, decision);
-                    }
-                }
-            }
-        );
-        
+        selectionModel.addListSelectionListener(this);
         return selectionModel;
     }
     
@@ -517,6 +496,39 @@ public class ProfilerPanel implements Disposable {
     public JComponent $$$getRootComponent$$$() {return outerPanel;}
     
     
+    /**
+     * Called whenever the value of the selection changes.
+     *
+     * @param e the event that characterizes the change.
+     */
+    @Override public void valueChanged(ListSelectionEvent e) {
+        // previewState, project set later
+        if (e.getValueIsAdjusting()) {
+            return; // this seems to be "mouse down" but not mouse up
+        }
+        
+        // get state for current grammar editor tab
+        if (project == null) {
+            return;
+        }
+        
+        if (previewState != null && profilerDataTable.getModel().getClass() != DefaultTableModel.class) {
+            var selectedRow = profilerDataTable.getSelectedRow();
+            if (selectedRow == -1) {
+                selectedRow = 0;
+            }
+            
+            var decision = profilerDataTable.convertRowIndexToModel(selectedRow);
+            var numberOfDecisions = previewState.getGrammar().atn.getNumberOfDecisions();
+            
+            if (decision <= numberOfDecisions) {
+                selectDecisionInGrammar(previewState, decision);
+                highlightInputPhrases(previewState, decision);
+            }
+        }
+    }
+    
+    
     class ProfileTableCellRenderer extends DefaultTableCellRenderer {
         @Override public Component getTableCellRendererComponent(
             JTable table, Object value,
@@ -558,5 +570,32 @@ public class ProfilerPanel implements Disposable {
      */
     @Override public void dispose() {
         LOG.debug("Dispose called: " + this.getClass().getName());
+        
+        // Detach ListSelectionListener
+        if (profilerDataTable != null) {
+            var selectionModel = profilerDataTable.getSelectionModel();
+            selectionModel.removeListSelectionListener(this);
+        }
+        
+        // Null out UI references (optional but recommended for GC)
+        expertCheckBox = null;
+        ambiguityColorLabel = null;
+        contextSensitivityColorLabel = null;
+        predEvaluationColorLabel = null;
+        deepestLookaheadLabel = null;
+        profilerDataTable = null;
+        parseTimeField = null;
+        predictionTimeField = null;
+        lookaheadBurdenField = null;
+        cacheMissRateField = null;
+        inputSizeField = null;
+        numTokensField = null;
+        outerPanel = null;
+        statsPanel = null;
+        
+        // Clear references to external objects
+        previewState = null;
+        previewPanel = null;
+        project = null;
     }
 }
