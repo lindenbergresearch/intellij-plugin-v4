@@ -151,6 +151,24 @@ public class ANTLRUtils {
     
     
     /**
+     * Creates a string with a repeated given char.
+     *
+     * @param c      The char to repeat.
+     * @param length Length of repetition.
+     * @return The resulting String.
+     */
+    private static String printCharLine(char c, int length) {
+        var buffer = new StringBuilder();
+        
+        for (var i = 0; i < length; i++) {
+            buffer.append(c);
+        }
+        
+        return buffer.toString();
+    }
+    
+    
+    /**
      * Returns the longest string in an array of strings.
      *
      * @param s Input strings as vararg, array, list.
