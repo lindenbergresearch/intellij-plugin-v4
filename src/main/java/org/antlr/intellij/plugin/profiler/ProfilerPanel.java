@@ -1,10 +1,8 @@
 package org.antlr.intellij.plugin.profiler;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.CaretModel;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
-import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.project.Project;
@@ -17,6 +15,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import lombok.Getter;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.preview.InputPanel;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
@@ -24,11 +23,9 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.runtime.CommonToken;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.*;
-import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.tool.Grammar;
-import org.antlr.v4.tool.Rule;
+import org.antlr.v4.runtime.atn.SemanticContext.PrecedencePredicate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -38,14 +35,14 @@ import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class ProfilerPanel {
+public class ProfilerPanel implements Disposable {
     private static final Logger LOG =
-        Logger.getInstance("ANTLR ProfilerPanel");
+        Logger.getInstance(ProfilerPanel.class);
     
-    public static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
-    public static final Color FULLCTX_COLOR = new Color(255, 128, 0);
-    public static final Color PREDEVAL_COLOR = new Color(110, 139, 61);
-    public static final Color DEEPESTLOOK_COLOR = new Color(0, 128, 128);
+    public static final Color AMBIGUITY_COLOR = new JBColor(new Color(157, 31, 31), new Color(157, 31, 31));
+    public static final Color FULLCTX_COLOR = new JBColor(new Color(255, 128, 0), new Color(255, 128, 0));
+    public static final Color PREDEVAL_COLOR = new JBColor(new Color(110, 139, 61), new Color(110, 139, 61));
+    public static final Color DEEPESTLOOK_COLOR = new JBColor(new Color(0, 128, 128), new Color(0, 128, 128));
     
     public static final Key<DecisionEventInfo> DECISION_EVENT_INFO_KEY = Key.create("DECISION_EVENT_INFO");
     public static final Key<DecisionInfo> DECISION_INFO_KEY = Key.create("DECISION_INFO_KEY");
@@ -66,7 +63,7 @@ public class ProfilerPanel {
     protected JLabel ambiguityColorLabel;
     protected JLabel contextSensitivityColorLabel;
     protected JLabel predEvaluationColorLabel;
-    protected JBTable profilerDataTable;
+    @Getter protected JBTable profilerDataTable;
     protected JLabel deepestLookaheadLabel;
     
     
@@ -83,16 +80,16 @@ public class ProfilerPanel {
         int alt,
         boolean result
     ) {
-        Grammar g = previewState.getGrammar();
-        String semanticContextDisplayString = g.getSemanticContextDisplayString(semctx);
-        if (semctx instanceof SemanticContext.PrecedencePredicate) {
-            int ruleIndex = previewState.getParsingResult().parser.getATN().decisionToState.get(pred.decision).ruleIndex;
-            Rule rule = g.getRule(ruleIndex);
-            int precedence = ((SemanticContext.PrecedencePredicate) semctx).precedence;
+        var g = previewState.getGrammar();
+        var semanticContextDisplayString = g.getSemanticContextDisplayString(semctx);
+        if (semctx instanceof PrecedencePredicate) {
+            var ruleIndex = previewState.getParsingResult().parser.getATN().decisionToState.get(pred.decision).ruleIndex;
+            var rule = g.getRule(ruleIndex);
+            var precedence = ((SemanticContext.PrecedencePredicate) semctx).precedence;
             // precedence = n - originalAlt + 1, So:
-            int originalAlt = rule.getOriginalNumberOfAlts() - precedence + 1;
-            alt = originalAlt;
+            alt = rule.getOriginalNumberOfAlts() - precedence + 1;
         }
+        
         return semanticContextDisplayString + " => alt " + alt + " is " + result;
     }
     
@@ -104,7 +101,7 @@ public class ProfilerPanel {
     
     public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
         this.previewState = previewState;
-        DefaultTableModel model = new DefaultTableModel();
+        var model = new DefaultTableModel();
         profilerDataTable.setModel(model);
         profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
     }
@@ -121,49 +118,52 @@ public class ProfilerPanel {
     }
     
     
-    public JBTable getProfilerDataTable() {
-        return profilerDataTable;
-    }
-    
-    
     public void setProfilerData(PreviewState previewState, long parseTime_ns) {
         this.previewState = previewState;
-        Parser parser = previewState.getParsingResult().parser;
-        ParseInfo parseInfo = parser.getParseInfo();
+        var parser = previewState.getParsingResult().parser;
+        var parseInfo = parser.getParseInfo();
         updateTableModelPerExpertCheckBox(parseInfo, parser);
-        double parseTimeMS = parseTime_ns / (1000.0 * 1000.0);
+        var parseTimeMS = parseTime_ns / (1000.0 * 1000.0);
+        
         // microsecond decimal precision
         NumberFormat formatter = new DecimalFormat("#.###");
         parseTimeField.setText(formatter.format(parseTimeMS));
-        double predTimeMS = parseInfo.getTotalTimeInPrediction() / (1000.0 * 1000.0);
+        var predTimeMS = parseInfo.getTotalTimeInPrediction() / (1000.0 * 1000.0);
+        
         predictionTimeField.setText(
             String.format("%s = %3.2f%%", formatter.format(predTimeMS), 100 * (predTimeMS) / parseTimeMS)
         );
-        TokenStream tokens = parser.getInputStream();
-        int numTokens = tokens.size();
-        Token lastToken = tokens.get(numTokens - 1);
-        int numChar = lastToken.getStopIndex();
-        int numLines = lastToken.getLine();
+        
+        var tokens = parser.getInputStream();
+        var numTokens = tokens.size();
+        var lastToken = tokens.get(numTokens - 1);
+        var numChar = lastToken.getStopIndex();
+        var numLines = lastToken.getLine();
+        
         if (lastToken.getType() == Token.EOF) {
             if (numTokens <= 1) {
                 numLines = 0;
             } else {
-                Token secondToLastToken = tokens.get(numTokens - 2);
+                var secondToLastToken = tokens.get(numTokens - 2);
                 numLines = secondToLastToken.getLine();
             }
         }
+        
         inputSizeField.setText(String.format(
             "%d char, %d lines",
             numChar,
             numLines
         ));
+        
         numTokensField.setText(String.valueOf(numTokens));
         double look =
             parseInfo.getTotalSLLLookaheadOps() +
-                parseInfo.getTotalLLLookaheadOps();
+            parseInfo.getTotalLLLookaheadOps();
+        
         lookaheadBurdenField.setText(
             String.format("%d/%d = %3.2f", (long) look, numTokens, look / numTokens)
         );
+        
         double atnLook = parseInfo.getTotalATNLookaheadOps();
         cacheMissRateField.setText(
             String.format("%d/%d = %3.2f%%", (long) atnLook, (long) look, atnLook * 100.0 / look)
@@ -173,24 +173,34 @@ public class ProfilerPanel {
     
     public void updateTableModelPerExpertCheckBox(ParseInfo parseInfo, Parser parser) {
         AbstractTableModel model;
+        
         if (expertCheckBox.isSelected()) {
             model = new ExpertProfilerTableDataModel(parseInfo, parser);
         } else {
             model = new SimpleProfilerTableDataModel(parseInfo, parser);
         }
+        
         profilerDataTable.setModel(model);
         profilerDataTable.setRowSorter(new TableRowSorter<>(model));
     }
     
     
     public void selectDecisionInGrammar(PreviewState previewState, int decision) {
-        final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.getProject());
-        if (controller == null) return;
-        final Editor grammarEditor = controller.getEditor(previewState.getGrammarFile());
-        if (grammarEditor == null) return;
+        final var controller = ANTLRv4PluginController.getInstance(previewState.getProject());
         
-        DecisionState decisionState = previewState.getGrammar().atn.getDecisionState(decision);
-        Interval region = previewState.getGrammar().getStateToGrammarRegion(decisionState.stateNumber);
+        if (controller == null) {
+            return;
+        }
+        
+        final var grammarEditor = controller.getEditor(previewState.getGrammarFile());
+        
+        if (grammarEditor == null) {
+            return;
+        }
+        
+        var decisionState = previewState.getGrammar().atn.getDecisionState(decision);
+        var region = previewState.getGrammar().getStateToGrammarRegion(decisionState.stateNumber);
+        
         if (region == null) {
             LOG.error("decision " + decision + " has state " + decisionState.stateNumber + " but no region");
             return;
@@ -198,40 +208,48 @@ public class ProfilerPanel {
         
         InputPanel.removeHighlighters(grammarEditor, ProfilerPanel.DECISION_INFO_KEY);
         
-        org.antlr.runtime.TokenStream tokens = previewState.getGrammar().tokenStream;
+        var tokens = previewState.getGrammar().tokenStream;
+        
         if (region.a >= tokens.size() || region.b >= tokens.size()) {
             return;
         }
-        CommonToken startToken = (CommonToken) tokens.get(region.a);
-        CommonToken stopToken = (CommonToken) tokens.get(region.b);
-        JBColor effectColor = JBColor.darkGray;
-        DecisionInfo decisionInfo = previewState.getParsingResult().parser.getParseInfo().getDecisionInfo()[decision];
-        if (decisionInfo.predicateEvals.size() > 0) {
+        
+        var startToken = (CommonToken) tokens.get(region.a);
+        var stopToken = (CommonToken) tokens.get(region.b);
+        var effectColor = JBColor.darkGray;
+        var decisionInfo = previewState.getParsingResult().parser.getParseInfo().getDecisionInfo()[decision];
+        
+        if (!decisionInfo.predicateEvals.isEmpty()) {
             effectColor = new JBColor(PREDEVAL_COLOR, AMBIGUITY_COLOR);
         }
-        if (decisionInfo.contextSensitivities.size() > 0) {
+        
+        if (!decisionInfo.contextSensitivities.isEmpty()) {
             effectColor = new JBColor(FULLCTX_COLOR, AMBIGUITY_COLOR);
         }
-        if (decisionInfo.ambiguities.size() > 0) {
+        
+        if (!decisionInfo.ambiguities.isEmpty()) {
             effectColor = new JBColor(AMBIGUITY_COLOR, AMBIGUITY_COLOR);
         }
         
-        TextAttributes attr =
+        var attr =
             new TextAttributes(JBColor.BLACK, JBColor.WHITE, effectColor,
                 EffectType.ROUNDED_BOX, Font.PLAIN
             );
-        MarkupModel markupModel = grammarEditor.getMarkupModel();
-        final RangeHighlighter rangeHighlighter = markupModel.addRangeHighlighter(
+        
+        var markupModel = grammarEditor.getMarkupModel();
+        
+        final var rangeHighlighter = markupModel.addRangeHighlighter(
             startToken.getStartIndex(),
             stopToken.getStopIndex() + 1,
             HighlighterLayer.SELECTION, // layer
             attr,
             HighlighterTargetArea.EXACT_RANGE
         );
+        
         rangeHighlighter.putUserData(DECISION_INFO_KEY, decisionInfo);
         
-        ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
-        CaretModel caretModel = grammarEditor.getCaretModel();
+        var scrollingModel = grammarEditor.getScrollingModel();
+        var caretModel = grammarEditor.getCaretModel();
         caretModel.moveToOffset(startToken.getStartIndex());
         scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
     }
@@ -242,25 +260,28 @@ public class ProfilerPanel {
             return;
         }
         
-        Editor inputEditor = previewState.getInputEditor();
-        ScrollingModel scrollingModel = inputEditor.getScrollingModel();
-        CaretModel caretModel = inputEditor.getCaretModel();
-        MarkupModel markupModel = inputEditor.getMarkupModel();
+        var inputEditor = previewState.getInputEditor();
+        var scrollingModel = inputEditor.getScrollingModel();
+        var caretModel = inputEditor.getCaretModel();
+        var markupModel = inputEditor.getMarkupModel();
         
         InputPanel.clearDecisionEventHighlighters(inputEditor);
         
-        ParseInfo parseInfo = previewState.getParsingResult().parser.getParseInfo();
-        DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
+        var parseInfo = previewState.getParsingResult().parser.getParseInfo();
+        var decisionInfo = parseInfo.getDecisionInfo()[decision];
         
         Token firstToken = null;
         // deepest lookahead
-        long maxLook = Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
-        if (maxLook > 1) // ignore k=1
-        {
-            LookaheadEventInfo maxLookEvent = decisionInfo.SLL_MaxLookEvent;
+        var maxLook = Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
+        
+        // ignore k=1
+        if (maxLook > 1) {
+            var maxLookEvent = decisionInfo.SLL_MaxLookEvent;
+            
             if (decisionInfo.LL_MaxLook > decisionInfo.SLL_MaxLook) {
                 maxLookEvent = decisionInfo.LL_MaxLookEvent;
             }
+            
             firstToken = addDecisionEventHighlighter(previewState, markupModel,
                 maxLookEvent,
                 DEEPESTLOOK_COLOR,
@@ -269,20 +290,20 @@ public class ProfilerPanel {
         }
         
         // pred evals
-        for (PredicateEvalInfo predEvalInfo : decisionInfo.predicateEvals) {
-            Token t = addDecisionEventHighlighter(previewState, markupModel, predEvalInfo, PREDEVAL_COLOR, EffectType.ROUNDED_BOX);
+        for (var predEvalInfo : decisionInfo.predicateEvals) {
+            var t = addDecisionEventHighlighter(previewState, markupModel, predEvalInfo, PREDEVAL_COLOR, EffectType.ROUNDED_BOX);
             if (firstToken == null) firstToken = t;
         }
         
         // context-sensitivities
-        for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
-            Token t = addDecisionEventHighlighter(previewState, markupModel, ctxSensitivityInfo, FULLCTX_COLOR, EffectType.ROUNDED_BOX);
+        for (var ctxSensitivityInfo : decisionInfo.contextSensitivities) {
+            var t = addDecisionEventHighlighter(previewState, markupModel, ctxSensitivityInfo, FULLCTX_COLOR, EffectType.ROUNDED_BOX);
             if (firstToken == null) firstToken = t;
         }
         
         // ambiguities (might overlay context-sensitivities)
-        for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
-            Token t = addDecisionEventHighlighter(previewState, markupModel, ambiguityInfo, AMBIGUITY_COLOR, EffectType.ROUNDED_BOX);
+        for (var ambiguityInfo : decisionInfo.ambiguities) {
+            var t = addDecisionEventHighlighter(previewState, markupModel, ambiguityInfo, AMBIGUITY_COLOR, EffectType.ROUNDED_BOX);
             if (firstToken == null) firstToken = t;
         }
         
@@ -298,20 +319,23 @@ public class ProfilerPanel {
         DecisionEventInfo info, Color errorStripeColor,
         EffectType effectType
     ) {
-        TokenStream tokens = previewState.getParsingResult().parser.getInputStream();
-        Token startToken = tokens.get(info.startIndex);
-        Token stopToken = tokens.get(info.stopIndex);
-        TextAttributes textAttributes =
+        var tokens = previewState.getParsingResult().parser.getInputStream();
+        var startToken = tokens.get(info.startIndex);
+        var stopToken = tokens.get(info.stopIndex);
+        var textAttributes =
             new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor,
                 effectType, Font.PLAIN
             );
+        
         textAttributes.setErrorStripeColor(errorStripeColor);
-        final RangeHighlighter rangeHighlighter =
+        
+        final var rangeHighlighter =
             markupModel.addRangeHighlighter(
                 startToken.getStartIndex(), stopToken.getStopIndex() + 1,
                 HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
                 HighlighterTargetArea.EXACT_RANGE
             );
+        
         rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, info);
         rangeHighlighter.setErrorStripeMarkColor(errorStripeColor);
         return startToken;
@@ -326,21 +350,25 @@ public class ProfilerPanel {
                 // nothing has been parsed yet (no text in the editor)
                 return;
             }
-            ParseInfo parseInfo = previewState.getParsingResult().parser.getParseInfo();
+            
+            var parseInfo = previewState.getParsingResult().parser.getParseInfo();
             updateTableModelPerExpertCheckBox(parseInfo, previewState.getParsingResult().parser);
         });
+        
         profilerDataTable = new JBTable() {
             @Override
-            protected JTableHeader createDefaultTableHeader() {
+            protected @NotNull JTableHeader createDefaultTableHeader() {
                 return new JTableHeader(columnModel) {
-                    public String getToolTipText(MouseEvent e) {
-                        Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        int realIndex = columnModel.getColumn(index).getModelIndex();
-                        TableModel model = getModel();
+                    @Override public String getToolTipText(MouseEvent e) {
+                        var p = e.getPoint();
+                        var index = columnModel.getColumnIndexAtX(p.x);
+                        var realIndex = columnModel.getColumn(index).getModelIndex();
+                        var model = getModel();
+                        
                         if (model instanceof ProfilerTableDataModel) {
                             return ((ProfilerTableDataModel) model).getColumnToolTips()[realIndex];
                         }
+                        
                         return model.getColumnName(realIndex);
                     }
                 };
@@ -352,7 +380,22 @@ public class ProfilerPanel {
                 return new ProfileTableCellRenderer();
             }
         };
-        ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
+        
+        var selectionModel = getListSelectionModel();
+        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        ambiguityColorLabel = new JBLabel("Ambiguity");
+        ambiguityColorLabel.setForeground(AMBIGUITY_COLOR);
+        contextSensitivityColorLabel = new JBLabel("Context sensitivity");
+        contextSensitivityColorLabel.setForeground(FULLCTX_COLOR);
+        predEvaluationColorLabel = new JBLabel("Predicate evaluation");
+        predEvaluationColorLabel.setForeground(PREDEVAL_COLOR);
+        deepestLookaheadLabel = new JBLabel("Deepest lookahead");
+        deepestLookaheadLabel.setForeground(DEEPESTLOOK_COLOR);
+    }
+    
+    
+    private @NotNull ListSelectionModel getListSelectionModel() {
+        var selectionModel = profilerDataTable.getSelectionModel();
         selectionModel.addListSelectionListener(
             e -> {
                 // previewState, project set later
@@ -363,13 +406,16 @@ public class ProfilerPanel {
                 if (project == null) {
                     return;
                 }
+                
                 if (previewState != null && profilerDataTable.getModel().getClass() != DefaultTableModel.class) {
-                    int selectedRow = profilerDataTable.getSelectedRow();
+                    var selectedRow = profilerDataTable.getSelectedRow();
                     if (selectedRow == -1) {
                         selectedRow = 0;
                     }
-                    int decision = profilerDataTable.convertRowIndexToModel(selectedRow);
-                    int numberOfDecisions = previewState.getGrammar().atn.getNumberOfDecisions();
+                    
+                    var decision = profilerDataTable.convertRowIndexToModel(selectedRow);
+                    var numberOfDecisions = previewState.getGrammar().atn.getNumberOfDecisions();
+                    
                     if (decision <= numberOfDecisions) {
                         selectDecisionInGrammar(previewState, decision);
                         highlightInputPhrases(previewState, decision);
@@ -377,15 +423,8 @@ public class ProfilerPanel {
                 }
             }
         );
-        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        ambiguityColorLabel = new JBLabel("Ambiguity");
-        ambiguityColorLabel.setForeground(AMBIGUITY_COLOR);
-        contextSensitivityColorLabel = new JBLabel("Context sensitivity");
-        contextSensitivityColorLabel.setForeground(FULLCTX_COLOR);
-        predEvaluationColorLabel = new JBLabel("Predicate evaluation");
-        predEvaluationColorLabel.setForeground(PREDEVAL_COLOR);
-        deepestLookaheadLabel = new JBLabel("Deepest lookahead");
-        deepestLookaheadLabel.setForeground(DEEPESTLOOK_COLOR);
+        
+        return selectionModel;
     }
     
     
@@ -479,30 +518,45 @@ public class ProfilerPanel {
     
     
     class ProfileTableCellRenderer extends DefaultTableCellRenderer {
-        public Component getTableCellRendererComponent(
+        @Override public Component getTableCellRendererComponent(
             JTable table, Object value,
             boolean isSelected, boolean hasFocus,
             int row, int column
         ) {
-            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            var c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            
             if (previewState == null || previewState.getParsingResult() == null) {
                 return c;
             }
-            ParseInfo parseInfo = previewState.getParsingResult().parser.getParseInfo();
-            int decision = profilerDataTable.convertRowIndexToModel(row);
-            DecisionInfo[] decisions = parseInfo.getDecisionInfo();
+            
+            var parseInfo = previewState.getParsingResult().parser.getParseInfo();
+            var decision = profilerDataTable.convertRowIndexToModel(row);
+            var decisions = parseInfo.getDecisionInfo();
+            
             if (decision >= decisions.length) {
                 return c;
             }
-            DecisionInfo decisionInfo = decisions[decision];
-            if (decisionInfo.ambiguities.size() > 0) {
+            
+            var decisionInfo = decisions[decision];
+            if (!decisionInfo.ambiguities.isEmpty()) {
                 setForeground(AMBIGUITY_COLOR);
-            } else if (decisionInfo.contextSensitivities.size() > 0) {
+            } else if (!decisionInfo.contextSensitivities.isEmpty()) {
                 setForeground(FULLCTX_COLOR);
-            } else if (decisionInfo.predicateEvals.size() > 0) {
+            } else if (!decisionInfo.predicateEvals.isEmpty()) {
                 setForeground(PREDEVAL_COLOR);
             }
+            
             return c;
         }
+    }
+    
+    /* ------------------------------------------------------------------------------------------------------------------ */
+    
+    
+    /**
+     * Usually not invoked directly, see class javadoc.
+     */
+    @Override public void dispose() {
+        LOG.debug("Dispose called: " + this.getClass().getName());
     }
 }
