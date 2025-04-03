@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.ContentFactory;
@@ -22,6 +23,8 @@ public class ANTLRPreviewToolWindowFactory implements ToolWindowFactory {
         }
         
         var previewPanel = controller.getOrCreatePreviewPanel();
+        Disposer.register(controller, previewPanel);
+        
         var contentFactory = ContentFactory.getInstance();
         var content = contentFactory.createContent(previewPanel, "", false);
         content.setCloseable(false);
