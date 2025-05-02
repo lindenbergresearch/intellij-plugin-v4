@@ -36,7 +36,7 @@ import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
-import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
+import org.antlr.intellij.plugin.psi.RuleSpecNode;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
@@ -87,6 +87,7 @@ public final class ANTLRv4PluginController implements Disposable {
     @Getter @Setter
     private boolean logDebugMessages = false;
     
+    private long currentTimeMillis = System.currentTimeMillis();
     
     /* ------------------------------------------------------------------------------------------------------------------ */
     
@@ -106,7 +107,6 @@ public final class ANTLRv4PluginController implements Disposable {
         installPsiChangeListener(); // optional
     }
     
-    
     /* ------------------------------------------------------------------------------------------------------------------ */
     
     
@@ -123,8 +123,11 @@ public final class ANTLRv4PluginController implements Disposable {
                         // Called after VFS changes are applied
                         for (var event : events) {
                             if (event.getFile() != null) {
-                                LOG.info("VFS changed: " + event.getFile().getPath());
-                                printToConsole("VFS changed: " + event.getFile().getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                                LOG.debug("VFS changed: " + event.getFile().getPath());
+                                printToConsole(
+                                    "VFS update: " + event.getFile().getName() + " - " + event.getFileSystem().getProtocol() + "::" + event.getFileSystem().getNioPath(event.getFile()),
+                                    ConsoleViewContentType.LOG_DEBUG_OUTPUT
+                                );
                             }
                         }
                     }
@@ -142,7 +145,7 @@ public final class ANTLRv4PluginController implements Disposable {
             public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
                 // Called when a file is opened in the editor
                 LOG.info("File opened: " + file.getPath());
-                printToConsole("File opened: " + file.getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                printToConsole("File opened: " + file.getPath() + " " + source.getSelectedEditor().getName(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
             }
             
             
@@ -204,7 +207,7 @@ public final class ANTLRv4PluginController implements Disposable {
             
             @Override
             public void editorReleased(@NotNull EditorFactoryEvent event) {
-                LOG.info("editorReleased(" + event + ')');
+                LOG.debug("editorReleased(" + event + ')');
                 
                 var editor = event.getEditor();
                 
@@ -228,10 +231,10 @@ public final class ANTLRv4PluginController implements Disposable {
             @Override
             public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
                 // Called when PSI tree changes
-                PsiFile file = event.getFile();
+                var file = event.getFile();
                 if (file != null) {
-                    LOG.info("PSI changed: " + file.getName());
-                    printToConsole("PSI changed: " + file.getName(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                    LOG.debug("PSI changed: " + file.getName());
+                    printToConsole("PSI update: " + file.getName() + ' ' + event.getPropertyName() + '(' + event.getOldValue() + " -> " + event.getNewValue() + ") ", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
                 }
             }
         }, this);
@@ -291,9 +294,18 @@ public final class ANTLRv4PluginController implements Disposable {
         var appSettings = ANTLRv4UISettingsState.getInstance();
         logDebugMessages = appSettings.isEnableDebugConsole();
         
-        if (!logDebugMessages && (contentType == null || contentType.equals(ConsoleViewContentType.LOG_DEBUG_OUTPUT))) {
+        if (console == null || (!logDebugMessages && (contentType == null || contentType.equals(ConsoleViewContentType.LOG_DEBUG_OUTPUT)))) {
             return;
         }
+        
+        
+        var delta = System.currentTimeMillis() - currentTimeMillis;
+        
+        if (delta > 1300) {
+            console.print("\n[\\---< " + delta + " >---/]\n", ConsoleViewContentType.LOG_WARNING_OUTPUT);
+        }
+        
+        currentTimeMillis = System.currentTimeMillis();
         
         // make sure the tool windows is initialized due to lazy init system
         ensureConsoleWindowInitialized();
@@ -506,13 +518,13 @@ public final class ANTLRv4PluginController implements Disposable {
         var fileSuffix = '.' + ANTLRv4FileType.INSTANCE.getDefaultExtension();
         
         if (!grammarFile.getName().endsWith(fileSuffix)) {
-            hidePreview();
+            //hidePreview();
             return;
         }
         
         // Dispose of state, editor, and such for this file
         var previewState = previewStateCache.get(grammarFile);
-        if (previewState == null) { // project closing must have done already
+        if (previewState == null || previewPanel == null) { // project closing must have done already
             return;
         }
         
@@ -523,7 +535,7 @@ public final class ANTLRv4PluginController implements Disposable {
         previewStateCache.remove(grammarFile);
         
         // close tool window
-        hidePreview();
+        //hidePreview();
     }
     
     
@@ -781,9 +793,12 @@ public final class ANTLRv4PluginController implements Disposable {
                 var psiReference = lexerRuleRefNode.getReference();
                 
                 if (psiReference != null && psiReference.resolve() != null) {
-                    var ruleSpecNode = (LexerRuleSpecNode) psiReference.resolve();// <-- todo: check npe due to mouse move on lexer grammars
-                    var nodeFirstChild = ruleSpecNode.getChildren()[0];
-                    e.getEditor().getContentComponent().setToolTipText(nodeFirstChild.getText());
+                    var ruleSpecNode = (RuleSpecNode) psiReference.resolve();// <-- todo: check npe due to mouse move on lexer grammars
+                 
+                    if (ruleSpecNode != null) {
+                        var nodeFirstChild = ruleSpecNode.getChildren()[0];
+                        e.getEditor().getContentComponent().setToolTipText(nodeFirstChild.getText());
+                    }
                 }
             } else {
                 e.getEditor().getContentComponent().setToolTipText(null);
@@ -813,6 +828,10 @@ public final class ANTLRv4PluginController implements Disposable {
         LOG.info(" dispose(" + project.getName() + ')');
         
         projectIsClosed = true;
+        
+        if (previewPanel == null) {
+            return;
+        }
         
         for (var it : previewStateCache.values()) {
             previewPanel.getInputPanel().releaseEditor(it);
