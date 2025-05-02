@@ -49,8 +49,6 @@ def getVersionCode() {
     }
 }
 
-//println(getVersion())
-
 
 intellijPlatform {
     buildSearchableOptions = false
