@@ -68,7 +68,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
     
     
     private void annotateFileIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
-        holder.newAnnotation(HighlightSeverity.WARNING, issue.getAnnotation()).fileLevel().create();
+        holder.newAnnotation(HighlightSeverity.WARNING, issue.getAnnotation() != null ? issue.getAnnotation() : "problem at: "+file.getName()).fileLevel().create();
     }
     
     
