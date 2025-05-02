@@ -31,14 +31,35 @@ compileJava {
     targetCompatibility = '17'
 }
 
+
+def getVersionCode() {
+    try {
+        def outs = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe'
+            standardOutput = outs
+        }
+
+        println("Plugin version --- v${outs.toString().trim()} ---")
+
+        return outs.toString().trim()
+    }
+    catch (ignored) {
+        return "?"
+    }
+}
+
+//println(getVersion())
+
+
 intellijPlatform {
     buildSearchableOptions = false
     instrumentCode = false
 
     pluginConfiguration {
-        id = 'antlr-intellij-plugin-neo'
-        name = 'ANTLR Neo'
-        version = '1.7-SNAPSHOT'
+        id = projectID
+        name = projectName
+        version = getVersionCode()
         description = ''
         changeNotes =
                 """
@@ -54,8 +75,8 @@ intellijPlatform {
 //        }
 
         ideaVersion {
-            sinceBuild = '241'
-            untilBuild = '241.*'
+            sinceBuild = ideaVersionSince
+            untilBuild = ideaVersionUntil
         }
 
         vendor {
@@ -68,7 +89,7 @@ intellijPlatform {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity '2024.1'
+        intellijIdeaCommunity ideaVersion
         bundledPlugin 'com.intellij.java'
         testFramework TestFrameworkType.Platform.INSTANCE
     }
