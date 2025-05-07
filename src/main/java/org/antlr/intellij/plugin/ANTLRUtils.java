@@ -9,7 +9,8 @@ import java.util.Calendar;
 import java.util.regex.Pattern;
 
 public class ANTLRUtils {
-    public static final String DEFAULT_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.S";
+    public static final String DEFAULT_TIMESTAMP_FORMAT = "yy/MM/dd HH:mm:ss.SSS";
+    public static final String SIMPLE_TIMESTAMP_FORMAT = "HH:mm:ss.SSS";
     
     
     /**
@@ -199,7 +200,22 @@ public class ANTLRUtils {
     }
     
     
+    public static String getSimpleTimeStamp() {
+        return new SimpleDateFormat(SIMPLE_TIMESTAMP_FORMAT).format(Calendar.getInstance().getTime());
+    }
+    
+    
     public static String getTimeStamp(String format) {
         return new SimpleDateFormat(format).format(Calendar.getInstance().getTime());
+    }
+    
+    
+    public static String byPaddingZeros(int value, int paddingLength) {
+        return String.format("%0" + paddingLength + "d", value);
+    }
+    
+    
+    public static String paddingLeft(String s, int paddingLength) {
+        return String.format("%-" + paddingLength + 's', s);
     }
 }
