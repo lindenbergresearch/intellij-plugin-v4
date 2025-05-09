@@ -1,12 +1,12 @@
 package org.antlr.intellij.plugin.psi;
 
-import com.intellij.openapi.project.Project;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.resolve.ImportResolver;
@@ -36,8 +36,8 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
      */
     @NotNull
     @Override
-    public Object[] getVariants() {
-        RulesNode rules = PsiTreeUtil.getContextOfType(myElement, RulesNode.class);
+    public Object @NotNull [] getVariants() {
+        var rules = PsiTreeUtil.getContextOfType(myElement, RulesNode.class);
         // find all rule defs (token, parser)
         Collection<? extends RuleSpecNode> ruleSpecNodes =
             PsiTreeUtil.findChildrenOfAnyType(rules, ParserRuleSpecNode.class, LexerRuleSpecNode.class);
@@ -52,19 +52,20 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
     @Nullable
     @Override
     public PsiElement resolve() {
-        PsiFile tokenVocabFile = TokenVocabResolver.resolveTokenVocabFile(getElement());
+        var controller = ANTLRv4PluginController.getInstance(getElement().getProject());
+        var tokenVocabFile = TokenVocabResolver.resolveTokenVocabFile(getElement());
         
         if (tokenVocabFile != null) {
             return tokenVocabFile;
         }
         
-        PsiFile importedFile = ImportResolver.resolveImportedFile(getElement());
+        var importedFile = ImportResolver.resolveImportedFile(getElement());
         if (importedFile != null) {
             return importedFile;
         }
         
-        GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
-        PsiElement specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
+        var grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
+        var specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
         
         if (specNode != null) {
             return specNode;
@@ -82,17 +83,29 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
             return TokenVocabResolver.resolveInTokenVocab(getElement(), ruleName);
         }
         
+        if (controller != null) {
+            controller.printToConsole("GrammarElementRef.resolve(): Unable to resolve element: " + getElement().getName(), ConsoleViewContentType.LOG_WARNING_OUTPUT);
+        }
+        
         return null;
     }
     
     
     @Override
-    public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-        Project project = getElement().getProject();
-        myElement.replace(MyPsiUtils.createLeafFromText(project,
+    public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
+        var project = getElement().getProject();
+        
+        var psi = MyPsiUtils.createLeafFromText(
+            project,
             myElement.getContext(),
             newElementName,
-            ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)));
+            ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)
+        );
+        
+        if (psi != null) {
+            myElement.replace(psi);
+        }
+        
         return myElement;
     }
 }
