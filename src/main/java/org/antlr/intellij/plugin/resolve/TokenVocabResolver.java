@@ -83,7 +83,7 @@ public class TokenVocabResolver {
         var parentDirectory = sibling.getParent();
         
         if (parentDirectory != null) {
-            var candidate = parentDirectory.findFile(baseName + ANTLRv4FileType.INSTANCE.getDefaultExtension());
+            var candidate = parentDirectory.findFile(baseName + '.' + ANTLRv4FileType.INSTANCE.getDefaultExtension());
             
             if (candidate instanceof ANTLRv4FileRoot) {
                 return candidate;
