@@ -32,7 +32,7 @@ import org.antlr.v4.tool.Rule;
  * elements piecemeal. That could get g and lg for different grammar files,
  * for example.
  */
-public class PreviewState {
+@SuppressWarnings("ALL") public class PreviewState {
     private static final Logger LOG =
         Logger.getInstance(PreviewState.class);
     
@@ -165,6 +165,9 @@ public class PreviewState {
             ConsoleViewContentType.LOG_DEBUG_OUTPUT
         );
         
+        ANTLRv4PluginController.printToConsole(
+            project, "PreviewState: " + this.toString(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        
         if (!hasValidGrammar()) {
             validStartRule = false;
             return;
@@ -267,8 +270,17 @@ public class PreviewState {
      * @return True if valid grammar has been set.
      */
     public boolean hasValidGrammar() {
-        ANTLRv4PluginController.printToConsole(project, "hasValidGrammar(grammar=" + (grammar != null ? "true" : false) + ", lexerGrammar=" + (lexerGrammar != null ? "true" : false) + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
-        return !(grammar == null || lexerGrammar == null);
+        var st = Thread.currentThread().getStackTrace();
+        
+        var pretext = "";
+        
+        if (st.length > 3) {
+            pretext = st[3].getClassName() + "." + st[3].getMethodName() + ":" + st[3].getLineNumber() + " <- ";
+        }
+        
+        
+        ANTLRv4PluginController.printToConsole(project, pretext + "hasValidGrammar(grammar=" + (grammar != null ? "true" : false) + ", lexerGrammar=" + (lexerGrammar != null ? "true" : false) + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        return grammar != null && lexerGrammar != null;
     }
     
     
@@ -343,7 +355,7 @@ public class PreviewState {
      * @param text Input text.
      */
     public void setManualInputText(CharSequence text) {
-        if (text != null && !text.isEmpty() && !manualInputText.equals(text)) {
+        if (manualInputText != null && text != null && !text.isEmpty() && !manualInputText.equals(text)) {
             manualInputText = text;
             persistPreviewData();
         }
@@ -366,7 +378,7 @@ public class PreviewState {
     
     
     public boolean isBadGrammar() {
-        return grammar.equals(ParsingUtils.BAD_PARSER_GRAMMAR);
+        return grammar == null || grammar.equals(ParsingUtils.BAD_PARSER_GRAMMAR);
     }
     
     
@@ -395,28 +407,39 @@ public class PreviewState {
     
     @Override
     public String toString() {
-        var sr = startRuleName;
-        var srValid = hasValidStartRule();
-        var srExists = sr != null && srValid && existsStartRule(sr);
+        String inputText = "<no text>";
         
-        return "PreviewState { \n" +
-               "\tproject          =" + project +
-               "\n\tgrammarFile    =" + grammarFile.getName() +
-               "\n\tgrammar        =" + grammar +
-               "\n\tvalidGrammar   =" + hasValidGrammar() +
-               "\n\tisBadGrammar   =" + isBadGrammar() +
-               "\n\tlexerGrammar   =" + lexerGrammar +
+        if (manualInputText != null) {
+            inputText = manualInputText.toString().replaceAll("\n", "\\n");
+            
+            if (inputText.length() > 35) {
+                inputText = inputText.substring(0, 35);
+            }
+            
+            inputText = "\"" + inputText + "\"";
+        }
+        
+        return "\nPreviewState {\n" +
+               "\tproject ................. " + project +
+               "\n\tgrammarFile ............. " + grammarFile.getName() +
+               "\n\tParser Grammar .......... " + grammar +
+               "\n\tLexer  Grammar .......... " + lexerGrammar +
+               "\n\tvalidGrammar? ........... " + hasValidGrammar() +
+               "\n\tisBadGrammar? ........... " + isBadGrammar() +
                
-               "\n\tstartRule      =" + startRuleName +
-               "\n\tvalidStartRule =" + validStartRule +
-               "\n\texistsStartRule=" + existsStartRule(startRuleName) +
-               "\n\texistsDefRule  =" + existsStartRule(getDefaultStartRuleName()) +
+               "\n" +
+               "\n\tstartRule ............... " + startRuleName +
+               "\n\tvalidStartRule? ......... " + validStartRule +
+               "\n\texistsStartRule? ........ " + existsStartRule(startRuleName) +
+               "\n\texistsDefRule? .......... " + existsStartRule(getDefaultStartRuleName()) +
+               "\n" +
                
-               "\n\tmanualInputText=" + manualInputText +
-               "\n\tinputFile      =" + (inputFile != null ? inputFile.getName() : "-") +
+               "\n\tmanualInputText ......... " + inputText +
+               "\n\tinputFile ............... " + (inputFile != null ? inputFile.getName() : "<no file>") +
+               "\n" +
                
-               "\n\tparsingResult  =" + parsingResult +
-               "\n\tparseTime      =" + parseTime +
+               "\n\tparsingResult ........... " + (parsingResult != null ? parsingResult.toString() : "<no parsing result>") +
+               "\n\tparseTime ............... " + parseTime +
                "\n}";
     }
 }

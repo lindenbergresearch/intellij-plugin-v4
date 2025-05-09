@@ -26,13 +26,14 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComponentWithBrowseButton.BrowseFolderActionListener;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.components.JBScrollPane;
+import lombok.Getter;
+import lombok.Setter;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4Icons;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -65,8 +66,7 @@ import java.util.List;
 
 // Not a view itself but delegates to one.
 public class InputPanel implements Disposable {
-    private static final Logger LOG =
-        Logger.getInstance(InputPanel.class);
+    private static final Logger LOG = Logger.getInstance(InputPanel.class);
     
     private static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
     private static final int MAX_STACK_DISPLAY = 30;
@@ -92,7 +92,8 @@ public class InputPanel implements Disposable {
     /**
      * state for grammar in current editor, not editor where user is typing preview input!
      */
-    public PreviewState previewState;
+    @Getter @Setter
+    private PreviewState previewState;
     private JRadioButton inputRadioButton;
     private JRadioButton fileRadioButton;
     private JTextArea placeHolder;
@@ -104,7 +105,7 @@ public class InputPanel implements Disposable {
     private JLabel startRuleLabel2;
     private ComboBox<String> comboBox;
     private JScrollPane errorScrollPane;
-    ErrorConsolePanel errorConsolePanel;
+    private final ErrorConsolePanel errorConsolePanel;
     
     
     private void createUIComponents() {
@@ -319,8 +320,8 @@ public class InputPanel implements Disposable {
     
     public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
         var flags = HintManager.HIDE_BY_ANY_KEY |
-            HintManager.HIDE_BY_TEXT_CHANGE |
-            HintManager.HIDE_BY_SCROLLING;
+                    HintManager.HIDE_BY_TEXT_CHANGE |
+                    HintManager.HIDE_BY_SCROLLING;
         
         var timeout = 0; // default?
         hintMgr.showErrorHint(editor, msg, offset, offset + 1, HintManager.ABOVE, flags, timeout);
@@ -329,8 +330,8 @@ public class InputPanel implements Disposable {
     
     public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
         var flags = HintManager.HIDE_BY_ANY_KEY |
-            HintManager.HIDE_BY_TEXT_CHANGE |
-            HintManager.HIDE_BY_SCROLLING;
+                    HintManager.HIDE_BY_TEXT_CHANGE |
+                    HintManager.HIDE_BY_SCROLLING;
         
         var timeout = 0; // default?
         var infoLabel = HintUtil.createInformationLabel(msg);
@@ -414,6 +415,10 @@ public class InputPanel implements Disposable {
                 var start = e.getNewRange().getStartOffset();
                 var end = e.getNewRange().getEndOffset();
                 
+                if (editor.getVirtualFile() != null) {
+                    return;
+                }
+                
                 if (start != end) {
                     handleTextSelection(start, end, editor);
                 }
@@ -429,6 +434,11 @@ public class InputPanel implements Disposable {
         var project = editor.getProject();
         if (project == null) return;
         
+        var result = previewState.getParsingResult();
+        
+        if (result == null) {
+            return;
+        }
         
         var parser = (PreviewParser) previewState.getParsingResult().parser;
         var tokenStream = (CommonTokenStream) parser.getInputStream();
@@ -438,9 +448,9 @@ public class InputPanel implements Disposable {
             .filter(token -> token.getStopIndex() >= start && token.getStartIndex() <= end)
             .toList();
         
-        String list = "[";
-        for (Token token : selectedTokens) {
-            list += ("text='" + token.getText() + " type=" + token.toString() + "' (" + token.getStartIndex() + '-' + token.getStopIndex() + "), ");
+        var list = editor.getVirtualFile() + " [";
+        for (var token : selectedTokens) {
+            list += ("text='" + token.getText() + " type=" + token + "' (" + token.getStartIndex() + '-' + token.getStopIndex() + "), ");
         }
         list += "]";
         
@@ -590,10 +600,10 @@ public class InputPanel implements Disposable {
         ANTLRv4PluginController.printToConsole(
             previewState.getProject(),
             "InputPanel.releaseEditor(" +
-                previewState.getInputEditor() +
-                ", lexerGrammarFile=" +
-                previewState.getGrammarFile() +
-                ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT
+            previewState.getInputEditor() +
+            ", lexerGrammarFile=" +
+            previewState.getGrammarFile() +
+            ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT
         );
         
         previewState.releaseEditor();
@@ -648,8 +658,8 @@ public class InputPanel implements Disposable {
         ANTLRv4PluginController.printToConsole(
             previewState.getProject(),
             "InputPanel.setStartRuleName(" +
-                grammarFile.getName() + ", '" +
-                startRuleName + "')",
+            grammarFile.getName() + ", '" +
+            startRuleName + "')",
             ConsoleViewContentType.LOG_DEBUG_OUTPUT
         );
         
@@ -1125,8 +1135,8 @@ public class InputPanel implements Disposable {
     
     /* ------------------------------------------------------------------------------------------------------------------ */
     
+    
     @Override public void dispose() {
         LOG.debug("Dispose called: " + this.getClass().getName());
-    
     }
 }

@@ -1042,8 +1042,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         ANTLRv4PluginController.printToConsole(project, "switchToGrammar: " + grammarFile, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         
         // should not happen
-        if (controller == null)
-            return;
+        if (controller == null) {
+            throw new RuntimeException("Cannot switch to grammar file: " + grammarFile + " controller instance is not available.");
+        }
         
         var previewState = controller.getPreviewState(grammarFile);
         
@@ -1065,10 +1066,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
             updateParseTreeFromDoc(previewState.getGrammarFile(), true);
             ANTLRv4PluginController.printToConsole(project, "switchToGrammar -> updateParseTreeFromDoc: " + grammarFile, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         } else {
-            ANTLRv4PluginController.printToConsole(project, "switchToGrammar -> BAD GRAMMAR: " + grammarFile, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+            ANTLRv4PluginController.printToConsole(project, "switchToGrammar -> BAD GRAMMAR: " + grammarFile, ConsoleViewContentType.LOG_WARNING_OUTPUT);
             addErrorText("Error while parsing grammar." + "See ANTLR Tool Output for more information.");
             clearTabs(); // blank tree
-            controller.getConsoleWindow().show();
+           // controller.getConsoleWindow().show();
         }
         
         setEnabled(previewState.hasValidGrammar());
@@ -1238,8 +1239,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
         
         if (autoRefresh
             && controller != null
-            && inputPanel.previewState != null
-            && inputPanel.previewState.getStartRuleName() != null) {
+            && inputPanel.getPreviewState() != null
+            && inputPanel.getPreviewState().getStartRuleName() != null) {
             ApplicationManager.getApplication().invokeLater(() -> controller.grammarFileSavedEvent(virtualFile));
         }
     }
