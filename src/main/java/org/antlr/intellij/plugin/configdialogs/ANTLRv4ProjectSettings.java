@@ -5,6 +5,7 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.Nls.Capitalization;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,21 +36,14 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
     }
     
     
-    @Nullable
-    @Override
-    public Runnable enableSearch(String option) {
-        return null;
-    }
-    
-    
-    @Nls(capitalization = Nls.Capitalization.Title)
+    @Nls(capitalization = Capitalization.Title)
     @Override
     public String getDisplayName() {
         return "ANTLR4 Project Settings";
     }
     
     
-    @Nullable
+    @Override @Nullable
     public String getHelpTopic() {
         return "ANTLR4 Project Settings";
     }
@@ -65,7 +59,7 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
     
     @Override
     public boolean isModified() {
-        ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
+        var grammarProperties = getGrammarProperties(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
         return configurationForm.isModified(grammarProperties);
     }
     
@@ -76,7 +70,7 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
     }
     
     
-    public void reset() {
+    @Override public void reset() {
         configurationForm.loadValues(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
     }
     
