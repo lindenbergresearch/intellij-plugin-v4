@@ -4,6 +4,8 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Service.Level;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,9 +30,14 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.*;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4UISettingsState;
+import org.antlr.intellij.plugin.misc.ConsoleLogUtil;
+import org.antlr.intellij.plugin.misc.Stopwatch;
+import org.antlr.intellij.plugin.misc.StringUtil;
+import org.antlr.intellij.plugin.misc.VT100;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
@@ -87,7 +94,7 @@ public final class ANTLRv4PluginController implements Disposable {
     @Getter @Setter
     private boolean logDebugMessages = false;
     
-    private long currentTimeMillis = System.currentTimeMillis();
+    private final Stopwatch stopwatch = Stopwatch.createStarted();
     
     /* ------------------------------------------------------------------------------------------------------------------ */
     
@@ -95,8 +102,8 @@ public final class ANTLRv4PluginController implements Disposable {
     @Inject
     public ANTLRv4PluginController(Project project) {
         this.project = project;
-        LOG.info("ANTLRv4PluginController initialized");
         init();
+        LOG.info("ANTLRv4PluginController initialized");
     }
     
     
@@ -104,7 +111,7 @@ public final class ANTLRv4PluginController implements Disposable {
         installEditorListener();
         installAsyncFileListener();
         installFileEditorListener();
-        installPsiChangeListener(); // optional
+        installPsiChangeListener();
     }
     
     /* ------------------------------------------------------------------------------------------------------------------ */
@@ -125,7 +132,7 @@ public final class ANTLRv4PluginController implements Disposable {
                             if (event.getFile() != null) {
                                 LOG.debug("VFS changed: " + event.getFile().getPath());
                                 printToConsole(
-                                    "VFS update: " + event.getFile().getName() + " - " + event.getFileSystem().getProtocol() + "::" + event.getFileSystem().getNioPath(event.getFile()),
+                                    "<VFS> update: " + event.getFileSystem().getProtocol() + "::" + event.getFileSystem().getNioPath(event.getFile()),
                                     ConsoleViewContentType.LOG_DEBUG_OUTPUT
                                 );
                             }
@@ -145,7 +152,7 @@ public final class ANTLRv4PluginController implements Disposable {
             public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
                 // Called when a file is opened in the editor
                 LOG.info("File opened: " + file.getPath());
-                printToConsole("File opened: " + file.getPath() + " " + source.getSelectedEditor().getName(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                printToConsole("File opened: " + file.getPath() + ' ' + source.getSelectedEditor().getName(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
             }
             
             
@@ -164,15 +171,30 @@ public final class ANTLRv4PluginController implements Disposable {
             @Override
             public void selectionChanged(@NotNull FileEditorManagerEvent event) {
                 // Called when editor selection changes
-                LOG.info("Editor selection changed: " + event.getNewFile());
+                LOG.info("Editor selection changed: from" +
+                         event.getOldFile() + '/' +
+                         event.getOldEditor() +
+                         " -> " +
+                         event.getNewFile() + '/' +
+                         event.getNewEditor()
+                );
                 
-                if (event.getNewFile() == null) {
+                if (event.getNewFile() == null || event.getNewEditor() == null) {
                     return;
                 }
                 
-                printToConsole("Selection changed: " + event.getNewFile().getPath(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                printToConsole("Active file Selection changed: " + event.getNewFile().getPresentableName(), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                printToConsole(
+                    "Active file changed: from File/Editor = [" +
+                    (event.getOldFile() != null ? event.getOldFile().getPresentableName() : "-") + '/' +
+                    (event.getOldEditor() != null ? event.getOldEditor().getName() : "-") + "] " +
+                    " -> to File/Editor = [" +
+                    event.getNewFile().getPresentableName() + '/' +
+                    event.getNewEditor().getName() + "].",
+                    ConsoleViewContentType.LOG_DEBUG_OUTPUT
+                );
                 
-                if (!projectIsClosed && event.getNewFile() != null) {
+                if (!projectIsClosed) {
                     currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
                 }
             }
@@ -200,7 +222,7 @@ public final class ANTLRv4PluginController implements Disposable {
                     editor.addEditorMouseMotionListener(listener2);
                     
                     var file = event.getEditor().getVirtualFile();
-                    printToConsole("editorCreated(file=" + (file != null ? file.getName() : "null)" + ')'), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                    printToConsole("editorCreated(file=" + ((file != null ? file.getName() : "null") + ')'), ConsoleViewContentType.LOG_DEBUG_OUTPUT);
                 }
             }
             
@@ -228,13 +250,19 @@ public final class ANTLRv4PluginController implements Disposable {
     
     private void installPsiChangeListener() {
         PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
+            @Override public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
+                super.propertyChanged(event);
+                printToConsole("<PSI> propertyChanged(" + event + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+            }
+            
+            
             @Override
             public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
                 // Called when PSI tree changes
                 var file = event.getFile();
                 if (file != null) {
                     LOG.debug("PSI changed: " + file.getName());
-                    printToConsole("PSI update: " + file.getName() + ' ' + event.getPropertyName() + '(' + event.getOldValue() + " -> " + event.getNewValue() + ") ", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+                    printToConsole("<PSI> childrenChanged: " + file.getName() + ' ' + event.getPropertyName() + '(' + event.getOldValue() + " -> " + event.getNewValue() + ") ", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
                 }
             }
         }, this);
@@ -284,6 +312,11 @@ public final class ANTLRv4PluginController implements Disposable {
     }
     
     
+    // ### ----------------------------------------------------------------  ###
+    // ### --- CONSOLE FUNCTIONS ------------------------------------------  ###
+    // ### ----------------------------------------------------------------  ###
+    
+    
     /**
      * Print the given text to the ANTLR Console with the given content-type.
      *
@@ -294,23 +327,82 @@ public final class ANTLRv4PluginController implements Disposable {
         var appSettings = ANTLRv4UISettingsState.getInstance();
         logDebugMessages = appSettings.isEnableDebugConsole();
         
+        ensureConsoleWindowInitialized();
+        
         if (console == null || (!logDebugMessages && (contentType == null || contentType.equals(ConsoleViewContentType.LOG_DEBUG_OUTPUT)))) {
             return;
         }
         
+        var elapsed = stopwatch.getElapsedTimeDuration();
         
-        var delta = System.currentTimeMillis() - currentTimeMillis;
-        
-        if (delta > 1300) {
-            console.print("\n[\\---< " + delta + " >---/]\n", ConsoleViewContentType.LOG_WARNING_OUTPUT);
+        if (elapsed.getSeconds() > 2) {
+            console.print("\n[ **** New Session Detected: ~" + stopwatch + " **** ]\n", ConsoleViewContentType.NORMAL_OUTPUT);
+            
+            VT100.create()
+                .NewLine()
+                .foreground(VT100.BRIGHT_WHITE)
+                .text("**** New Session Detected: ~")
+                .foreground(VT100.BRIGHT_YELLOW)
+                .bold()
+                .text(stopwatch.toString())
+                .reset()
+                .foreground(VT100.BRIGHT_WHITE)
+                .text(" ****").NewLine()
+                .printTo(System.out);
+            
+            stopwatch.reset();
+            stopwatch.start();
         }
         
-        currentTimeMillis = System.currentTimeMillis();
+        var msgCounter = StringUtil.byPaddingZeros(++counter, 4);
+        var debugInfo = ConsoleLogUtil.collectDebugInfo(Thread.currentThread().getStackTrace());
         
-        // make sure the tool windows is initialized due to lazy init system
-        ensureConsoleWindowInitialized();
         
-        console.print((++counter) + " [" + ANTLRUtils.getTimeStamp() + "] " + text + '\n', contentType);
+        var debugLevel =
+            contentType.getName()
+                .replace("NORMAL_OUTPUT", "NORM")
+                .replace("_OUTPUT", "")
+                .replace("LOG_", "")
+                .replace("WARNING", "WARN");
+        
+        
+        var msg =
+            '[' + msgCounter + '|' + StringUtil.getSimpleTimeStamp() + "] " +
+            StringUtil.padLeft(debugLevel, 7) +
+            StringUtil.padLeft(debugInfo.compactInfo(), 55) + ' ' + text;
+        
+        var coloredMessage = VT100.create().reset();
+        
+        
+        if (contentType.equals(ConsoleViewContentType.LOG_ERROR_OUTPUT)) {
+            coloredMessage.bold().foreground(VT100.BRIGHT_RED);
+        }
+        
+        if (contentType.equals(ConsoleViewContentType.LOG_WARNING_OUTPUT)) {
+            coloredMessage.foreground(VT100.YELLOW);
+        }
+        
+        if (contentType.equals(ConsoleViewContentType.NORMAL_OUTPUT)) {
+            coloredMessage.foreground(VT100.WHITE);
+        }
+        
+        if (contentType.equals(ConsoleViewContentType.LOG_INFO_OUTPUT)) {
+            coloredMessage.foreground(VT100.CYAN);
+        }
+        
+        if (contentType.equals(ConsoleViewContentType.LOG_DEBUG_OUTPUT)) {
+            coloredMessage.foreground(VT100.BRIGHT_BLUE);
+        }
+        
+        coloredMessage.text(msg);
+        
+        if (contentType.equals(ConsoleViewContentType.LOG_ERROR_OUTPUT)) {
+            coloredMessage.NewLine().printTo(System.err);
+        } else {
+            coloredMessage.NewLine().printTo(System.out);
+        }
+        
+        console.print(msg + System.lineSeparator(), contentType);
         console.requestScrollingToEnd();
     }
     
@@ -471,28 +563,30 @@ public final class ANTLRv4PluginController implements Disposable {
         
         var fileSuffix = '.' + ANTLRv4FileType.INSTANCE.getDefaultExtension();
         
+        if (newFile == null) {return;}
+        
         if (newFile.getName().endsWith(".g")) {
             var text = "ANTLR 4 cannot handle obsolete ANTLR 3 '*.g' files.";
             
             LOG.info(text);
             printToConsole(text, ConsoleViewContentType.LOG_ERROR_OUTPUT);
-            //  hidePreview();
             return;
         }
         
         if (!newFile.getName().endsWith(fileSuffix)) {
-            //  hidePreview();
+            printToConsole("ignore file: " + newFile.getName() + " - not a grammar file.", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
             return;
         }
         
         // When switching from a lexer grammar, update its objects in case the grammar was modified.
         // The updated objects might be needed later by another dependant grammar.
-        if (oldFile != null && oldFile.getName().endsWith(fileSuffix)) {
-            updateGrammarObjectsFromFile(oldFile, true);
-        }
+//        if (oldFile != null && oldFile.getName().endsWith(fileSuffix)) {
+//            updateGrammarObjectsFromFile(oldFile, true);
+//        }
         
         var previewState = getPreviewState(newFile);
         if (!previewState.hasValidGrammar()) { // only load grammars if none is there
+            printToConsole("No valid grammar: " + previewState, ConsoleViewContentType.LOG_WARNING_OUTPUT);
             updateGrammarObjectsFromFile(newFile, false);
         }
         
@@ -584,7 +678,10 @@ public final class ANTLRv4PluginController implements Disposable {
     private void updateGrammarObjectsFromFile(VirtualFile grammarFile, boolean generateTokensFile) {
         LOG.info("updateGrammarObjectsFromFile(" + grammarFile + ", " + generateTokensFile + ')');
         printToConsole("updateGrammarObjectsFromFile(" + grammarFile + ", " + generateTokensFile + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
-        updatePreviewStateByGrammar(grammarFile);
+        
+        var s = updatePreviewStateByGrammar(grammarFile);
+        
+        printToConsole(s, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         
         // if grammarFileName is a separate lexer, we need to look for
         // its matching parser, if any, that is loaded in an editor
@@ -601,12 +698,14 @@ public final class ANTLRv4PluginController implements Disposable {
             // try to load lexer again and associate with this parser grammar.
             // must update parser too as tokens have changed
             var grammar = updatePreviewStateByGrammar(previewState.getGrammarFile());
-            printToConsole("reloading grammar: " + grammar, ConsoleViewContentType.LOG_INFO_OUTPUT);
+            printToConsole("reloading grammar: " + grammar, ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         }
     }
     
     
     private String updatePreviewStateByGrammar(VirtualFile grammarFile) {
+        printToConsole("updatePreviewStateByGrammar(" + grammarFile.getPath() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        
         var grammarFileName = grammarFile.getPath();
         var grammars = ParsingUtils.loadGrammars(grammarFile, project);
         var previewState = getPreviewState(grammarFile);
@@ -716,9 +815,12 @@ public final class ANTLRv4PluginController implements Disposable {
     
     public @NotNull PreviewState getPreviewState(VirtualFile grammarFile) {
         ANTLRv4PluginController.printToConsole(project, "getPreviewState(" + grammarFile.getPath() + ')', ConsoleViewContentType.LOG_DEBUG_OUTPUT);
+        
         if (previewStateCache.containsKey(grammarFile)) {
             return previewStateCache.get(grammarFile);
         }
+        
+        ANTLRv4PluginController.printToConsole(project, "PreviewState(" + project.getName() + ", " + grammarFile + ") is not in cache. Must be created...", ConsoleViewContentType.LOG_DEBUG_OUTPUT);
         
         var stateForCurrentGrammar = new PreviewState(project, grammarFile);
         previewStateCache.put(grammarFile, stateForCurrentGrammar);
@@ -771,7 +873,6 @@ public final class ANTLRv4PluginController implements Disposable {
         
         @Override
         public void mouseMoved(@NotNull EditorMouseEvent e) {
-            //EditorMouseMotionListener.super.mouseMoved(e);
             var fileSuffix = '.' + ANTLRv4FileType.INSTANCE.getDefaultExtension();
             var virtualFile = FileDocumentManager.getInstance().getFile(e.getEditor().getDocument());
             
@@ -790,16 +891,20 @@ public final class ANTLRv4PluginController implements Disposable {
             lastElement = psiElement;
             
             if (psiFile != null && psiElement instanceof LexerRuleRefNode lexerRuleRefNode) {
-                var psiReference = lexerRuleRefNode.getReference();
-                
-                if (psiReference != null && psiReference.resolve() != null) {
-                    var ruleSpecNode = (RuleSpecNode) psiReference.resolve();// <-- todo: check npe due to mouse move on lexer grammars
-                 
-                    if (ruleSpecNode != null) {
-                        var nodeFirstChild = ruleSpecNode.getChildren()[0];
-                        e.getEditor().getContentComponent().setToolTipText(nodeFirstChild.getText());
-                    }
-                }
+                ReadAction.nonBlocking(() -> {
+                        var ref = lexerRuleRefNode.getReference();
+                        return ref != null ? ref.resolve() : null;
+                    })
+                    .expireWith(project)
+                    .finishOnUiThread(ModalityState.defaultModalityState(), resolved -> {
+                        if (resolved instanceof RuleSpecNode ruleSpecNode) {
+                            var tooltip = ruleSpecNode.getChildren()[0].getText();
+                            e.getEditor().getContentComponent().setToolTipText(tooltip);
+                        } else {
+                            e.getEditor().getContentComponent().setToolTipText(null);
+                        }
+                    })
+                    .submit(AppExecutorUtil.getAppExecutorService());
             } else {
                 e.getEditor().getContentComponent().setToolTipText(null);
             }
