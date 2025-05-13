@@ -11,6 +11,7 @@ public class StringUtil {
         END
     }
     
+    
     public static final String DEFAULT_TIMESTAMP_FORMAT = "yy/MM/dd HH:mm:ss.SSS";
     public static final String SIMPLE_TIMESTAMP_FORMAT = "HH:mm:ss.SSS";
     
@@ -94,17 +95,22 @@ public class StringUtil {
     
     
     public static String byPaddingZeros(int value, int paddingLength) {
-        return String.format("%0" + paddingLength + "d", value);
+        return String.format("%0" + paddingLength + 'd', value);
     }
     
     
-    public static String paddingLeft(String s, int paddingLength) {
+    public static String padLeft(String s, int paddingLength) {
         return String.format("%-" + paddingLength + 's', s);
     }
     
     
+    public static String padRight(String s, int paddingLength) {
+        return String.format("%" + paddingLength + 's', s);
+    }
+    
+    
     private final static ShortenType defaultShortenType = ShortenType.MIDDLE;
-    private final static String defaultEllipsis = "...";
+    private final static String defaultEllipsis = " … ";
     
     
     public static String shortenString(String text, int maxLength, ShortenType type, String ellipsis) {
